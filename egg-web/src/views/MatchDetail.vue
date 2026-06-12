@@ -116,7 +116,7 @@
 
 <script>
 import request from '@/utils/request'
-import { getToken, getUser } from '@/utils/auth'
+import { getToken } from '@/utils/auth'
 
 export default {
   name: 'MatchDetail',

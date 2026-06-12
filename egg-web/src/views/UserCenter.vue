@@ -100,7 +100,7 @@
 
 <script>
 import request from '@/utils/request'
-import { getToken, getUser, setUser } from '@/utils/auth'
+import { getToken, setUser } from '@/utils/auth'
 
 export default {
   name: 'UserCenter',

@@ -74,7 +74,7 @@
 import request from '@/utils/request'
 
 export default {
-  name: 'Leaderboard',
+  name: 'LeaderboardPage',
   data() {
     return {
       leaderboard: [],

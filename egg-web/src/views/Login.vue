@@ -48,7 +48,7 @@ import request from '@/utils/request'
 import { setToken, setUser } from '@/utils/auth'
 
 export default {
-  name: 'Login',
+  name: 'LoginPage',
   data() {
     const validateConfirmPassword = (rule, value, callback) => {
       if (value !== this.registerForm.password) {
