@@ -61,8 +61,8 @@ export default {
 }
 
 body {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
+  background-color: #0f0f0f;
+  color: #d4d4d4;
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
 }
 
@@ -71,19 +71,19 @@ body {
 }
 
 .app-header {
-  background-color: #16213e;
+  background-color: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  border-bottom: 2px solid #FF4655;
+  border-bottom: 2px solid #2e2e2e;
   height: 56px !important;
 }
 
 .header-left .logo {
   font-size: 22px;
   font-weight: 800;
-  color: #FF4655;
+  color: #6aaa96;
   text-decoration: none;
   letter-spacing: 2px;
 }
@@ -95,16 +95,16 @@ body {
 }
 
 .nav-btn {
-  color: #e0e0e0 !important;
+  color: #d4d4d4 !important;
   font-size: 14px;
 }
 
 .nav-btn:hover {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
 }
 
 .admin-btn {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
   font-weight: 600;
 }
 
@@ -121,47 +121,47 @@ a {
 
 /* Element UI dark overrides */
 .el-card {
-  background-color: #16213e !important;
-  border-color: #2a2a4a !important;
-  color: #e0e0e0 !important;
+  background-color: #1a1a1a !important;
+  border-color: #2e2e2e !important;
+  color: #d4d4d4 !important;
 }
 
 .el-card__header {
-  border-bottom-color: #2a2a4a !important;
+  border-bottom-color: #2e2e2e !important;
 }
 
 .el-tabs__item {
-  color: #a0a0b0 !important;
+  color: #888888 !important;
 }
 
 .el-tabs__item.is-active {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
 }
 
 .el-tabs__active-bar {
-  background-color: #FF4655 !important;
+  background-color: #6aaa96 !important;
 }
 
 .el-table {
-  background-color: #16213e !important;
-  color: #e0e0e0 !important;
+  background-color: #1a1a1a !important;
+  color: #d4d4d4 !important;
 }
 
 .el-table th.el-table__cell {
-  background-color: #1a1a2e !important;
-  color: #e0e0e0 !important;
+  background-color: #0f0f0f !important;
+  color: #d4d4d4 !important;
 }
 
 .el-table tr {
-  background-color: #16213e !important;
+  background-color: #1a1a1a !important;
 }
 
 .el-table--enable-row-hover .el-table__body tr:hover > td {
-  background-color: #1e2a4a !important;
+  background-color: #252525 !important;
 }
 
 .el-table td, .el-table th {
-  border-bottom-color: #2a2a4a !important;
+  border-bottom-color: #2e2e2e !important;
 }
 
 .el-pagination {
@@ -170,46 +170,46 @@ a {
 }
 
 .el-input__inner {
-  background-color: #1a1a2e !important;
-  border-color: #2a2a4a !important;
-  color: #e0e0e0 !important;
+  background-color: #0f0f0f !important;
+  border-color: #2e2e2e !important;
+  color: #d4d4d4 !important;
 }
 
 .el-form-item__label {
-  color: #a0a0b0 !important;
+  color: #888888 !important;
 }
 
 .el-dialog {
-  background-color: #16213e !important;
+  background-color: #1a1a1a !important;
 }
 
 .el-dialog__title {
-  color: #e0e0e0 !important;
+  color: #d4d4d4 !important;
 }
 
 .el-dialog__body {
-  color: #e0e0e0 !important;
+  color: #d4d4d4 !important;
 }
 
 .el-select-dropdown {
-  background-color: #16213e !important;
+  background-color: #1a1a1a !important;
 }
 
 .el-select-dropdown__item {
-  color: #e0e0e0 !important;
+  color: #d4d4d4 !important;
 }
 
 .el-select-dropdown__item.hover,
 .el-select-dropdown__item:hover {
-  background-color: #1e2a4a !important;
+  background-color: #252525 !important;
 }
 
 .el-message-box {
-  background-color: #16213e !important;
-  border-color: #2a2a4a !important;
+  background-color: #1a1a1a !important;
+  border-color: #2e2e2e !important;
 }
 
 .el-date-picker {
-  background-color: #16213e !important;
+  background-color: #1a1a1a !important;
 }
 </style>

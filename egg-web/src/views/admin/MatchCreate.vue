@@ -97,34 +97,34 @@ export default {
 }
 
 .back-btn {
-  color: #a0a0b0 !important;
+  color: #888888 !important;
 }
 
 .back-btn:hover {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
 }
 
 .page-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 24px;
   font-weight: 700;
 }
 
 .form-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 32px;
   max-width: 600px;
 }
 
 .submit-btn {
-  background-color: #FF4655;
-  border-color: #FF4655;
+  background-color: #6aaa96;
+  border-color: #6aaa96;
 }
 
 .submit-btn:hover {
-  background-color: #e63e4d;
-  border-color: #e63e4d;
+  background-color: #7bc4a8;
+  border-color: #7bc4a8;
 }
 </style>

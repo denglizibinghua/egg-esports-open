@@ -143,7 +143,7 @@ export default {
 }
 
 .page-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 24px;
   font-weight: 700;
 }
@@ -153,8 +153,8 @@ export default {
 }
 
 .match-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 10px;
   padding: 20px 24px;
   margin-bottom: 16px;
@@ -163,9 +163,9 @@ export default {
 }
 
 .match-card:hover {
-  border-color: #FF4655;
+  border-color: #6aaa96;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(255, 70, 85, 0.15);
+  box-shadow: 0 4px 16px rgba(106, 170, 150, 0.15);
 }
 
 .match-tournament {
@@ -176,7 +176,7 @@ export default {
 }
 
 .match-time {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 13px;
 }
 
@@ -205,7 +205,7 @@ export default {
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #2a2a4a;
+  background-color: #2e2e2e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -221,19 +221,19 @@ export default {
 .team-logo-placeholder {
   font-size: 20px;
   font-weight: 700;
-  color: #FF4655;
+  color: #6aaa96;
 }
 
 .team-name {
   font-size: 18px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #d4d4d4;
 }
 
 .vs-badge {
   font-size: 16px;
   font-weight: 800;
-  color: #FF4655;
+  color: #6aaa96;
   letter-spacing: 2px;
   flex-shrink: 0;
 }
@@ -245,7 +245,7 @@ export default {
 }
 
 .match-result {
-  color: #67C23A;
+  color: #6aaa96;
   font-weight: 600;
   font-size: 14px;
 }
@@ -259,7 +259,7 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #FF4655;
+  background-color: #4ade80;
   margin-right: 4px;
   animation: dotBlink 1s ease-in-out infinite;
 }

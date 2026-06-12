@@ -141,12 +141,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #1f1f1f 100%);
 }
 
 .login-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 40px 36px 24px;
   width: 100%;
@@ -158,14 +158,14 @@ export default {
   text-align: center;
   font-size: 28px;
   font-weight: 800;
-  color: #FF4655;
+  color: #6aaa96;
   letter-spacing: 3px;
   margin-bottom: 4px;
 }
 
 .login-subtitle {
   text-align: center;
-  color: #a0a0b0;
+  color: #888888;
   font-size: 14px;
   margin-bottom: 28px;
 }
@@ -176,15 +176,15 @@ export default {
 
 .submit-btn {
   width: 100%;
-  background-color: #FF4655;
-  border-color: #FF4655;
+  background-color: #6aaa96;
+  border-color: #6aaa96;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 4px;
 }
 
 .submit-btn:hover {
-  background-color: #e63e4d;
-  border-color: #e63e4d;
+  background-color: #7bc4a8;
+  border-color: #7bc4a8;
 }
 </style>

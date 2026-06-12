@@ -185,14 +185,14 @@ export default {
 }
 
 .page-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 24px;
   font-weight: 700;
 }
 
 .user-info-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 24px;
   display: flex;
@@ -208,13 +208,13 @@ export default {
 }
 
 .user-nickname {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 20px;
   font-weight: 600;
 }
 
 .user-join-date {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 13px;
   margin-top: 4px;
 }
@@ -224,13 +224,13 @@ export default {
 }
 
 .points-value {
-  color: #FF4655;
+  color: #6aaa96;
   font-size: 32px;
   font-weight: 800;
 }
 
 .points-label {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 13px;
 }
 
@@ -242,28 +242,28 @@ export default {
 }
 
 .stat-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 8px;
   padding: 16px;
   text-align: center;
 }
 
 .stat-value {
-  color: #FF4655;
+  color: #6aaa96;
   font-size: 24px;
   font-weight: 700;
 }
 
 .stat-label {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 12px;
   margin-top: 4px;
 }
 
 .bet-history {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 24px;
 }
@@ -276,7 +276,7 @@ export default {
 }
 
 .section-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 18px;
   font-weight: 600;
 }

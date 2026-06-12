@@ -139,7 +139,7 @@ export default {
 }
 
 .page-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 24px;
   font-weight: 700;
 }
@@ -154,7 +154,7 @@ export default {
 }
 
 .podium-item {
-  background-color: #16213e;
+  background-color: #1a1a1a;
   border-radius: 12px;
   padding: 20px 28px;
   text-align: center;
@@ -163,17 +163,17 @@ export default {
 }
 
 .podium-item.gold {
-  border: 2px solid #FFD700;
+  border: 2px solid #d4a843;
   padding-bottom: 28px;
   min-width: 180px;
 }
 
 .podium-item.silver {
-  border: 2px solid #C0C0C0;
+  border: 2px solid #a0a0a0;
 }
 
 .podium-item.bronze {
-  border: 2px solid #CD7F32;
+  border: 2px solid #c47a3a;
 }
 
 .podium-crown {
@@ -188,42 +188,42 @@ export default {
 }
 
 .gold .podium-rank {
-  color: #FFD700;
+  color: #d4a843;
 }
 
 .silver .podium-rank {
-  color: #C0C0C0;
+  color: #a0a0a0;
 }
 
 .bronze .podium-rank {
-  color: #CD7F32;
+  color: #c47a3a;
 }
 
 .podium-name {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .podium-points {
-  color: #FF4655;
+  color: #6aaa96;
   font-size: 14px;
   font-weight: 600;
 }
 
 .rank-gold {
-  color: #FFD700;
+  color: #d4a843;
   font-weight: 700;
 }
 
 .rank-silver {
-  color: #C0C0C0;
+  color: #a0a0a0;
   font-weight: 700;
 }
 
 .rank-bronze {
-  color: #CD7F32;
+  color: #c47a3a;
   font-weight: 700;
 }
 </style>

@@ -183,7 +183,7 @@ export default {
 }
 
 .page-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 24px;
   font-weight: 700;
 }
@@ -196,7 +196,7 @@ export default {
 }
 
 .settle-btn {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
   font-weight: 600;
 }
 
@@ -207,18 +207,18 @@ export default {
 .settle-match-name {
   font-size: 18px;
   font-weight: 600;
-  color: #e0e0e0;
+  color: #d4d4d4;
   margin-bottom: 16px;
 }
 
 .settle-label {
-  color: #a0a0b0;
+  color: #888888;
   margin-bottom: 12px;
 }
 
 .settle-content .el-radio {
   display: block;
   margin-bottom: 12px;
-  color: #e0e0e0;
+  color: #d4d4d4;
 }
 </style>

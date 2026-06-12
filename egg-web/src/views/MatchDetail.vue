@@ -223,30 +223,30 @@ export default {
 }
 
 .back-btn {
-  color: #a0a0b0 !important;
+  color: #888888 !important;
   font-size: 14px;
 }
 
 .back-btn:hover {
-  color: #FF4655 !important;
+  color: #6aaa96 !important;
 }
 
 .match-info-card {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 32px;
   text-align: center;
 }
 
 .tournament-name {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 14px;
   margin-bottom: 4px;
 }
 
 .match-time {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 13px;
   margin-bottom: 24px;
 }
@@ -272,11 +272,11 @@ export default {
   height: 72px;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #2a2a4a;
+  background-color: #2e2e2e;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #3a3a5a;
+  border: 2px solid #3a3a3a;
 }
 
 .team-logo-large img {
@@ -288,13 +288,13 @@ export default {
 .team-logo-placeholder-large {
   font-size: 28px;
   font-weight: 700;
-  color: #FF4655;
+  color: #6aaa96;
 }
 
 .team-name-large {
   font-size: 22px;
   font-weight: 700;
-  color: #e0e0e0;
+  color: #d4d4d4;
 }
 
 .vs-section {
@@ -304,35 +304,35 @@ export default {
 .vs-text {
   font-size: 24px;
   font-weight: 800;
-  color: #FF4655;
+  color: #6aaa96;
   letter-spacing: 3px;
 }
 
 .match-result-display {
   font-size: 20px;
   font-weight: 600;
-  color: #67C23A;
+  color: #6aaa96;
   margin-top: 16px;
 }
 
 .winner-name {
-  color: #FF4655;
+  color: #6aaa96;
 }
 
 .bet-panel {
-  background-color: #16213e;
-  border: 1px solid #2a2a4a;
+  background-color: #1a1a1a;
+  border: 1px solid #2e2e2e;
   border-radius: 12px;
   padding: 24px;
   margin-top: 24px;
 }
 
 .panel-title {
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 20px;
-  border-bottom: 1px solid #2a2a4a;
+  border-bottom: 1px solid #2e2e2e;
   padding-bottom: 12px;
 }
 
@@ -349,7 +349,7 @@ export default {
 }
 
 .bet-side-label {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 14px;
   margin-bottom: 8px;
 }
@@ -359,15 +359,15 @@ export default {
 }
 
 .side-radio-group .el-radio-button__inner {
-  background-color: #1a1a2e !important;
-  border-color: #2a2a4a !important;
-  color: #e0e0e0 !important;
+  background-color: #0f0f0f !important;
+  border-color: #2e2e2e !important;
+  color: #d4d4d4 !important;
   width: 50%;
 }
 
 .side-radio-group .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-  background-color: #FF4655 !important;
-  border-color: #FF4655 !important;
+  background-color: #6aaa96 !important;
+  border-color: #6aaa96 !important;
   color: #fff !important;
 }
 
@@ -376,35 +376,35 @@ export default {
 }
 
 .bet-amount-label {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 14px;
   margin-bottom: 12px;
 }
 
 .current-points {
-  color: #FF4655;
+  color: #6aaa96;
   font-weight: 600;
   margin-left: 8px;
 }
 
 .bet-btn {
   width: 100%;
-  background-color: #FF4655;
-  border-color: #FF4655;
+  background-color: #6aaa96;
+  border-color: #6aaa96;
   font-size: 16px;
   font-weight: 600;
 }
 
 .bet-btn:hover {
-  background-color: #e63e4d;
-  border-color: #e63e4d;
+  background-color: #7bc4a8;
+  border-color: #7bc4a8;
 }
 
 .bet-stats {
   display: flex;
   justify-content: space-around;
   padding-top: 16px;
-  border-top: 1px solid #2a2a4a;
+  border-top: 1px solid #2e2e2e;
 }
 
 .bet-stat {
@@ -413,14 +413,14 @@ export default {
 
 .stat-label {
   display: block;
-  color: #e0e0e0;
+  color: #d4d4d4;
   font-weight: 600;
   font-size: 15px;
   margin-bottom: 4px;
 }
 
 .stat-value {
-  color: #a0a0b0;
+  color: #888888;
   font-size: 13px;
 }
 
@@ -429,7 +429,7 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #FF4655;
+  background-color: #4ade80;
   margin-right: 4px;
   animation: dotBlink 1s ease-in-out infinite;
 }
