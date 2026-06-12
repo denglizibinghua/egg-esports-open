@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import { getToken } from '@/utils/auth'
+import { getToken, getUser } from '@/utils/auth'
 
 Vue.use(VueRouter)
 
@@ -61,7 +61,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !token) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.meta.requiresAdmin) {
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const user = getUser() || {}
     if (user.role !== 1) {
       next({ name: 'MatchList' })
     } else {
