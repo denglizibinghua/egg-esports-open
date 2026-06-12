@@ -12,8 +12,16 @@
           <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
           <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
-            <el-button type="text" class="nav-btn nav-btn--user" @click="$router.push('/user')">{{ userNickname }}</el-button>
-            <el-button type="text" class="nav-btn nav-btn--logout" @click="handleLogout">退出</el-button>
+            <el-dropdown trigger="hover" @command="handleUserCommand">
+              <span class="user-dropdown-trigger">
+                {{ userNickname }}
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="profile" icon="el-icon-user">个人中心</el-dropdown-item>
+                <el-dropdown-item command="logout" icon="el-icon-switch-button" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </template>
           <template v-else>
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
@@ -47,9 +55,13 @@ export default {
     }
   },
   methods: {
-    handleLogout() {
-      removeToken()
-      this.$router.push('/login')
+    handleUserCommand(command) {
+      if (command === 'profile') {
+        this.$router.push('/user')
+      } else if (command === 'logout') {
+        removeToken()
+        this.$router.push('/login')
+      }
     }
   }
 }
@@ -179,18 +191,47 @@ body {
   margin: 0 8px;
 }
 
-.nav-btn--user {
-  color: var(--text-primary) !important;
+.user-dropdown-trigger {
+  color: var(--text-primary);
+  font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) ease;
 }
 
-.nav-btn--logout {
-  color: var(--text-tertiary) !important;
-  font-size: 13px;
+.user-dropdown-trigger:hover {
+  background: var(--bg-surface-2);
+  color: var(--accent-primary);
 }
 
-.nav-btn--logout:hover {
-  color: var(--accent-danger) !important;
+/* Dropdown menu dark theme */
+.el-dropdown-menu {
+  background: var(--bg-surface-2) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 4px 0 !important;
+}
+
+.el-dropdown-menu__item {
+  color: var(--text-secondary) !important;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all var(--duration-fast) ease;
+}
+
+.el-dropdown-menu__item:hover {
+  background: var(--bg-surface-3) !important;
+  color: var(--text-primary) !important;
+}
+
+.el-dropdown-menu__item--divided {
+  border-top-color: var(--border-subtle) !important;
 }
 
 .app-main {
