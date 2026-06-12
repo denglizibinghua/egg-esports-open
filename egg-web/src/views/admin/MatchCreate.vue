@@ -28,7 +28,7 @@
             v-model="form.matchTime"
             type="datetime"
             placeholder="选择比赛时间"
-            value-format="yyyy-MM-dd HH:mm:ss"
+            value-format="yyyy-MM-ddTHH:mm:ss"
             :picker-options="pickerOptions"
           />
         </el-form-item>
