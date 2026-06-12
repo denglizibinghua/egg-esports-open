@@ -7,16 +7,17 @@
           <router-link to="/" class="logo">EGG ESPORTS</router-link>
         </div>
         <div class="header-right">
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
+          <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
-            <el-button type="text" class="nav-btn" @click="$router.push('/user')">{{ userNickname }}</el-button>
-            <el-button type="text" class="nav-btn" @click="handleLogout">退出</el-button>
+            <el-button type="text" class="nav-btn nav-btn--user" @click="$router.push('/user')">{{ userNickname }}</el-button>
+            <el-button type="text" class="nav-btn nav-btn--logout" @click="handleLogout">退出</el-button>
           </template>
           <template v-else>
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
-          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
         </div>
       </el-header>
       <el-main class="app-main">
@@ -169,6 +170,27 @@ body {
 .admin-btn {
   color: var(--accent-primary) !important;
   font-weight: 600;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-default);
+  margin: 0 8px;
+}
+
+.nav-btn--user {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+}
+
+.nav-btn--logout {
+  color: var(--text-tertiary) !important;
+  font-size: 13px;
+}
+
+.nav-btn--logout:hover {
+  color: var(--accent-danger) !important;
 }
 
 .app-main {
