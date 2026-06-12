@@ -32,6 +32,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/profile/:id',
+    name: 'PublicProfile',
+    component: () => import('@/views/PublicProfile.vue')
+  },
+  {
     path: '/admin',
     name: 'AdminDashboard',
     component: () => import('@/views/admin/AdminDashboard.vue'),
