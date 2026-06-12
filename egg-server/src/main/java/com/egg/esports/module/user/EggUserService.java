@@ -119,6 +119,27 @@ public class EggUserService {
     }
 
     /**
+     * 更新个人资料
+     */
+    public EggUser updateProfile(Long userId, String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new BusinessException("昵称不能为空");
+        }
+        if (nickname.length() > 20) {
+            throw new BusinessException("昵称长度不能超过20个字符");
+        }
+
+        EggUser user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        user.setNickname(nickname.trim());
+        userMapper.updateById(user);
+        return sanitizeUser(user);
+    }
+
+    /**
      * 清除密码字段，防止泄露
      */
     private EggUser sanitizeUser(EggUser user) {

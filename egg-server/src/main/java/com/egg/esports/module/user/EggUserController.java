@@ -68,4 +68,15 @@ public class EggUserController {
 
         return Result.success(publicInfo);
     }
+
+    /**
+     * 更新个人资料
+     */
+    @PutMapping("/profile")
+    public Result<EggUser> updateProfile(@RequestBody Map<String, String> body,
+                                          HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        EggUser user = userService.updateProfile(userId, body.get("nickname"));
+        return Result.success(user);
+    }
 }

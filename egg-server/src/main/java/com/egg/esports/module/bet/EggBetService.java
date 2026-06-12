@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -181,5 +182,32 @@ public class EggBetService {
                 new LambdaQueryWrapper<EggBet>()
                         .eq(EggBet::getMatchId, matchId)
         );
+    }
+
+    /**
+     * 近期战绩（最近10条含赛事信息）
+     */
+    public List<Map<String, Object>> getRecentBets(Long userId) {
+        List<EggBet> bets = eggBetMapper.selectList(
+                new LambdaQueryWrapper<EggBet>()
+                        .eq(EggBet::getUserId, userId)
+                        .orderByDesc(EggBet::getCreateTime)
+                        .last("LIMIT 10")
+        );
+
+        return bets.stream().map(bet -> {
+            EggMatch match = eggMatchMapper.selectById(bet.getMatchId());
+            Map<String, Object> item = new java.util.HashMap<>();
+            item.put("id", bet.getId());
+            item.put("matchId", bet.getMatchId());
+            item.put("matchTitle", match != null ? match.getTitle() : "未知赛事");
+            item.put("teamA", match != null ? match.getTeamA() : "A队");
+            item.put("teamB", match != null ? match.getTeamB() : "B队");
+            item.put("betSide", bet.getBetSide());
+            item.put("betAmount", bet.getBetAmount());
+            item.put("status", bet.getStatus());
+            item.put("createTime", bet.getCreateTime());
+            return item;
+        }).toList();
     }
 }
