@@ -1,0 +1,64 @@
+package com.egg.esports.module.match;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.egg.esports.common.Result;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+/**
+ * 赛事接口
+ */
+@RestController
+@RequestMapping("/api/match")
+@RequiredArgsConstructor
+public class EggMatchController {
+
+    private final EggMatchService matchService;
+
+    /**
+     * 赛事列表（公开）
+     */
+    @GetMapping("/list")
+    public Result<IPage<EggMatch>> list(@RequestParam(required = false) Integer status,
+                                        @RequestParam(defaultValue = "1") Integer page,
+                                        @RequestParam(defaultValue = "10") Integer size) {
+        return Result.success(matchService.getMatchList(status, page, size));
+    }
+
+    /**
+     * 赛事详情（公开）
+     */
+    @GetMapping("/{id}")
+    public Result<EggMatch> detail(@PathVariable Long id) {
+        return Result.success(matchService.getById(id));
+    }
+
+    /**
+     * 创建赛事（管理员）
+     */
+    @PostMapping("/create")
+    public Result<EggMatch> create(@Valid @RequestBody EggMatch match) {
+        return Result.success(matchService.create(match));
+    }
+
+    /**
+     * 更新赛事信息（管理员）
+     */
+    @PutMapping("/update")
+    public Result<EggMatch> update(@RequestBody EggMatch match) {
+        return Result.success(matchService.update(match));
+    }
+
+    /**
+     * 结算赛事结果（管理员）
+     */
+    @PutMapping("/settle")
+    public Result<EggMatch> settle(@RequestBody Map<String, Object> params) {
+        Long matchId = Long.valueOf(params.get("matchId").toString());
+        Integer result = Integer.valueOf(params.get("result").toString());
+        return Result.success(matchService.settle(matchId, result));
+    }
+}

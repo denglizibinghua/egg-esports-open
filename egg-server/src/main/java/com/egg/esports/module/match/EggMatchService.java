@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.egg.esports.common.BusinessException;
+import com.egg.esports.module.bet.EggBetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -18,6 +20,8 @@ import java.time.LocalDateTime;
 public class EggMatchService {
 
     private final EggMatchMapper matchMapper;
+
+    private final EggBetService betService;
 
     /**
      * 分页查询赛事列表
@@ -122,11 +126,12 @@ public class EggMatchService {
     }
 
     /**
-     * 结算赛事结果
+     * 结算赛事结果（同时结算所有押注）
      *
      * @param matchId 赛事ID
      * @param result  结果：0=A胜, 1=B胜, 2=平局
      */
+    @Transactional
     public EggMatch settle(Long matchId, Integer result) {
         if (result == null || result < 0 || result > 2) {
             throw new BusinessException("结算结果无效，必须为0(A胜)、1(B胜)或2(平局)");
@@ -139,9 +144,16 @@ public class EggMatchService {
         if (match.getStatus() != 2) {
             throw new BusinessException("只有已结束的赛事才能结算");
         }
+        if (match.getResult() != null) {
+            throw new BusinessException("该赛事已结算，不可重复结算");
+        }
 
         match.setResult(result);
         matchMapper.updateById(match);
+
+        // 联动结算所有押注
+        betService.settleBet(matchId, result);
+
         return match;
     }
 }

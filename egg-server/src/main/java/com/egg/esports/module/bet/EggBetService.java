@@ -152,11 +152,11 @@ public class EggBetService {
                 );
                 // 更新最大连胜
                 EggUser user = eggUserMapper.selectById(bet.getUserId());
-                if (user != null && user.getWinStreak() + 1 > user.getMaxWinStreak()) {
+                if (user != null && user.getWinStreak() > user.getMaxWinStreak()) {
                     eggUserMapper.update(null,
                             new LambdaUpdateWrapper<EggUser>()
                                     .eq(EggUser::getId, bet.getUserId())
-                                    .set(EggUser::getMaxWinStreak, user.getWinStreak() + 1)
+                                    .set(EggUser::getMaxWinStreak, user.getWinStreak())
                     );
                 }
             } else {
