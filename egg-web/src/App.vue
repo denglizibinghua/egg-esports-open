@@ -13,6 +13,7 @@
           <template v-else>
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
+          <el-button type="text" class="nav-btn" @click="$router.push('/')">主页</el-button>
           <el-button type="text" class="nav-btn" @click="$router.push('/leaderboard')">排行榜</el-button>
           <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" @click="$router.push('/admin')">管理</el-button>
         </div>
