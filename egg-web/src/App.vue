@@ -7,22 +7,14 @@
         </div>
         <div class="header-right">
           <template v-if="isLoggedIn">
-            <router-link to="/user">
-              <el-button type="text" class="nav-btn">{{ userNickname }}</el-button>
-            </router-link>
+            <el-button type="text" class="nav-btn" @click="$router.push('/user')">{{ userNickname }}</el-button>
             <el-button type="text" class="nav-btn" @click="handleLogout">退出</el-button>
           </template>
           <template v-else>
-            <router-link to="/login">
-              <el-button type="text" class="nav-btn">登录</el-button>
-            </router-link>
+            <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
-          <router-link to="/leaderboard">
-            <el-button type="text" class="nav-btn">排行榜</el-button>
-          </router-link>
-          <router-link v-if="isAdmin" to="/admin">
-            <el-button type="text" class="nav-btn admin-btn">管理</el-button>
-          </router-link>
+          <el-button type="text" class="nav-btn" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" @click="$router.push('/admin')">管理</el-button>
         </div>
       </el-header>
       <el-main class="app-main">
