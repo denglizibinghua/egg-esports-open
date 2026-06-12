@@ -141,31 +141,33 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #1f1f1f 100%);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,229,160,0.06) 0%, transparent 60%),
+    var(--bg-page);
 }
 
 .login-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 40px 36px 24px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 44px 36px 28px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 .login-title {
   text-align: center;
-  font-size: 28px;
-  font-weight: 800;
-  color: #6aaa96;
-  letter-spacing: 3px;
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: var(--accent-primary);
+  letter-spacing: 4px;
   margin-bottom: 4px;
 }
 
 .login-subtitle {
   text-align: center;
-  color: #888888;
+  color: var(--text-tertiary);
   font-size: 14px;
   margin-bottom: 28px;
 }
@@ -176,15 +178,22 @@ export default {
 
 .submit-btn {
   width: 100%;
-  background-color: #6aaa96;
-  border-color: #6aaa96;
-  font-size: 16px;
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 4px;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 0 20px rgba(0,229,160,0.20);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .submit-btn:hover {
-  background-color: #7bc4a8;
-  border-color: #7bc4a8;
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0,229,160,0.35);
 }
 </style>

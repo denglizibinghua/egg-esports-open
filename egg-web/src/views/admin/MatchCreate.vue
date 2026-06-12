@@ -97,34 +97,42 @@ export default {
 }
 
 .back-btn {
-  color: #888888 !important;
+  color: var(--text-tertiary) !important;
+  transition: color var(--duration-fast) ease;
 }
 
 .back-btn:hover {
-  color: #6aaa96 !important;
+  color: var(--accent-primary) !important;
 }
 
 .page-title {
-  color: #d4d4d4;
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
 .form-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
   padding: 32px;
   max-width: 600px;
+  box-shadow: var(--shadow-md);
 }
 
 .submit-btn {
-  background-color: #6aaa96;
-  border-color: #6aaa96;
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .submit-btn:hover {
-  background-color: #7bc4a8;
-  border-color: #7bc4a8;
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0,229,160,0.25);
 }
 </style>

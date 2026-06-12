@@ -135,45 +135,55 @@ export default {
 
 <style scoped>
 .page-header {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .page-title {
-  color: #d4d4d4;
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
 .podium {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding: 24px 0;
+  gap: 20px;
+  margin-bottom: 40px;
+  padding: 32px 0;
 }
 
 .podium-item {
-  background-color: #1a1a1a;
-  border-radius: 12px;
-  padding: 20px 28px;
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
   text-align: center;
   min-width: 160px;
   position: relative;
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.podium-item:hover {
+  transform: translateY(-4px);
 }
 
 .podium-item.gold {
   border: 2px solid #d4a843;
-  padding-bottom: 28px;
+  padding-bottom: 32px;
   min-width: 180px;
+  box-shadow: 0 0 24px rgba(212,168,67,0.15), 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .podium-item.silver {
   border: 2px solid #a0a0a0;
+  box-shadow: 0 0 16px rgba(160,160,160,0.10), 0 4px 16px rgba(0,0,0,0.35);
 }
 
 .podium-item.bronze {
   border: 2px solid #c47a3a;
+  box-shadow: 0 0 16px rgba(196,122,58,0.10), 0 4px 16px rgba(0,0,0,0.35);
 }
 
 .podium-crown {
@@ -182,8 +192,8 @@ export default {
 }
 
 .podium-rank {
+  font-family: var(--font-display);
   font-size: 24px;
-  font-weight: 800;
   margin-bottom: 8px;
 }
 
@@ -200,30 +210,42 @@ export default {
 }
 
 .podium-name {
-  color: #d4d4d4;
-  font-size: 16px;
+  color: var(--text-primary);
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .podium-points {
-  color: #6aaa96;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .rank-gold {
   color: #d4a843;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 700;
 }
 
 .rank-silver {
   color: #a0a0a0;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 700;
 }
 
 .rank-bronze {
   color: #c47a3a;
+  font-family: var(--font-display);
+  font-size: 18px;
   font-weight: 700;
+}
+
+.leaderboard-table {
+  margin-top: 8px;
 }
 </style>

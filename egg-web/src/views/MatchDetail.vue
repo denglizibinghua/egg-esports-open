@@ -219,36 +219,42 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .back-btn {
-  color: #888888 !important;
+  color: var(--text-tertiary) !important;
   font-size: 14px;
+  transition: color var(--duration-fast) ease;
 }
 
 .back-btn:hover {
-  color: #6aaa96 !important;
+  color: var(--accent-primary) !important;
 }
 
 .match-info-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 32px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
   text-align: center;
+  box-shadow: var(--shadow-md);
 }
 
 .tournament-name {
-  color: #888888;
-  font-size: 14px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
 
 .match-time {
-  color: #888888;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
   font-size: 13px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
 .teams-display {
@@ -270,31 +276,32 @@ export default {
 .team-logo-large {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   overflow: hidden;
-  background-color: #2e2e2e;
+  background: var(--bg-surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #3a3a3a;
+  border: 2px solid var(--border-default);
+  transition: border-color var(--duration-normal) ease;
 }
 
 .team-logo-large img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .team-logo-placeholder-large {
   font-size: 28px;
   font-weight: 700;
-  color: #6aaa96;
+  color: var(--accent-primary);
 }
 
 .team-name-large {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #d4d4d4;
+  color: var(--text-primary);
 }
 
 .vs-section {
@@ -302,37 +309,43 @@ export default {
 }
 
 .vs-text {
-  font-size: 24px;
-  font-weight: 800;
-  color: #6aaa96;
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--accent-primary);
   letter-spacing: 3px;
 }
 
 .match-result-display {
   font-size: 20px;
   font-weight: 600;
-  color: #6aaa96;
+  color: var(--accent-primary);
   margin-top: 16px;
 }
 
 .winner-name {
-  color: #6aaa96;
+  color: var(--accent-primary);
 }
 
+/* Betting Panel - Glass Effect */
 .bet-panel {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 24px;
+  background: rgba(18,18,26,0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 28px;
   margin-top: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
 .panel-title {
-  color: #d4d4d4;
-  font-size: 18px;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 1px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #2e2e2e;
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 12px;
 }
 
@@ -349,26 +362,38 @@ export default {
 }
 
 .bet-side-label {
-  color: #888888;
-  font-size: 14px;
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 
 .side-radio-group {
   width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.side-radio-group .el-radio-button {
+  flex: 1;
 }
 
 .side-radio-group .el-radio-button__inner {
-  background-color: #0f0f0f !important;
-  border-color: #2e2e2e !important;
-  color: #d4d4d4 !important;
-  width: 50%;
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+  width: 100%;
+  border-radius: var(--radius-md) !important;
+  font-weight: 500;
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow: none !important;
 }
 
 .side-radio-group .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-  background-color: #6aaa96 !important;
-  border-color: #6aaa96 !important;
-  color: #fff !important;
+  background: rgba(0,229,160,0.12) !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  box-shadow: 0 0 20px rgba(0,229,160,0.15) !important;
 }
 
 .bet-amount-section {
@@ -376,35 +401,61 @@ export default {
 }
 
 .bet-amount-label {
-  color: #888888;
-  font-size: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
   margin-bottom: 12px;
 }
 
 .current-points {
-  color: #6aaa96;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
   font-weight: 600;
   margin-left: 8px;
 }
 
 .bet-btn {
   width: 100%;
-  background-color: #6aaa96;
-  border-color: #6aaa96;
-  font-size: 16px;
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-size: 15px;
   font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 0 20px rgba(0,229,160,0.20);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.bet-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.5s ease;
 }
 
 .bet-btn:hover {
-  background-color: #7bc4a8;
-  border-color: #7bc4a8;
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0,229,160,0.35);
+}
+
+.bet-btn:hover::after {
+  left: 100%;
 }
 
 .bet-stats {
   display: flex;
   justify-content: space-around;
-  padding-top: 16px;
-  border-top: 1px solid #2e2e2e;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .bet-stat {
@@ -413,14 +464,15 @@ export default {
 
 .stat-label {
   display: block;
-  color: #d4d4d4;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 15px;
   margin-bottom: 4px;
 }
 
 .stat-value {
-  color: #888888;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
   font-size: 13px;
 }
 
@@ -429,7 +481,8 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #4ade80;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
   margin-right: 4px;
   animation: dotBlink 1s ease-in-out infinite;
 }

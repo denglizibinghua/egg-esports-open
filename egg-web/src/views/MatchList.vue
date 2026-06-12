@@ -139,13 +139,14 @@ export default {
 
 <style scoped>
 .page-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .page-title {
-  color: #d4d4d4;
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
 .match-cards {
@@ -153,39 +154,75 @@ export default {
 }
 
 .match-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 10px;
-  padding: 20px 24px;
-  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 10px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+  animation: match-enter 0.4s var(--ease-out) both;
+}
+
+.match-card:nth-child(1) { animation-delay: 0ms; }
+.match-card:nth-child(2) { animation-delay: 20ms; }
+.match-card:nth-child(3) { animation-delay: 40ms; }
+.match-card:nth-child(4) { animation-delay: 60ms; }
+.match-card:nth-child(5) { animation-delay: 80ms; }
+.match-card:nth-child(6) { animation-delay: 100ms; }
+.match-card:nth-child(7) { animation-delay: 120ms; }
+.match-card:nth-child(8) { animation-delay: 140ms; }
+.match-card:nth-child(9) { animation-delay: 160ms; }
+.match-card:nth-child(10) { animation-delay: 180ms; }
+
+@keyframes match-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .match-card:hover {
-  border-color: #6aaa96;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(106, 170, 150, 0.15);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.match-card:has(.live-tag) {
+  border-left: 2px solid var(--accent-primary);
+  background: linear-gradient(90deg, rgba(0,229,160,0.03) 0%, var(--bg-surface-1) 30%);
 }
 
 .match-tournament {
+  grid-column: 1 / -1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .match-time {
-  color: #888888;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
   font-size: 13px;
 }
 
 .match-teams {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 24px;
-  margin-bottom: 16px;
 }
 
 .team {
@@ -201,11 +238,11 @@ export default {
 }
 
 .team-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
   overflow: hidden;
-  background-color: #2e2e2e;
+  background: var(--bg-surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -215,37 +252,39 @@ export default {
 .team-logo img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .team-logo-placeholder {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
-  color: #6aaa96;
+  color: var(--accent-primary);
 }
 
 .team-name {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #d4d4d4;
+  color: var(--text-primary);
 }
 
 .vs-badge {
-  font-size: 16px;
-  font-weight: 800;
-  color: #6aaa96;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent-primary);
   letter-spacing: 2px;
   flex-shrink: 0;
 }
 
 .match-footer {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 8px;
 }
 
 .match-result {
-  color: #6aaa96;
+  color: var(--accent-primary);
   font-weight: 600;
   font-size: 14px;
 }
@@ -259,7 +298,8 @@ export default {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #4ade80;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
   margin-right: 4px;
   animation: dotBlink 1s ease-in-out infinite;
 }

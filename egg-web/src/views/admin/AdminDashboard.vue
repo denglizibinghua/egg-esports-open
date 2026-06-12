@@ -179,13 +179,14 @@ export default {
 
 <style scoped>
 .page-header {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .page-title {
-  color: #d4d4d4;
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
 .tab-header {
@@ -196,7 +197,7 @@ export default {
 }
 
 .settle-btn {
-  color: #6aaa96 !important;
+  color: var(--accent-primary) !important;
   font-weight: 600;
 }
 
@@ -207,18 +208,18 @@ export default {
 .settle-match-name {
   font-size: 18px;
   font-weight: 600;
-  color: #d4d4d4;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
 .settle-label {
-  color: #888888;
+  color: var(--text-secondary);
   margin-bottom: 12px;
 }
 
 .settle-content .el-radio {
   display: block;
   margin-bottom: 12px;
-  color: #d4d4d4;
+  color: var(--text-primary);
 }
 </style>

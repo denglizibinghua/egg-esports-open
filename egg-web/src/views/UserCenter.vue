@@ -181,24 +181,26 @@ export default {
 
 <style scoped>
 .page-header {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .page-title {
-  color: #d4d4d4;
-  font-size: 24px;
-  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 32px;
+  letter-spacing: 1px;
 }
 
 .user-info-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
-  padding: 24px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  box-shadow: var(--shadow-md);
 }
 
 .user-avatar-section {
@@ -208,13 +210,13 @@ export default {
 }
 
 .user-nickname {
-  color: #d4d4d4;
+  color: var(--text-primary);
   font-size: 20px;
   font-weight: 600;
 }
 
 .user-join-date {
-  color: #888888;
+  color: var(--text-tertiary);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -224,14 +226,18 @@ export default {
 }
 
 .points-value {
-  color: #6aaa96;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
   font-size: 32px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .points-label {
-  color: #888888;
+  color: var(--text-tertiary);
   font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .stats-grid {
@@ -242,30 +248,42 @@ export default {
 }
 
 .stat-card {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 8px;
-  padding: 16px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
   text-align: center;
+  transition: transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
 }
 
 .stat-value {
-  color: #6aaa96;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
   font-size: 24px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-  color: #888888;
+  color: var(--text-tertiary);
   font-size: 12px;
   margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .bet-history {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
-  border-radius: 12px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
   padding: 24px;
+  box-shadow: var(--shadow-md);
 }
 
 .section-header {
@@ -276,8 +294,9 @@ export default {
 }
 
 .section-title {
-  color: #d4d4d4;
-  font-size: 18px;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 1px;
 }
 </style>
