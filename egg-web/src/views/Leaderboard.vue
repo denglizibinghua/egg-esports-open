@@ -4,59 +4,103 @@
       <h2 class="page-title">排行榜</h2>
     </div>
 
-    <!-- Top 3 Podium -->
-    <div v-if="top3.length > 0" class="podium">
-      <div v-if="top3[1]" class="podium-item silver">
-        <div class="podium-rank">2</div>
-        <div class="podium-avatar">
-          <el-avatar :size="56" icon="el-icon-user-solid" />
+    <!-- Loading Skeleton -->
+    <template v-if="loading">
+      <div class="podium">
+        <div class="podium-item silver skeleton">
+          <div class="skeleton-line skeleton-line--rank"></div>
+          <div class="skeleton-line skeleton-line--avatar"></div>
+          <div class="skeleton-line skeleton-line--name"></div>
+          <div class="skeleton-line skeleton-line--points"></div>
         </div>
-        <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
-        <div class="podium-points">{{ top3[1].points }} 积分</div>
+        <div class="podium-item gold skeleton">
+          <div class="skeleton-line skeleton-line--crown"></div>
+          <div class="skeleton-line skeleton-line--rank"></div>
+          <div class="skeleton-line skeleton-line--avatar skeleton-line--avatar-lg"></div>
+          <div class="skeleton-line skeleton-line--name"></div>
+          <div class="skeleton-line skeleton-line--points"></div>
+        </div>
+        <div class="podium-item bronze skeleton">
+          <div class="skeleton-line skeleton-line--rank"></div>
+          <div class="skeleton-line skeleton-line--avatar"></div>
+          <div class="skeleton-line skeleton-line--name"></div>
+          <div class="skeleton-line skeleton-line--points"></div>
+        </div>
       </div>
+      <div class="skeleton-table">
+        <div v-for="i in 5" :key="'skel-row-'+i" class="skeleton-table-row">
+          <div class="skeleton-line skeleton-line--rank-sm"></div>
+          <div class="skeleton-line skeleton-line--nickname"></div>
+          <div class="skeleton-line skeleton-line--score"></div>
+          <div class="skeleton-line skeleton-line--score"></div>
+        </div>
+      </div>
+    </template>
 
-      <div v-if="top3[0]" class="podium-item gold">
-        <div class="podium-crown">👑</div>
-        <div class="podium-rank">1</div>
-        <div class="podium-avatar">
-          <el-avatar :size="72" icon="el-icon-user-solid" />
-        </div>
-        <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
-        <div class="podium-points">{{ top3[0].points }} 积分</div>
-      </div>
-
-      <div v-if="top3[2]" class="podium-item bronze">
-        <div class="podium-rank">3</div>
-        <div class="podium-avatar">
-          <el-avatar :size="56" icon="el-icon-user-solid" />
-        </div>
-        <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
-        <div class="podium-points">{{ top3[2].points }} 积分</div>
-      </div>
+    <!-- Empty State -->
+    <div v-else-if="leaderboard.length === 0" class="empty-state">
+      <div class="empty-icon">🏆</div>
+      <h3 class="empty-title">排行榜暂无数据</h3>
+      <p class="empty-desc">还没有人参与竞猜，成为第一个上榜的人吧！</p>
+      <el-button type="primary" class="empty-action" @click="$router.push('/')">去押注</el-button>
     </div>
 
-    <!-- Full Leaderboard Table -->
-    <el-table :data="leaderboard" style="width: 100%" v-loading="loading" class="leaderboard-table">
-      <el-table-column label="排名" width="80" align="center">
-        <template slot-scope="scope">
-          <span :class="getRankClass(scope.$index + 1 + (currentPage - 1) * pageSize)">
-            {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column label="昵称" min-width="150">
-        <template slot-scope="scope">
-          <span>{{ scope.row.nickname || scope.row.username }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="积分" width="100" align="center" prop="points" />
-      <el-table-column label="胜率" width="100" align="center">
-        <template slot-scope="scope">
-          {{ getAccuracy(scope.row) }}%
-        </template>
-      </el-table-column>
-      <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
-    </el-table>
+    <!-- Content -->
+    <template v-else>
+      <!-- Top 3 Podium -->
+      <div v-if="top3.length > 0" class="podium">
+        <div v-if="top3[1]" class="podium-item silver">
+          <div class="podium-rank">2</div>
+          <div class="podium-avatar">
+            <el-avatar :size="56" icon="el-icon-user-solid" />
+          </div>
+          <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
+          <div class="podium-points">{{ top3[1].points }} 积分</div>
+        </div>
+
+        <div v-if="top3[0]" class="podium-item gold">
+          <div class="podium-crown">👑</div>
+          <div class="podium-rank">1</div>
+          <div class="podium-avatar">
+            <el-avatar :size="72" icon="el-icon-user-solid" />
+          </div>
+          <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
+          <div class="podium-points">{{ top3[0].points }} 积分</div>
+        </div>
+
+        <div v-if="top3[2]" class="podium-item bronze">
+          <div class="podium-rank">3</div>
+          <div class="podium-avatar">
+            <el-avatar :size="56" icon="el-icon-user-solid" />
+          </div>
+          <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
+          <div class="podium-points">{{ top3[2].points }} 积分</div>
+        </div>
+      </div>
+
+      <!-- Full Leaderboard Table -->
+      <el-table :data="leaderboard" style="width: 100%" class="leaderboard-table">
+        <el-table-column label="排名" width="80" align="center">
+          <template slot-scope="scope">
+            <span :class="getRankClass(scope.$index + 1 + (currentPage - 1) * pageSize)">
+              {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="昵称" min-width="150">
+          <template slot-scope="scope">
+            <span>{{ scope.row.nickname || scope.row.username }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="积分" width="100" align="center" prop="points" />
+        <el-table-column label="胜率" width="100" align="center">
+          <template slot-scope="scope">
+            {{ getAccuracy(scope.row) }}%
+          </template>
+        </el-table-column>
+        <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
+      </el-table>
+    </template>
 
     <el-pagination
       v-if="total > 0"
@@ -248,4 +292,97 @@ export default {
 .leaderboard-table {
   margin-top: 8px;
 }
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  max-width: 300px;
+}
+
+.empty-action {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Skeleton Loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton .skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line--rank { width: 24px; height: 24px; margin: 0 auto 8px; }
+.skeleton-line--crown { width: 28px; height: 20px; margin: 0 auto 4px; }
+.skeleton-line--avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; }
+.skeleton-line--avatar-lg { width: 72px; height: 72px; }
+.skeleton-line--name { width: 80px; height: 14px; margin: 0 auto 6px; }
+.skeleton-line--points { width: 60px; height: 14px; margin: 0 auto; }
+
+.skeleton-table {
+  margin-top: 8px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 8px 0;
+}
+
+.skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-table-row .skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line--rank-sm { width: 24px; height: 18px; flex-shrink: 0; }
+.skeleton-line--nickname { width: 120px; height: 14px; flex: 1; }
+.skeleton-line--score { width: 60px; height: 14px; flex-shrink: 0; }
 </style>

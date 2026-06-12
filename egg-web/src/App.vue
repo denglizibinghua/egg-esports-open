@@ -14,9 +14,9 @@
           <template v-else>
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
-          <el-button type="text" class="nav-btn" @click="$router.push('/')">主页</el-button>
-          <el-button type="text" class="nav-btn" @click="$router.push('/leaderboard')">排行榜</el-button>
-          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" @click="$router.push('/admin')">管理</el-button>
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
         </div>
       </el-header>
       <el-main class="app-main">
@@ -158,6 +158,12 @@ body {
 
 .nav-btn:hover {
   color: var(--accent-primary) !important;
+}
+
+.nav-btn--active {
+  color: var(--accent-primary) !important;
+  background: rgba(0, 229, 160, 0.08);
+  border-radius: var(--radius-md);
 }
 
 .admin-btn {
@@ -399,6 +405,88 @@ a {
   padding: 2px 8px;
   font-size: 11px;
   font-weight: 600;
+}
+
+/* Status Badge System */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+}
+
+.status-badge--live {
+  color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.10);
+  border: 1px solid rgba(0, 229, 160, 0.25);
+}
+
+.status-badge--upcoming {
+  color: var(--accent-secondary);
+  background: rgba(91, 140, 255, 0.10);
+  border: 1px solid rgba(91, 140, 255, 0.25);
+}
+
+.status-badge--finished {
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-default);
+}
+
+.status-badge--won {
+  color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.10);
+  border: 1px solid rgba(0, 229, 160, 0.25);
+}
+
+.status-badge--lost {
+  color: var(--accent-danger);
+  background: rgba(255, 77, 109, 0.10);
+  border: 1px solid rgba(255, 77, 109, 0.25);
+}
+
+.status-badge--pending {
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-default);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.status-dot--pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 6px currentColor;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Tournament Chip */
+.tournament-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.03em;
 }
 
 /* Accessibility */

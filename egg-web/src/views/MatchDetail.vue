@@ -3,15 +3,17 @@
     <div v-if="match" class="detail-content">
       <div class="detail-header">
         <el-button type="text" icon="el-icon-arrow-left" class="back-btn" @click="$router.back()">返回</el-button>
-        <el-tag v-if="match.status === 0" type="warning">即将开始</el-tag>
-        <el-tag v-else-if="match.status === 1" type="danger">
-          <span class="live-dot"></span> LIVE
-        </el-tag>
-        <el-tag v-else-if="match.status === 2" type="success">已结束</el-tag>
+        <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
+          <span class="status-dot"></span>未开始
+        </span>
+        <span v-else-if="match.status === 1" class="status-badge status-badge--live">
+          <span class="status-dot status-dot--pulse"></span>进行中
+        </span>
+        <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
       </div>
 
       <div class="match-info-card">
-        <div class="tournament-name">{{ match.tournament || '常规赛事' }}</div>
+        <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
         <div class="match-time">{{ formatTime(match.matchTime) }}</div>
 
         <div class="teams-display">
@@ -53,49 +55,58 @@
       <div v-if="match.status === 0 || match.status === 1" class="bet-panel">
         <h3 class="panel-title">押注</h3>
 
-        <div v-if="myBet" class="already-bet">
-          <el-alert
-            :title="'你已押注 ' + (myBet.betSide === 0 ? match.teamA : match.teamB) + ' ' + myBet.betAmount + ' 积分'"
-            type="warning"
-            :closable="false"
-            show-icon
-          />
+        <!-- Not Logged In Prompt -->
+        <div v-if="!getToken()" class="bet-login-prompt">
+          <div class="prompt-icon">🔒</div>
+          <p class="prompt-text">登录后即可参与竞猜</p>
+          <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
         </div>
 
-        <div v-else class="bet-form">
-          <div class="bet-side-select">
-            <div class="bet-side-label">选择押注队伍</div>
-            <el-radio-group v-model="betForm.betSide" class="side-radio-group">
-              <el-radio-button :label="0">{{ match.teamA }}</el-radio-button>
-              <el-radio-button :label="1">{{ match.teamB }}</el-radio-button>
-            </el-radio-group>
-          </div>
-
-          <div class="bet-amount-section">
-            <div class="bet-amount-label">
-              押注积分
-              <span class="current-points">当前积分: {{ userPoints }}</span>
-            </div>
-            <el-slider
-              v-model="betForm.betAmount"
-              :min="10"
-              :max="Math.max(10, userPoints)"
-              :step="10"
-              show-input
-              :show-input-controls="false"
+        <template v-else>
+          <div v-if="myBet" class="already-bet">
+            <el-alert
+              :title="'你已押注 ' + (myBet.betSide === 0 ? match.teamA : match.teamB) + ' ' + myBet.betAmount + ' 积分'"
+              type="warning"
+              :closable="false"
+              show-icon
             />
           </div>
 
-          <el-button
-            type="primary"
-            class="bet-btn"
-            :loading="betLoading"
-            :disabled="betForm.betSide === null || betForm.betAmount <= 0"
-            @click="placeBet"
-          >
-            确认押注
-          </el-button>
-        </div>
+          <div v-else class="bet-form">
+            <div class="bet-side-select">
+              <div class="bet-side-label">选择押注队伍</div>
+              <el-radio-group v-model="betForm.betSide" class="side-radio-group">
+                <el-radio-button :label="0">{{ match.teamA }}</el-radio-button>
+                <el-radio-button :label="1">{{ match.teamB }}</el-radio-button>
+              </el-radio-group>
+            </div>
+
+            <div class="bet-amount-section">
+              <div class="bet-amount-label">
+                押注积分
+                <span class="current-points">当前积分: {{ userPoints }}</span>
+              </div>
+              <el-slider
+                v-model="betForm.betAmount"
+                :min="10"
+                :max="Math.max(10, userPoints)"
+                :step="10"
+                show-input
+                :show-input-controls="false"
+              />
+            </div>
+
+            <el-button
+              type="primary"
+              class="bet-btn"
+              :loading="betLoading"
+              :disabled="betForm.betSide === null || betForm.betAmount <= 0"
+              @click="placeBet"
+            >
+              确认押注
+            </el-button>
+          </div>
+        </template>
 
         <div class="bet-stats">
           <div class="bet-stat">
@@ -143,6 +154,9 @@ export default {
     }
   },
   methods: {
+    getToken() {
+      return getToken()
+    },
     fetchMatch() {
       this.loading = true
       request.get('/match/' + this.$route.params.id).then(res => {
@@ -239,15 +253,6 @@ export default {
   padding: 40px 32px;
   text-align: center;
   box-shadow: var(--shadow-md);
-}
-
-.tournament-name {
-  color: var(--text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 4px;
 }
 
 .match-time {
@@ -476,19 +481,34 @@ export default {
   font-size: 13px;
 }
 
-.live-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 8px var(--accent-primary);
-  margin-right: 4px;
-  animation: dotBlink 1s ease-in-out infinite;
+/* Bet Login Prompt */
+.bet-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  text-align: center;
 }
 
-@keyframes dotBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+.prompt-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+
+.prompt-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.prompt-btn {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 32px;
 }
 </style>

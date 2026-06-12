@@ -1,10 +1,46 @@
 <template>
-  <div class="user-center" v-loading="loading">
+  <div class="user-center">
     <div class="page-header">
       <h2 class="page-title">个人中心</h2>
     </div>
 
-    <div v-if="user" class="user-content">
+    <!-- Loading Skeleton -->
+    <template v-if="loading">
+      <div class="user-info-card skeleton">
+        <div class="user-avatar-section">
+          <div class="skeleton-line skeleton-line--avatar"></div>
+          <div class="user-meta">
+            <div class="skeleton-line skeleton-line--nickname"></div>
+            <div class="skeleton-line skeleton-line--date"></div>
+          </div>
+        </div>
+        <div class="user-points">
+          <div class="skeleton-line skeleton-line--points"></div>
+          <div class="skeleton-line skeleton-line--label"></div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div v-for="i in 5" :key="'stat-skel-'+i" class="stat-card skeleton">
+          <div class="skeleton-line skeleton-line--stat-val"></div>
+          <div class="skeleton-line skeleton-line--stat-lbl"></div>
+        </div>
+      </div>
+      <div class="bet-history skeleton">
+        <div class="section-header">
+          <div class="skeleton-line skeleton-line--section-title"></div>
+        </div>
+        <div class="skeleton-table">
+          <div v-for="i in 4" :key="'bet-skel-'+i" class="skeleton-table-row">
+            <div class="skeleton-line skeleton-line--cell-lg"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <div v-else-if="user" class="user-content">
       <!-- User Info Card -->
       <div class="user-info-card">
         <div class="user-avatar-section">
@@ -56,43 +92,57 @@
           </el-radio-group>
         </div>
 
-        <el-table :data="bets" style="width: 100%" v-loading="betsLoading" empty-text="暂无押注记录">
-          <el-table-column label="赛事" min-width="180">
-            <template slot-scope="scope">
-              {{ scope.row.matchTitle || ('赛事 #' + scope.row.matchId) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="押注方" width="100" align="center">
-            <template slot-scope="scope">
-              <el-tag size="small" :type="scope.row.betSide === 0 ? 'danger' : 'primary'">
-                {{ scope.row.betSide === 0 ? 'A队' : 'B队' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="积分" width="80" align="center" prop="betAmount" />
-          <el-table-column label="状态" width="100" align="center">
-            <template slot-scope="scope">
-              <el-tag v-if="scope.row.status === 0" type="warning" size="small">待结算</el-tag>
-              <el-tag v-else-if="scope.row.status === 1" type="success" size="small">猜中</el-tag>
-              <el-tag v-else-if="scope.row.status === 2" type="danger" size="small">未中</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="时间" width="160" align="center">
-            <template slot-scope="scope">
-              {{ formatDate(scope.row.createTime) }}
-            </template>
-          </el-table-column>
-        </el-table>
+        <!-- Bet History Empty State -->
+        <div v-if="!betsLoading && bets.length === 0" class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3 class="empty-title">暂无投注记录</h3>
+          <p class="empty-desc">去赛事列表选一场比赛，试试你的判断力！</p>
+          <el-button type="primary" class="empty-action" @click="$router.push('/')">去看看</el-button>
+        </div>
 
-        <el-pagination
-          v-if="betTotal > 0"
-          background
-          layout="prev, pager, next"
-          :total="betTotal"
-          :page-size="betPageSize"
-          :current-page.sync="betCurrentPage"
-          @current-change="fetchBets"
-        />
+        <template v-else>
+          <el-table :data="bets" style="width: 100%" v-loading="betsLoading">
+            <el-table-column label="赛事" min-width="180">
+              <template slot-scope="scope">
+                {{ scope.row.matchTitle || ('赛事 #' + scope.row.matchId) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="押注方" width="100" align="center">
+              <template slot-scope="scope">
+                <el-tag size="small" :type="scope.row.betSide === 0 ? 'danger' : 'primary'">
+                  {{ scope.row.betSide === 0 ? 'A队' : 'B队' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="积分" width="80" align="center" prop="betAmount" />
+            <el-table-column label="状态" width="100" align="center">
+              <template slot-scope="scope">
+                <span v-if="scope.row.status === 0" class="status-badge status-badge--pending">待结算</span>
+                <span v-else-if="scope.row.status === 1" class="status-badge status-badge--won">
+                  <span class="status-dot"></span>猜中
+                </span>
+                <span v-else-if="scope.row.status === 2" class="status-badge status-badge--lost">
+                  <span class="status-dot"></span>未中
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="时间" width="160" align="center">
+              <template slot-scope="scope">
+                {{ formatDate(scope.row.createTime) }}
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <el-pagination
+            v-if="betTotal > 0"
+            background
+            layout="prev, pager, next"
+            :total="betTotal"
+            :page-size="betPageSize"
+            :current-page.sync="betCurrentPage"
+            @current-change="fetchBets"
+          />
+        </template>
       </div>
     </div>
   </div>
@@ -299,4 +349,97 @@ export default {
   font-size: 22px;
   letter-spacing: 1px;
 }
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  max-width: 300px;
+}
+
+.empty-action {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Skeleton Loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton .skeleton-line,
+.skeleton > .skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line--avatar { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-line--nickname { width: 120px; height: 20px; margin-bottom: 6px; }
+.skeleton-line--date { width: 100px; height: 13px; }
+.skeleton-line--points { width: 64px; height: 32px; margin: 0 auto 4px; }
+.skeleton-line--label { width: 40px; height: 13px; margin: 0 auto; }
+.skeleton-line--stat-val { width: 40px; height: 24px; margin: 0 auto 6px; }
+.skeleton-line--stat-lbl { width: 48px; height: 12px; margin: 0 auto; }
+.skeleton-line--section-title { width: 100px; height: 22px; }
+
+.skeleton-table {
+  margin-top: 8px;
+}
+
+.skeleton-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-table-row .skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  height: 14px;
+}
+
+.skeleton-line--cell-lg { width: 180px; }
+.skeleton-line--cell-md { width: 120px; }
+.skeleton-line--cell-sm { width: 60px; }
 </style>

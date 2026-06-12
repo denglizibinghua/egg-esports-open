@@ -11,54 +11,89 @@
       <el-tab-pane label="已结束" name="2" />
     </el-tabs>
 
-    <div v-loading="loading" class="match-cards">
-      <el-empty v-if="!loading && matches.length === 0" description="暂无赛事" />
-
-      <div
-        v-for="match in matches"
-        :key="match.id"
-        class="match-card"
-        @click="goDetail(match.id)"
-      >
-        <div class="match-tournament">
-          <el-tag size="mini" type="info">{{ match.tournament || '常规赛事' }}</el-tag>
-          <span class="match-time">{{ formatTime(match.matchTime) }}</span>
-        </div>
-
-        <div class="match-teams">
-          <div class="team team-a">
-            <div class="team-logo">
-              <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-              <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
-            </div>
-            <span class="team-name">{{ match.teamA }}</span>
+    <div class="match-cards">
+      <!-- Loading Skeleton -->
+      <template v-if="loading">
+        <div v-for="i in 5" :key="'skeleton-'+i" class="match-card skeleton">
+          <div class="skeleton-tournament">
+            <div class="skeleton-line skeleton-line--chip"></div>
+            <div class="skeleton-line skeleton-line--time"></div>
           </div>
-
-          <div class="vs-badge">VS</div>
-
-          <div class="team team-b">
-            <div class="team-logo">
-              <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-              <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+          <div class="skeleton-teams">
+            <div class="skeleton-team">
+              <div class="skeleton-line skeleton-line--logo"></div>
+              <div class="skeleton-line skeleton-line--name"></div>
             </div>
-            <span class="team-name">{{ match.teamB }}</span>
+            <div class="skeleton-line skeleton-line--vs"></div>
+            <div class="skeleton-team skeleton-team--reverse">
+              <div class="skeleton-line skeleton-line--logo"></div>
+              <div class="skeleton-line skeleton-line--name"></div>
+            </div>
+          </div>
+          <div class="skeleton-footer">
+            <div class="skeleton-line skeleton-line--status"></div>
           </div>
         </div>
+      </template>
 
-        <div class="match-footer">
-          <el-tag v-if="match.status === 0" type="warning" size="small">即将开始</el-tag>
-          <el-tag v-else-if="match.status === 1" type="danger" size="small" class="live-tag">
-            <span class="live-dot"></span> LIVE
-          </el-tag>
-          <el-tag v-else-if="match.status === 2" type="success" size="small">已结束</el-tag>
-
-          <span v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result">
-            <template v-if="match.result === 0">{{ match.teamA }} 获胜!</template>
-            <template v-else-if="match.result === 1">{{ match.teamB }} 获胜!</template>
-            <template v-else-if="match.result === 2">平局</template>
-          </span>
-        </div>
+      <!-- Empty State -->
+      <div v-else-if="matches.length === 0" class="empty-state">
+        <div class="empty-icon">🎮</div>
+        <h3 class="empty-title">{{ emptyTitle }}</h3>
+        <p class="empty-desc">{{ emptyDesc }}</p>
+        <el-button v-if="isAdminUser" type="primary" class="empty-action" @click="$router.push('/admin/match/create')">创建赛事</el-button>
       </div>
+
+      <!-- Match Cards -->
+      <template v-else>
+        <div
+          v-for="match in matches"
+          :key="match.id"
+          class="match-card"
+          @click="goDetail(match.id)"
+        >
+          <div class="match-tournament">
+            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+            <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+          </div>
+
+          <div class="match-teams">
+            <div class="team team-a">
+              <div class="team-logo">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
+              </div>
+              <span class="team-name">{{ match.teamA }}</span>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <div class="team team-b">
+              <div class="team-logo">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+              </div>
+              <span class="team-name">{{ match.teamB }}</span>
+            </div>
+          </div>
+
+          <div class="match-footer">
+            <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
+              <span class="status-dot"></span>未开始
+            </span>
+            <span v-else-if="match.status === 1" class="status-badge status-badge--live">
+              <span class="status-dot status-dot--pulse"></span>进行中
+            </span>
+            <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
+
+            <span v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result">
+              <template v-if="match.result === 0">{{ match.teamA }} 获胜!</template>
+              <template v-else-if="match.result === 1">{{ match.teamB }} 获胜!</template>
+              <template v-else-if="match.result === 2">平局</template>
+            </span>
+          </div>
+        </div>
+      </template>
     </div>
 
     <el-pagination
@@ -75,6 +110,7 @@
 
 <script>
 import request from '@/utils/request'
+import { isAdmin } from '@/utils/auth'
 
 export default {
   name: 'MatchList',
@@ -86,6 +122,29 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0
+    }
+  },
+  computed: {
+    isAdminUser() {
+      return isAdmin()
+    },
+    emptyTitle() {
+      const map = {
+        all: '暂无赛事',
+        '0': '暂无即将开始的比赛',
+        '1': '当前没有进行中的比赛',
+        '2': '暂无已结束的比赛'
+      }
+      return map[this.activeStatus] || '暂无赛事'
+    },
+    emptyDesc() {
+      const map = {
+        all: '管理员正在筹备中，稍后回来',
+        '0': '等待管理员录入赛程',
+        '1': '比赛还未开始，先看看赛程吧',
+        '2': '比赛结束后会在这里展示结果'
+      }
+      return map[this.activeStatus] || ''
     }
   },
   created() {
@@ -198,7 +257,7 @@ export default {
   box-shadow: var(--shadow-lg);
 }
 
-.match-card:has(.live-tag) {
+.match-card:has(.status-badge--live) {
   border-left: 2px solid var(--accent-primary);
   background: linear-gradient(90deg, rgba(0,229,160,0.03) 0%, var(--bg-surface-1) 30%);
 }
@@ -289,28 +348,97 @@ export default {
   font-size: 14px;
 }
 
-.live-tag {
-  animation: livePulse 1.5s ease-in-out infinite;
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
 }
 
-.live-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 8px var(--accent-primary);
-  margin-right: 4px;
-  animation: dotBlink 1s ease-in-out infinite;
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
 }
 
-@keyframes livePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
-@keyframes dotBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+.empty-desc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  max-width: 300px;
+}
+
+.empty-action {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+}
+
+/* Skeleton Loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton .skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-tournament {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.skeleton-line--chip { width: 72px; height: 20px; border-radius: var(--radius-md); }
+.skeleton-line--time { width: 60px; height: 14px; }
+.skeleton-line--name { width: 80px; height: 14px; }
+.skeleton-line--vs { width: 28px; height: 16px; border-radius: var(--radius-sm); }
+.skeleton-line--logo { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-line--status { width: 64px; height: 20px; border-radius: var(--radius-md); }
+
+.skeleton-teams {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.skeleton-team {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.skeleton-team--reverse {
+  flex-direction: row-reverse;
+}
+
+.skeleton-footer {
+  grid-column: 1 / -1;
+  margin-top: 8px;
 }
 </style>
