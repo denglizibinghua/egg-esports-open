@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -137,6 +138,48 @@ public class EggUserService {
         user.setNickname(nickname.trim());
         userMapper.updateById(user);
         return sanitizeUser(user);
+    }
+
+    /**
+     * 上传头像
+     */
+    public String uploadAvatar(Long userId, MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new BusinessException("文件不能为空");
+        }
+
+        String originalName = file.getOriginalFilename();
+        if (originalName == null) {
+            throw new BusinessException("文件名无效");
+        }
+
+        String ext = originalName.substring(originalName.lastIndexOf("."));
+        if (!ext.matches("(?i)\\.(jpg|jpeg|png|gif|webp)")) {
+            throw new BusinessException("仅支持 jpg/png/gif/webp 格式");
+        }
+
+        if (file.getSize() > 2 * 1024 * 1024) {
+            throw new BusinessException("文件大小不能超过 2MB");
+        }
+
+        try {
+            String fileName = java.util.UUID.randomUUID() + ext;
+            java.io.File uploadDir = new java.io.File("uploads/avatars");
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            java.io.File dest = new java.io.File(uploadDir, fileName);
+            file.transferTo(dest);
+
+            String avatarUrl = "/uploads/avatars/" + fileName;
+            EggUser user = userMapper.selectById(userId);
+            user.setAvatar(avatarUrl);
+            userMapper.updateById(user);
+
+            return avatarUrl;
+        } catch (Exception e) {
+            throw new BusinessException("头像上传失败");
+        }
     }
 
     /**

@@ -336,6 +336,22 @@
       :close-on-click-modal="false"
     >
       <el-form :model="editForm" :rules="editRules" ref="editForm" label-width="80px">
+        <el-form-item label="头像">
+          <div class="avatar-upload">
+            <el-avatar :size="64" :src="avatarPreview" icon="el-icon-user-solid" />
+            <el-upload
+              class="avatar-uploader"
+              action="/api/user/avatar"
+              :headers="uploadHeaders"
+              :show-file-list="false"
+              :before-upload="beforeAvatarUpload"
+              :on-success="handleAvatarSuccess"
+              :on-error="handleAvatarError"
+            >
+              <el-button size="small" type="text">更换头像</el-button>
+            </el-upload>
+          </div>
+        </el-form-item>
         <el-form-item label="昵称" prop="nickname">
           <el-input
             v-model="editForm.nickname"
@@ -377,6 +393,7 @@ export default {
       editForm: {
         nickname: ''
       },
+      avatarPreview: '',
       editRules: {
         nickname: [
           { required: true, message: '请输入昵称', trigger: 'blur' },
@@ -416,6 +433,9 @@ export default {
     teamBPercent() {
       if (this.recentBets.length === 0) return 50
       return Math.round((this.teamBCount / this.recentBets.length) * 100)
+    },
+    uploadHeaders() {
+      return { Authorization: 'Bearer ' + getToken() }
     }
   },
   created() {
@@ -482,12 +502,37 @@ export default {
     },
     openEditDialog() {
       this.editForm.nickname = this.user.nickname || this.user.username || ''
+      this.avatarPreview = this.user.avatar || ''
       this.editDialogVisible = true
       this.$nextTick(() => {
         if (this.$refs.editForm) {
           this.$refs.editForm.clearValidate()
         }
       })
+    },
+    beforeAvatarUpload(file) {
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      if (!validTypes.includes(file.type)) {
+        this.$message.error('仅支持 jpg/png/gif/webp 格式')
+        return false
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        this.$message.error('文件大小不能超过 2MB')
+        return false
+      }
+      return true
+    },
+    handleAvatarSuccess(res) {
+      const data = res.data || res
+      if (data.avatar) {
+        this.avatarPreview = data.avatar
+        this.user.avatar = data.avatar
+        setUser(this.user)
+        this.$message.success('头像更新成功')
+      }
+    },
+    handleAvatarError() {
+      this.$message.error('头像上传失败')
     },
     saveProfile() {
       this.$refs.editForm.validate(valid => {
@@ -1366,5 +1411,15 @@ export default {
     width: 40px;
     height: 48px;
   }
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-uploader {
+  display: inline-block;
 }
 </style>

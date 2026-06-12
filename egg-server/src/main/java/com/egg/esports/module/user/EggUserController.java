@@ -4,6 +4,7 @@ import com.egg.esports.common.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -78,5 +79,16 @@ public class EggUserController {
         Long userId = (Long) request.getAttribute("userId");
         EggUser user = userService.updateProfile(userId, body.get("nickname"));
         return Result.success(user);
+    }
+
+    /**
+     * 上传头像
+     */
+    @PostMapping("/avatar")
+    public Result<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file,
+                                                     HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        String avatarUrl = userService.uploadAvatar(userId, file);
+        return Result.success(Map.of("avatar", avatarUrl));
     }
 }
