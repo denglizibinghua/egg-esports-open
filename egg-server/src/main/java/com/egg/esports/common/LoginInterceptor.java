@@ -38,8 +38,28 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 把用户 ID 放到 request attribute 里
-        request.setAttribute("userId", jwtUtils.getUserId(token));
+        // 把用户 ID 和角色放到 request attribute 里
+        Long userId = jwtUtils.getUserId(token);
+        Integer role = jwtUtils.getRole(token);
+        request.setAttribute("userId", userId);
+        request.setAttribute("role", role != null ? role : 0);
+
+        // 管理接口需要 admin 角色
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/match/create")
+                || path.startsWith("/api/match/update")
+                || path.startsWith("/api/match/settle")
+                || path.startsWith("/api/match/batch-import")
+                || path.startsWith("/api/match/sync")) {
+            if (role == null || role != 1) {
+                response.setContentType("application/json;charset=UTF-8");
+                response.setStatus(403);
+                new ObjectMapper().writeValue(response.getWriter(),
+                        Result.error(403, "无管理权限"));
+                return false;
+            }
+        }
+
         return true;
     }
 }

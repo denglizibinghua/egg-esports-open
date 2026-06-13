@@ -27,12 +27,13 @@ public class JwtUtils {
     /**
      * 生成 token
      */
-    public String generateToken(Long userId, String username) {
+    public String generateToken(Long userId, String username, Integer role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + expiration);
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("username", username)
+                .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(getKey(), SignatureAlgorithm.HS256)
@@ -55,6 +56,13 @@ public class JwtUtils {
      */
     public Long getUserId(String token) {
         return Long.valueOf(parseToken(token).getSubject());
+    }
+
+    /**
+     * 获取用户角色
+     */
+    public Integer getRole(String token) {
+        return parseToken(token).get("role", Integer.class);
     }
 
     /**

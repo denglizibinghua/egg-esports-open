@@ -32,7 +32,23 @@ jwt:
 # 押注配置
 egg:
   bet:
-    min-amount: 10      # 最低押注
-    max-amount: 100     # 最高押注
     init-points: 1000   # 新用户初始积分
     win-multiplier: 2   # 猜中返还倍数
+  sync:
+    enabled: true          # 是否启用定时同步
+  riot:
+    api-key: ${RIOT_API_KEY}
+    base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule
+    leagues:
+      - id: 111691194187846945
+        name: VCT CN
+      - id: 109940824119741550
+        name: Masters
+      - id: 107254585505459304
+        name: Champions
+      - id: 109974795266458277
+        name: VCT Americas
+      - id: 106109559530232966
+        name: VCT EMEA
+      - id: 109974804058058602
+        name: VCT Pacific

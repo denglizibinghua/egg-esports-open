@@ -20,9 +20,9 @@
           <div class="team-display team-a-display">
             <div class="team-logo-large">
               <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-              <span v-else class="team-logo-placeholder-large">{{ (match.teamA || '').charAt(0) }}</span>
+              <span v-else class="team-logo-placeholder-large">{{ match.teamA === 'TBD' ? '?' : (match.teamA || '').charAt(0) }}</span>
             </div>
-            <div class="team-name-large">{{ match.teamA }}</div>
+            <div class="team-name-large" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
           </div>
 
           <div class="vs-section">
@@ -32,18 +32,18 @@
           <div class="team-display team-b-display">
             <div class="team-logo-large">
               <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-              <span v-else class="team-logo-placeholder-large">{{ (match.teamB || '').charAt(0) }}</span>
+              <span v-else class="team-logo-placeholder-large">{{ match.teamB === 'TBD' ? '?' : (match.teamB || '').charAt(0) }}</span>
             </div>
-            <div class="team-name-large">{{ match.teamB }}</div>
+            <div class="team-name-large" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
           </div>
         </div>
 
         <div v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result-display">
           <template v-if="match.result === 0">
-            <span class="winner-name">{{ match.teamA }}</span> 获胜!
+            <span class="winner-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span> 获胜!
           </template>
           <template v-else-if="match.result === 1">
-            <span class="winner-name">{{ match.teamB }}</span> 获胜!
+            <span class="winner-name">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span> 获胜!
           </template>
           <template v-else-if="match.result === 2">
             平局
@@ -55,8 +55,14 @@
       <div v-if="match.status === 0 || match.status === 1" class="bet-panel">
         <h3 class="panel-title">押注</h3>
 
+        <!-- TBD Notice -->
+        <div v-if="match.teamA === 'TBD' || match.teamB === 'TBD'" class="bet-tbd-notice">
+          <div class="tbd-icon">⏳</div>
+          <p class="tbd-text">参赛队伍尚未确定，暂不支持押注</p>
+        </div>
+
         <!-- Not Logged In Prompt -->
-        <div v-if="!getToken()" class="bet-login-prompt">
+        <div v-else-if="!getToken()" class="bet-login-prompt">
           <div class="prompt-icon">🔒</div>
           <p class="prompt-text">登录后即可参与竞猜</p>
           <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
@@ -75,10 +81,33 @@
           <div v-else class="bet-form">
             <div class="bet-side-select">
               <div class="bet-side-label">选择押注队伍</div>
-              <el-radio-group v-model="betForm.betSide" class="side-radio-group">
-                <el-radio-button :label="0">{{ match.teamA }}</el-radio-button>
-                <el-radio-button :label="1">{{ match.teamB }}</el-radio-button>
-              </el-radio-group>
+              <div class="bet-side-cards">
+                <div
+                  class="team-card"
+                  :class="{ 'team-card--selected': betForm.betSide === 0 }"
+                  @click="betForm.betSide = 0"
+                >
+                  <div class="team-card-logo">
+                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                    <span v-else class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span>
+                  </div>
+                  <div class="team-card-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
+                  <div v-if="betForm.betSide === 0" class="team-card-check">&#10003;</div>
+                </div>
+                <div class="team-card-vs">VS</div>
+                <div
+                  class="team-card"
+                  :class="{ 'team-card--selected': betForm.betSide === 1 }"
+                  @click="betForm.betSide = 1"
+                >
+                  <div class="team-card-logo">
+                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                    <span v-else class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span>
+                  </div>
+                  <div class="team-card-name">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
+                  <div v-if="betForm.betSide === 1" class="team-card-check">&#10003;</div>
+                </div>
+              </div>
             </div>
 
             <div class="bet-amount-section">
@@ -88,9 +117,9 @@
               </div>
               <el-slider
                 v-model="betForm.betAmount"
-                :min="10"
-                :max="Math.max(10, userPoints)"
-                :step="10"
+                :min="1"
+                :max="userPoints"
+                :step="1"
                 show-input
                 :show-input-controls="false"
               />
@@ -110,11 +139,11 @@
 
         <div class="bet-stats">
           <div class="bet-stat">
-            <span class="stat-label">{{ match.teamA }}</span>
+            <span class="stat-label" :class="{ 'stat-label-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
             <span class="stat-value">{{ betCount.teamA }} 人押注</span>
           </div>
           <div class="bet-stat">
-            <span class="stat-label">{{ match.teamB }}</span>
+            <span class="stat-label" :class="{ 'stat-label-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
             <span class="stat-value">{{ betCount.teamB }} 人押注</span>
           </div>
         </div>
@@ -139,7 +168,7 @@ export default {
       betCount: { teamA: 0, teamB: 0 },
       betForm: {
         betSide: null,
-        betAmount: 10
+        betAmount: 50
       },
       betLoading: false,
       userPoints: 0
@@ -370,35 +399,108 @@ export default {
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
-.side-radio-group {
-  width: 100%;
+.bet-side-cards {
   display: flex;
+  align-items: stretch;
   gap: 12px;
 }
 
-.side-radio-group .el-radio-button {
+.team-card {
   flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 120px;
+  padding: 20px 16px;
+  background: #1a1a24;
+  border: 1px solid #2a2a3a;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-normal) ease;
+  user-select: none;
 }
 
-.side-radio-group .el-radio-button__inner {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
+.team-card:hover {
+  background: #1f1f2c;
+  border-color: #3a3a4a;
+}
+
+.team-card--selected {
+  background: #151a17;
+  border-color: #3d5a40;
+  box-shadow: 0 0 24px rgba(60,100,65,0.20);
+}
+
+.team-card--selected:hover {
+  background: #151a17;
+  border-color: #3d5a40;
+}
+
+.team-card-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: #252533;
+  border: 1px solid #2a2a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.team-card-logo img {
   width: 100%;
-  border-radius: var(--radius-md) !important;
-  font-weight: 500;
-  transition: all var(--duration-normal) var(--ease-out);
-  box-shadow: none !important;
+  height: 100%;
+  object-fit: contain;
 }
 
-.side-radio-group .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-  background: rgba(0,229,160,0.12) !important;
-  border-color: var(--accent-primary) !important;
-  color: var(--accent-primary) !important;
-  box-shadow: 0 0 20px rgba(0,229,160,0.15) !important;
+.team-card-logo-placeholder {
+  font-size: 20px;
+  font-weight: 700;
+  color: #5b8c5a;
+}
+
+.team-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.team-card-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: #5b8c5a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.team-card-vs {
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #4a4a5a;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .bet-amount-section {
@@ -510,5 +612,41 @@ export default {
   font-weight: 600;
   border-radius: var(--radius-md) !important;
   padding: 10px 32px;
+}
+
+/* TBD Notice */
+.bet-tbd-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.tbd-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.tbd-text {
+  font-size: 15px;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* TBD Team Name */
+.team-name-tbd {
+  color: var(--text-tertiary) !important;
+  font-style: italic;
+}
+
+.stat-label-tbd {
+  color: var(--text-tertiary) !important;
+  font-style: italic;
 }
 </style>

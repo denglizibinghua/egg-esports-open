@@ -30,12 +30,6 @@ public class EggBetService {
     @Autowired
     private EggUserMapper eggUserMapper;
 
-    @Value("${egg.bet.min-amount}")
-    private int minAmount;
-
-    @Value("${egg.bet.max-amount}")
-    private int maxAmount;
-
     @Value("${egg.bet.win-multiplier}")
     private int winMultiplier;
 
@@ -66,9 +60,9 @@ public class EggBetService {
             throw new BusinessException("您已对该赛事下注");
         }
 
-        // 3. 校验下注金额
-        if (betAmount < minAmount || betAmount > maxAmount) {
-            throw new BusinessException("下注金额需在" + minAmount + "~" + maxAmount + "之间");
+        // 3. 校验下注金额（仅需 > 0）
+        if (betAmount == null || betAmount <= 0) {
+            throw new BusinessException("下注金额必须大于0");
         }
 
         // 4. 扣除用户积分（乐观锁方式：只有积分 >= betAmount 时才更新）

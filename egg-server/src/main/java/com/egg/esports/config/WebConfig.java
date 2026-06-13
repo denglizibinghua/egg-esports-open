@@ -15,7 +15,7 @@ import java.io.File;
 public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
-    private LoginInterceptor;
+    private LoginInterceptor loginInterceptor;
 
     @Value("${egg.upload.path:uploads}")
     private String uploadPath;

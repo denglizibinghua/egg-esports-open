@@ -81,7 +81,7 @@ public class EggUserService {
             throw new BusinessException("用户名或密码错误");
         }
 
-        String token = jwtUtils.generateToken(user.getId(), user.getUsername());
+        String token = jwtUtils.generateToken(user.getId(), user.getUsername(), user.getRole());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);

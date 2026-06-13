@@ -17,6 +17,9 @@ public class EggMatch {
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    /** Riot API match.id, unique for dedup */
+    private String externalId;
+
     private Long gameId;
 
     private String title;

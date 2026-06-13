@@ -4,6 +4,51 @@
       <h2 class="page-title">赛事列表</h2>
     </div>
 
+    <div v-if="hotMatches.length > 0" class="hot-section">
+      <div class="hot-header">
+        <h3 class="hot-title">热门赛事</h3>
+        <div class="hot-separator"></div>
+      </div>
+      <div class="hot-grid">
+        <div
+          v-for="match in hotMatches"
+          :key="'hot-' + match.id"
+          class="hot-card"
+          @click="goDetail(match.id)"
+        >
+          <div class="hot-card-top">
+            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+            <span v-if="match.status === 1" class="status-badge status-badge--live">
+              <span class="status-dot status-dot--pulse"></span>进行中
+            </span>
+            <span v-else-if="match.status === 0" class="status-badge status-badge--upcoming">
+              <span class="status-dot"></span>未开始
+            </span>
+          </div>
+          <div class="hot-card-teams">
+            <div class="hot-team">
+              <div class="team-logo">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
+              </div>
+              <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
+            </div>
+            <div class="vs-badge vs-badge--sm">VS</div>
+            <div class="hot-team hot-team--reverse">
+              <div class="team-logo">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
+              </div>
+              <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
+            </div>
+          </div>
+          <div class="hot-card-footer">
+            <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <el-tabs v-model="activeStatus" @tab-click="handleTabChange">
       <el-tab-pane label="全部" name="all" />
       <el-tab-pane label="即将开始" name="0" />
@@ -61,9 +106,9 @@
             <div class="team team-a">
               <div class="team-logo">
                 <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
+                <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
               </div>
-              <span class="team-name">{{ match.teamA }}</span>
+              <span class="team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
             </div>
 
             <div class="vs-badge">VS</div>
@@ -71,9 +116,9 @@
             <div class="team team-b">
               <div class="team-logo">
                 <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+                <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
               </div>
-              <span class="team-name">{{ match.teamB }}</span>
+              <span class="team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
             </div>
           </div>
 
@@ -87,8 +132,8 @@
             <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
 
             <span v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result">
-              <template v-if="match.result === 0">{{ match.teamA }} 获胜!</template>
-              <template v-else-if="match.result === 1">{{ match.teamB }} 获胜!</template>
+              <template v-if="match.result === 0">{{ match.teamA === 'TBD' ? '待定' : match.teamA }} 获胜!</template>
+              <template v-else-if="match.result === 1">{{ match.teamB === 'TBD' ? '待定' : match.teamB }} 获胜!</template>
               <template v-else-if="match.result === 2">平局</template>
             </span>
           </div>
@@ -119,6 +164,8 @@ export default {
       activeStatus: 'all',
       matches: [],
       loading: false,
+      hotMatches: [],
+      hotLoading: false,
       currentPage: 1,
       pageSize: 10,
       total: 0
@@ -149,6 +196,7 @@ export default {
   },
   created() {
     this.fetchMatches()
+    this.fetchHotMatches()
   },
   methods: {
     fetchMatches() {
@@ -179,6 +227,21 @@ export default {
     handleTabChange() {
       this.currentPage = 1
       this.fetchMatches()
+    },
+    fetchHotMatches() {
+      this.hotLoading = true
+      request.get('/match/hot', { params: { limit: 6 } }).then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.hotMatches = data
+        } else if (data.records) {
+          this.hotMatches = data.records
+        } else {
+          this.hotMatches = data.list || data.content || []
+        }
+      }).catch(() => {}).finally(() => {
+        this.hotLoading = false
+      })
     },
     goDetail(id) {
       this.$router.push('/match/' + id)
@@ -440,5 +503,133 @@ export default {
 .skeleton-footer {
   grid-column: 1 / -1;
   margin-top: 8px;
+}
+
+/* Hot Section */
+.hot-section {
+  margin-bottom: 24px;
+  animation: match-enter 0.4s var(--ease-out) both;
+}
+
+.hot-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.hot-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.hot-separator {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border-subtle) 0%, transparent 100%);
+}
+
+.hot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.hot-card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: match-enter 0.4s var(--ease-out) both;
+}
+
+.hot-card:nth-child(1) { animation-delay: 0ms; }
+.hot-card:nth-child(2) { animation-delay: 40ms; }
+.hot-card:nth-child(3) { animation-delay: 80ms; }
+.hot-card:nth-child(4) { animation-delay: 120ms; }
+.hot-card:nth-child(5) { animation-delay: 160ms; }
+.hot-card:nth-child(6) { animation-delay: 200ms; }
+
+.hot-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.hot-card:has(.status-badge--live) {
+  border-left: 2px solid var(--accent-primary);
+  background: linear-gradient(90deg, rgba(0, 229, 160, 0.03) 0%, var(--bg-surface-1) 30%);
+}
+
+.hot-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.hot-card-teams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.hot-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.hot-team--reverse {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.hot-team-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vs-badge--sm {
+  font-size: 14px;
+}
+
+.hot-card-footer {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hot-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* TBD Team Name */
+.team-name-tbd {
+  color: var(--text-tertiary) !important;
+  font-style: italic;
 }
 </style>

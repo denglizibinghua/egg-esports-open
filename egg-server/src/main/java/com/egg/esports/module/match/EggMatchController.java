@@ -2,10 +2,13 @@ package com.egg.esports.module.match;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.egg.esports.common.Result;
+import com.egg.esports.module.sync.MatchSyncService;
+import com.egg.esports.module.sync.SyncResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,6 +20,7 @@ import java.util.Map;
 public class EggMatchController {
 
     private final EggMatchService matchService;
+    private final MatchSyncService matchSyncService;
 
     /**
      * 赛事列表（公开）
@@ -60,5 +64,29 @@ public class EggMatchController {
         Long matchId = Long.valueOf(params.get("matchId").toString());
         Integer result = Integer.valueOf(params.get("result").toString());
         return Result.success(matchService.settle(matchId, result));
+    }
+
+    /**
+     * 热门赛事（即将开始 + 进行中）
+     */
+    @GetMapping("/hot")
+    public Result<List<EggMatch>> hot(@RequestParam(defaultValue = "6") int limit) {
+        return Result.success(matchService.getHotMatches(limit));
+    }
+
+    /**
+     * 批量导入赛事（管理员）
+     */
+    @PostMapping("/batch-import")
+    public Result<Map<String, Object>> batchImport(@RequestBody List<EggMatch> matches) {
+        return Result.success(matchService.batchImport(matches));
+    }
+
+    /**
+     * 手动触发数据同步（管理员）
+     */
+    @PostMapping("/sync")
+    public Result<SyncResult> sync() {
+        return Result.success(matchSyncService.syncFromRiot());
     }
 }
