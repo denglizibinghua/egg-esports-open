@@ -33,7 +33,12 @@
               </div>
               <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
             </div>
-            <div class="vs-badge vs-badge--sm">VS</div>
+            <div v-if="hasScore(match)" class="score-display score-display--sm" :class="{ 'score--live': match.status === 1, 'score--finished': match.status === 2 }">
+              <span class="score-a">{{ match.scoreA }}</span>
+              <span class="score-sep">:</span>
+              <span class="score-b">{{ match.scoreB }}</span>
+            </div>
+            <div v-else class="vs-badge vs-badge--sm">VS</div>
             <div class="hot-team hot-team--reverse">
               <div class="team-logo">
                 <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
@@ -89,53 +94,71 @@
         <el-button v-if="isAdminUser" type="primary" class="empty-action" @click="$router.push('/admin/match/create')">创建赛事</el-button>
       </div>
 
-      <!-- Match Cards -->
+      <!-- Tournament Groups -->
       <template v-else>
         <div
-          v-for="match in matches"
-          :key="match.id"
-          class="match-card"
-          @click="goDetail(match.id)"
+          v-for="group in tournamentGroups"
+          :key="'tg-' + group.name"
+          class="tournament-group"
         >
-          <div class="match-tournament">
-            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-            <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+          <div class="tournament-group-header" @click="toggleTournament(group.name)">
+            <span class="tournament-group-arrow" :class="{ 'is-expanded': isTournamentExpanded(group.name) }">&#9654;</span>
+            <span class="tournament-group-name">{{ group.name }}</span>
+            <span class="tournament-group-count">{{ group.matches.length }} 场</span>
           </div>
-
-          <div class="match-teams">
-            <div class="team team-a">
-              <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
+          <div v-show="isTournamentExpanded(group.name)" class="tournament-group-body">
+            <div
+              v-for="match in group.matches"
+              :key="match.id"
+              class="match-card"
+              @click="goDetail(match.id)"
+            >
+              <div class="match-tournament">
+                <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+                <span class="match-time">{{ formatTime(match.matchTime) }}</span>
               </div>
-              <span class="team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
-            </div>
 
-            <div class="vs-badge">VS</div>
+              <div class="match-teams">
+                <div class="team team-a">
+                  <div class="team-logo">
+                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                    <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
+                  </div>
+                  <span class="team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
+                </div>
 
-            <div class="team team-b">
-              <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
+                <div v-if="hasScore(match)" class="score-display" :class="{ 'score--live': match.status === 1, 'score--finished': match.status === 2 }">
+                  <span class="score-a">{{ match.scoreA }}</span>
+                  <span class="score-sep">:</span>
+                  <span class="score-b">{{ match.scoreB }}</span>
+                </div>
+                <div v-else class="vs-badge">VS</div>
+
+                <div class="team team-b">
+                  <div class="team-logo">
+                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                    <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
+                  </div>
+                  <span class="team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
+                </div>
               </div>
-              <span class="team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
+
+              <div class="match-footer">
+                <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
+                  <span class="status-dot"></span>未开始
+                </span>
+                <span v-else-if="match.status === 1" class="status-badge status-badge--live">
+                  <span class="status-dot status-dot--pulse"></span>进行中
+                </span>
+                <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
+
+                <span v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result">
+                  <template v-if="match.result === 0">{{ match.teamA === 'TBD' ? '待定' : match.teamA }} 获胜!</template>
+                  <template v-else-if="match.result === 1">{{ match.teamB === 'TBD' ? '待定' : match.teamB }} 获胜!</template>
+                  <template v-else-if="match.result === 2">平局</template>
+                </span>
+              </div>
             </div>
-          </div>
-
-          <div class="match-footer">
-            <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
-              <span class="status-dot"></span>未开始
-            </span>
-            <span v-else-if="match.status === 1" class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>进行中
-            </span>
-            <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
-
-            <span v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result">
-              <template v-if="match.result === 0">{{ match.teamA === 'TBD' ? '待定' : match.teamA }} 获胜!</template>
-              <template v-else-if="match.result === 1">{{ match.teamB === 'TBD' ? '待定' : match.teamB }} 获胜!</template>
-              <template v-else-if="match.result === 2">平局</template>
-            </span>
           </div>
         </div>
       </template>
@@ -168,7 +191,9 @@ export default {
       hotLoading: false,
       currentPage: 1,
       pageSize: 10,
-      total: 0
+      total: 0,
+      pollTimer: null,
+      collapsedTournaments: []
     }
   },
   computed: {
@@ -192,24 +217,80 @@ export default {
         '2': '比赛结束后会在这里展示结果'
       }
       return map[this.activeStatus] || ''
+    },
+    tournamentGroups() {
+      var groups = {}
+      var order = []
+      this.matches.forEach(function (match) {
+        var key = match.tournament || '常规赛事'
+        if (!groups[key]) {
+          groups[key] = []
+          order.push(key)
+        }
+        groups[key].push(match)
+      })
+      // Sort by earliest matchTime in each group
+      order.sort(function (a, b) {
+        var timeA = groups[a][0] && groups[a][0].matchTime ? new Date(groups[a][0].matchTime).getTime() : Infinity
+        var timeB = groups[b][0] && groups[b][0].matchTime ? new Date(groups[b][0].matchTime).getTime() : Infinity
+        return timeA - timeB
+      })
+      return order.map(function (name) {
+        return { name: name, matches: groups[name] }
+      })
     }
   },
   created() {
     this.fetchMatches()
     this.fetchHotMatches()
+    this.startPolling()
+  },
+  beforeDestroy() {
+    this.stopPolling()
   },
   methods: {
-    fetchMatches() {
-      this.loading = true
-      const params = {
+    hasScore(match) {
+      return (match.status === 1 || match.status === 2) &&
+        match.scoreA !== null && match.scoreA !== undefined &&
+        match.scoreB !== null && match.scoreB !== undefined
+    },
+    isTournamentExpanded(name) {
+      return this.collapsedTournaments.indexOf(name) === -1
+    },
+    toggleTournament(name) {
+      var idx = this.collapsedTournaments.indexOf(name)
+      if (idx >= 0) {
+        this.collapsedTournaments.splice(idx, 1)
+      } else {
+        this.collapsedTournaments.push(name)
+      }
+    },
+    startPolling() {
+      var self = this
+      this.pollTimer = setInterval(function () {
+        if (!document.hidden) {
+          self.fetchMatches(true)
+          self.fetchHotMatches(true)
+        }
+      }, 30000)
+    },
+    stopPolling() {
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
+      }
+    },
+    fetchMatches(silent) {
+      if (!silent) this.loading = true
+      var params = {
         page: this.currentPage,
         size: this.pageSize
       }
       if (this.activeStatus !== 'all') {
         params.status = this.activeStatus
       }
-      request.get('/match/list', { params }).then(res => {
-        const data = res.data || res
+      request.get('/match/list', { params }).then(function (res) {
+        var data = res.data || res
         if (Array.isArray(data)) {
           this.matches = data
           this.total = data.length
@@ -220,18 +301,18 @@ export default {
           this.matches = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
-      }).catch(() => {}).finally(() => {
-        this.loading = false
-      })
+      }.bind(this)).catch(function () {}).finally(function () {
+        if (!silent) this.loading = false
+      }.bind(this))
     },
     handleTabChange() {
       this.currentPage = 1
       this.fetchMatches()
     },
-    fetchHotMatches() {
-      this.hotLoading = true
-      request.get('/match/hot', { params: { limit: 6 } }).then(res => {
-        const data = res.data || res
+    fetchHotMatches(silent) {
+      if (!silent) this.hotLoading = true
+      request.get('/match/hot', { params: { limit: 6 } }).then(function (res) {
+        var data = res.data || res
         if (Array.isArray(data)) {
           this.hotMatches = data
         } else if (data.records) {
@@ -239,20 +320,20 @@ export default {
         } else {
           this.hotMatches = data.list || data.content || []
         }
-      }).catch(() => {}).finally(() => {
-        this.hotLoading = false
-      })
+      }.bind(this)).catch(function () {}).finally(function () {
+        if (!silent) this.hotLoading = false
+      }.bind(this))
     },
     goDetail(id) {
       this.$router.push('/match/' + id)
     },
     formatTime(timeStr) {
       if (!timeStr) return ''
-      const d = new Date(timeStr)
-      const month = (d.getMonth() + 1).toString().padStart(2, '0')
-      const day = d.getDate().toString().padStart(2, '0')
-      const hour = d.getHours().toString().padStart(2, '0')
-      const min = d.getMinutes().toString().padStart(2, '0')
+      var d = new Date(timeStr)
+      var month = (d.getMonth() + 1).toString().padStart(2, '0')
+      var day = d.getDate().toString().padStart(2, '0')
+      var hour = d.getHours().toString().padStart(2, '0')
+      var min = d.getMinutes().toString().padStart(2, '0')
       return month + '-' + day + ' ' + hour + ':' + min
     }
   }
@@ -275,6 +356,101 @@ export default {
   min-height: 200px;
 }
 
+/* Tournament Grouping */
+.tournament-group {
+  margin-bottom: 20px;
+}
+
+.tournament-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
+  margin-bottom: 8px;
+  user-select: none;
+}
+
+.tournament-group-header:hover {
+  background: var(--bg-surface-3);
+  border-color: var(--border-default);
+}
+
+.tournament-group-arrow {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  transition: transform var(--duration-fast) var(--ease-out);
+  display: inline-block;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+.tournament-group-arrow.is-expanded {
+  transform: rotate(90deg);
+}
+
+.tournament-group-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.tournament-group-count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.tournament-group-body {
+  /* body container */
+}
+
+/* Score Display */
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
+.score-display--sm {
+  font-size: 15px;
+  gap: 4px;
+}
+
+.score--live {
+  color: var(--accent-primary);
+  text-shadow: 0 0 12px rgba(0, 229, 160, 0.3);
+}
+
+.score--finished {
+  color: var(--text-secondary);
+}
+
+.score-a,
+.score-b {
+  font-variant-numeric: tabular-nums;
+}
+
+.score-sep {
+  opacity: 0.5;
+  font-weight: 400;
+}
+
 .match-card {
   display: grid;
   grid-template-columns: 80px 1fr auto;
@@ -292,16 +468,16 @@ export default {
   animation: match-enter 0.4s var(--ease-out) both;
 }
 
-.match-card:nth-child(1) { animation-delay: 0ms; }
-.match-card:nth-child(2) { animation-delay: 20ms; }
-.match-card:nth-child(3) { animation-delay: 40ms; }
-.match-card:nth-child(4) { animation-delay: 60ms; }
-.match-card:nth-child(5) { animation-delay: 80ms; }
-.match-card:nth-child(6) { animation-delay: 100ms; }
-.match-card:nth-child(7) { animation-delay: 120ms; }
-.match-card:nth-child(8) { animation-delay: 140ms; }
-.match-card:nth-child(9) { animation-delay: 160ms; }
-.match-card:nth-child(10) { animation-delay: 180ms; }
+.tournament-group-body .match-card:nth-child(1) { animation-delay: 0ms; }
+.tournament-group-body .match-card:nth-child(2) { animation-delay: 20ms; }
+.tournament-group-body .match-card:nth-child(3) { animation-delay: 40ms; }
+.tournament-group-body .match-card:nth-child(4) { animation-delay: 60ms; }
+.tournament-group-body .match-card:nth-child(5) { animation-delay: 80ms; }
+.tournament-group-body .match-card:nth-child(6) { animation-delay: 100ms; }
+.tournament-group-body .match-card:nth-child(7) { animation-delay: 120ms; }
+.tournament-group-body .match-card:nth-child(8) { animation-delay: 140ms; }
+.tournament-group-body .match-card:nth-child(9) { animation-delay: 160ms; }
+.tournament-group-body .match-card:nth-child(10) { animation-delay: 180ms; }
 
 @keyframes match-enter {
   from {

@@ -37,6 +37,16 @@ public class EggMatch {
     private LocalDateTime matchTime;
 
     /**
+     * A队比分（实时更新）
+     */
+    private Integer scoreA;
+
+    /**
+     * B队比分（实时更新）
+     */
+    private Integer scoreB;
+
+    /**
      * 0=未开始, 1=进行中, 2=已结束
      */
     private Integer status;

@@ -23,6 +23,14 @@ public class EggMatchController {
     private final MatchSyncService matchSyncService;
 
     /**
+     * 按联赛分组查询赛事（公开）
+     */
+    @GetMapping("/tournaments")
+    public Result<Map<String, List<EggMatch>>> tournaments() {
+        return Result.success(matchService.getMatchesByTournament());
+    }
+
+    /**
      * 赛事列表（公开）
      */
     @GetMapping("/list")

@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: admin
-    password: admin123
+    username: root
+    password: ${DB_PASSWORD}
   servlet:
     multipart:
       max-file-size: 2MB
@@ -26,7 +26,7 @@ mybatis-plus:
 
 # JWT
 jwt:
-  secret: REDACTED-JWT-SECRET
+  secret: ${JWT_SECRET}
   expiration: 604800000  # 7 days in ms
 
 # 押注配置

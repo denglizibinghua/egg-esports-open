@@ -259,7 +259,11 @@
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="投注记录" name="history">
+        <el-tab-pane name="history">
+          <span slot="label">
+            投注记录
+            <span v-if="settlementCount > 0" class="settlement-badge">{{ settlementCount }}</span>
+          </span>
           <!-- Bet History -->
           <div class="bet-history">
             <div class="section-header">
@@ -281,7 +285,7 @@
             </div>
 
             <template v-else>
-              <el-table :data="bets" style="width: 100%" v-loading="betsLoading">
+              <el-table :data="bets" style="width: 100%" v-loading="betsLoading" :row-class-name="betRowClass">
                 <el-table-column label="赛事" min-width="180">
                   <template slot-scope="scope">
                     <span class="bet-match-title">{{ scope.row.matchTitle || ('赛事 #' + scope.row.matchId) }}</span>
@@ -295,6 +299,18 @@
                   </template>
                 </el-table-column>
                 <el-table-column label="积分" width="80" align="center" prop="betAmount" />
+                <el-table-column label="返还" width="80" align="center">
+                  <template slot-scope="scope">
+                    <span v-if="scope.row.status === 0" class="net-change--pending">-</span>
+                    <span v-else class="returned-amount">{{ getReturnedAmount(scope.row) }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="净收益" width="100" align="center">
+                  <template slot-scope="scope">
+                    <span v-if="scope.row.status === 0" class="net-change--pending">-</span>
+                    <span v-else :class="netChangeClass(scope.row)">{{ formatNetChange(scope.row) }}</span>
+                  </template>
+                </el-table-column>
                 <el-table-column label="状态" width="100" align="center">
                   <template slot-scope="scope">
                     <span v-if="scope.row.status === 0" class="status-badge status-badge--pending">待结算</span>
@@ -373,6 +389,8 @@
 import request from '@/utils/request'
 import { getToken, setUser } from '@/utils/auth'
 
+var LAST_VISIT_KEY = 'egg_lastVisitTime'
+
 export default {
   name: 'UserCenter',
   data() {
@@ -399,7 +417,9 @@ export default {
           { required: true, message: '请输入昵称', trigger: 'blur' },
           { max: 20, message: '昵称最多20个字符', trigger: 'blur' }
         ]
-      }
+      },
+      settlementCount: 0,
+      settledBetKeys: []
     }
   },
   computed: {
@@ -412,8 +432,8 @@ export default {
       return window.location.origin + '/profile/' + this.user.id
     },
     gaugeOffset() {
-      const circumference = 2 * Math.PI * 52
-      const offset = circumference - (this.accuracy / 100) * circumference
+      var circumference = 2 * Math.PI * 52
+      var offset = circumference - (this.accuracy / 100) * circumference
       return offset
     },
     streakPercent() {
@@ -421,10 +441,10 @@ export default {
       return Math.min(100, Math.round(((this.user.winStreak || 0) / this.user.maxWinStreak) * 100))
     },
     teamACount() {
-      return this.recentBets.filter(b => b.betSide === 0).length
+      return this.recentBets.filter(function (b) { return b.betSide === 0 }).length
     },
     teamBCount() {
-      return this.recentBets.filter(b => b.betSide === 1).length
+      return this.recentBets.filter(function (b) { return b.betSide === 1 }).length
     },
     teamAPercent() {
       if (this.recentBets.length === 0) return 50
@@ -447,28 +467,29 @@ export default {
     this.fetchBets()
     this.fetchMyRank()
     this.fetchRecentBets()
+    this.fetchSettledSince()
   },
   methods: {
     fetchUserInfo() {
       this.loading = true
-      request.get('/user/me').then(res => {
+      request.get('/user/me').then(function (res) {
         this.user = res.data || res
         setUser(this.user)
-      }).catch(() => {}).finally(() => {
+      }.bind(this)).catch(function () {}).finally(function () {
         this.loading = false
-      })
+      }.bind(this))
     },
     fetchBets() {
       this.betsLoading = true
-      const params = {
+      var params = {
         page: this.betCurrentPage,
         size: this.betPageSize
       }
       if (this.betStatus !== 'all') {
         params.status = this.betStatus
       }
-      request.get('/bet/my', { params }).then(res => {
-        const data = res.data || res
+      request.get('/bet/my', { params }).then(function (res) {
+        var data = res.data || res
         if (Array.isArray(data)) {
           this.bets = data
           this.betTotal = data.length
@@ -479,39 +500,101 @@ export default {
           this.bets = data.list || data.content || []
           this.betTotal = data.total || data.totalElements || 0
         }
-      }).catch(() => {}).finally(() => {
+      }.bind(this)).catch(function () {}).finally(function () {
         this.betsLoading = false
-      })
+      }.bind(this))
     },
     fetchMyRank() {
-      request.get('/leaderboard/my-rank').then(res => {
+      request.get('/leaderboard/my-rank').then(function (res) {
         this.myRank = res.data || res
-      }).catch(() => {
+      }.bind(this)).catch(function () {
         this.myRank = { rank: 0, total: 0 }
-      })
+      }.bind(this))
     },
     fetchRecentBets() {
-      request.get('/bet/recent').then(res => {
+      request.get('/bet/recent').then(function (res) {
         this.recentBets = res.data || res || []
         if (!Array.isArray(this.recentBets)) {
           this.recentBets = []
         }
-      }).catch(() => {
+      }.bind(this)).catch(function () {
         this.recentBets = []
-      })
+      }.bind(this))
+    },
+    fetchSettledSince() {
+      var lastVisit = localStorage.getItem(LAST_VISIT_KEY)
+      var now = new Date().toISOString()
+      if (lastVisit) {
+        request.get('/bet/settled-since', { params: { since: lastVisit } }).then(function (res) {
+          var data = res.data || res
+          var list = Array.isArray(data) ? data : (data.records || data.list || [])
+          this.settlementCount = list.length
+          this.settledBetKeys = list.map(function (b) {
+            return b.matchId + '_' + b.betSide
+          })
+          // Clear badge when user views the history tab
+          if (this.settlementCount > 0) {
+            this.$watch('activeTab', function (val) {
+              if (val === 'history') {
+                this.settlementCount = 0
+              }
+            })
+          }
+        }.bind(this)).catch(function () {})
+      }
+      localStorage.setItem(LAST_VISIT_KEY, now)
+    },
+    betRowClass: function (_ref) {
+      var row = _ref.row
+      var key = row.matchId + '_' + row.betSide
+      if (this.settledBetKeys.indexOf(key) !== -1 && row.status !== 0) {
+        return 'new-settlement'
+      }
+      return ''
+    },
+    getReturnedAmount(row) {
+      if (row.returnedAmount !== null && row.returnedAmount !== undefined) {
+        return row.returnedAmount
+      }
+      // Fallback computation
+      if (row.status === 1) return row.betAmount * 2
+      if (row.status === 2) return 0
+      // draw (result === 2 scenario) - not directly available in bet status
+      return row.betAmount
+    },
+    netChangeClass(row) {
+      var net = this.getNetChange(row)
+      if (net > 0) return 'net-change--positive'
+      if (net < 0) return 'net-change--negative'
+      return 'net-change--neutral'
+    },
+    getNetChange(row) {
+      if (row.netChange !== null && row.netChange !== undefined) {
+        return row.netChange
+      }
+      // Fallback computation
+      if (row.status === 1) return row.betAmount
+      if (row.status === 2) return -row.betAmount
+      return 0
+    },
+    formatNetChange(row) {
+      var net = this.getNetChange(row)
+      if (net > 0) return '+' + net
+      if (net < 0) return '' + net
+      return '0'
     },
     openEditDialog() {
       this.editForm.nickname = this.user.nickname || this.user.username || ''
       this.avatarPreview = this.user.avatar || ''
       this.editDialogVisible = true
-      this.$nextTick(() => {
+      this.$nextTick(function () {
         if (this.$refs.editForm) {
           this.$refs.editForm.clearValidate()
         }
-      })
+      }.bind(this))
     },
     beforeAvatarUpload(file) {
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      var validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
       if (!validTypes.includes(file.type)) {
         this.$message.error('仅支持 jpg/png/gif/webp 格式')
         return false
@@ -523,7 +606,7 @@ export default {
       return true
     },
     handleAvatarSuccess(res) {
-      const data = res.data || res
+      var data = res.data || res
       if (data.avatar) {
         this.avatarPreview = data.avatar
         this.user.avatar = data.avatar
@@ -535,28 +618,28 @@ export default {
       this.$message.error('头像上传失败')
     },
     saveProfile() {
-      this.$refs.editForm.validate(valid => {
+      this.$refs.editForm.validate(function (valid) {
         if (!valid) return
         this.editSaving = true
-        request.put('/user/profile', { nickname: this.editForm.nickname }).then(() => {
+        request.put('/user/profile', { nickname: this.editForm.nickname }).then(function () {
           this.$message.success('资料更新成功')
           this.user.nickname = this.editForm.nickname
           setUser(this.user)
           this.editDialogVisible = false
-        }).catch(() => {
+        }.bind(this)).catch(function () {
           this.$message.error('更新失败，请重试')
-        }).finally(() => {
+        }.bind(this)).finally(function () {
           this.editSaving = false
-        })
-      })
+        }.bind(this))
+      }.bind(this))
     },
     copyProfileUrl() {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(this.profileUrl).then(() => {
+        navigator.clipboard.writeText(this.profileUrl).then(function () {
           this.$message.success('链接已复制')
-        })
+        }.bind(this))
       } else {
-        const input = document.createElement('input')
+        var input = document.createElement('input')
         input.value = this.profileUrl
         document.body.appendChild(input)
         input.select()
@@ -566,40 +649,40 @@ export default {
       }
     },
     trendBarHeight(bet) {
-      const base = 24
-      const max = 80
+      var base = 24
+      var max = 80
       if (bet.status === 0) return base
       return Math.min(max, base + bet.betAmount * 2)
     },
     resultDotClass(idx) {
       if (idx >= this.recentBets.length) return 'result-dot--empty'
-      const bet = this.recentBets[idx]
+      var bet = this.recentBets[idx]
       if (bet.status === 1) return 'result-dot--win'
       if (bet.status === 2) return 'result-dot--loss'
       return 'result-dot--pending'
     },
     resultDotIcon(idx) {
       if (idx >= this.recentBets.length) return '·'
-      const bet = this.recentBets[idx]
+      var bet = this.recentBets[idx]
       if (bet.status === 1) return '✓'
       if (bet.status === 2) return '✗'
       return '⏳'
     },
     resultDotTitle(idx) {
       if (idx >= this.recentBets.length) return '暂无数据'
-      const bet = this.recentBets[idx]
-      const team = bet.betSide === 0 ? 'A队' : 'B队'
-      const status = bet.status === 1 ? '猜中' : bet.status === 2 ? '未中' : '待结算'
+      var bet = this.recentBets[idx]
+      var team = bet.betSide === 0 ? 'A队' : 'B队'
+      var status = bet.status === 1 ? '猜中' : bet.status === 2 ? '未中' : '待结算'
       return (bet.matchTitle || '赛事') + ' | ' + team + ' | ' + bet.betAmount + '分 | ' + status
     },
     formatDate(timeStr) {
       if (!timeStr) return '-'
-      const d = new Date(timeStr)
-      const y = d.getFullYear()
-      const m = (d.getMonth() + 1).toString().padStart(2, '0')
-      const day = d.getDate().toString().padStart(2, '0')
-      const h = d.getHours().toString().padStart(2, '0')
-      const min = d.getMinutes().toString().padStart(2, '0')
+      var d = new Date(timeStr)
+      var y = d.getFullYear()
+      var m = (d.getMonth() + 1).toString().padStart(2, '0')
+      var day = d.getDate().toString().padStart(2, '0')
+      var h = d.getHours().toString().padStart(2, '0')
+      var min = d.getMinutes().toString().padStart(2, '0')
       return y + '-' + m + '-' + day + ' ' + h + ':' + min
     }
   }
@@ -621,6 +704,82 @@ export default {
 /* Tabs */
 .user-tabs {
   margin-top: 4px;
+}
+
+/* Settlement Notification Badge */
+.settlement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-danger);
+  border-radius: var(--radius-full);
+  margin-left: 6px;
+  line-height: 1;
+  vertical-align: middle;
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Net Change Colors */
+.net-change--positive {
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.net-change--negative {
+  color: var(--accent-danger);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.net-change--neutral {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.net-change--pending {
+  color: var(--text-tertiary);
+}
+
+.returned-amount {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* New Settlement Row Highlight */
+::v-deep .el-table .new-settlement td {
+  background: rgba(0, 229, 160, 0.06) !important;
+  box-shadow: inset 0 0 20px rgba(0, 229, 160, 0.05);
+}
+
+::v-deep .el-table .new-settlement td:first-child {
+  position: relative;
+}
+
+::v-deep .el-table .new-settlement td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: var(--accent-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
 
 /* User Info Card */

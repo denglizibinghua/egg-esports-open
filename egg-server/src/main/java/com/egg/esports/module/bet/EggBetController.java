@@ -3,8 +3,10 @@ package com.egg.esports.module.bet;
 import com.egg.esports.common.Result;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -26,13 +28,25 @@ public class EggBetController {
     }
 
     /**
-     * 查询我的下注记录
+     * 查询我的下注记录（增强版，含赛事信息和盈亏计算）
      */
     @GetMapping("/my")
-    public Result<List<EggBet>> getMyBets(@RequestParam(required = false) Integer status,
-                                          HttpServletRequest request) {
+    public Result<List<BetHistoryVO>> getMyBets(@RequestParam(required = false) Integer status,
+                                                HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        List<EggBet> bets = eggBetService.getMyBets(userId, status);
+        List<BetHistoryVO> bets = eggBetService.getMyBetsEnhanced(userId, status);
+        return Result.success(bets);
+    }
+
+    /**
+     * 查询指定时间后已结算的下注记录
+     */
+    @GetMapping("/settled-since")
+    public Result<List<BetHistoryVO>> getSettledSince(
+            @RequestParam("since") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime since,
+            HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        List<BetHistoryVO> bets = eggBetService.getSettledSince(userId, since);
         return Result.success(bets);
     }
 

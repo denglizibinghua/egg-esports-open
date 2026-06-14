@@ -38,6 +38,13 @@
           </div>
         </div>
 
+        <!-- Score Display -->
+        <div v-if="hasScore(match)" class="score-display-large" :class="{ 'score--live': match.status === 1, 'score--finished': match.status === 2 }">
+          <span class="score-large-a">{{ match.scoreA }}</span>
+          <span class="score-large-sep">-</span>
+          <span class="score-large-b">{{ match.scoreB }}</span>
+        </div>
+
         <div v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result-display">
           <template v-if="match.result === 0">
             <span class="winner-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span> 获胜!
@@ -171,7 +178,8 @@ export default {
         betAmount: 50
       },
       betLoading: false,
-      userPoints: 0
+      userPoints: 0,
+      pollTimer: null
     }
   },
   created() {
@@ -181,44 +189,67 @@ export default {
       this.fetchMyBet()
       this.fetchUserPoints()
     }
+    this.startPolling()
+  },
+  beforeDestroy() {
+    this.stopPolling()
   },
   methods: {
     getToken() {
       return getToken()
     },
-    fetchMatch() {
-      this.loading = true
-      request.get('/match/' + this.$route.params.id).then(res => {
+    hasScore(match) {
+      return (match.status === 1 || match.status === 2) &&
+        match.scoreA !== null && match.scoreA !== undefined &&
+        match.scoreB !== null && match.scoreB !== undefined
+    },
+    startPolling() {
+      var self = this
+      this.pollTimer = setInterval(function () {
+        if (!document.hidden) {
+          self.fetchMatch(true)
+        }
+      }, 30000)
+    },
+    stopPolling() {
+      if (this.pollTimer) {
+        clearInterval(this.pollTimer)
+        this.pollTimer = null
+      }
+    },
+    fetchMatch(silent) {
+      if (!silent) this.loading = true
+      request.get('/match/' + this.$route.params.id).then(function (res) {
         this.match = res.data || res
-      }).catch(() => {}).finally(() => {
-        this.loading = false
-      })
+      }.bind(this)).catch(function () {}).finally(function () {
+        if (!silent) this.loading = false
+      }.bind(this))
     },
     fetchBetCount() {
-      request.get('/bet/count/' + this.$route.params.id).then(res => {
-        const data = res.data || res
+      request.get('/bet/count/' + this.$route.params.id).then(function (res) {
+        var data = res.data || res
         this.betCount = {
           teamA: data.teamA || data.teamACount || data.sideA || 0,
           teamB: data.teamB || data.teamBCount || data.sideB || 0
         }
-      }).catch(() => {})
+      }.bind(this)).catch(function () {})
     },
     fetchMyBet() {
-      request.get('/bet/my').then(res => {
-        const data = res.data || res
-        const bets = Array.isArray(data) ? data : (data.records || data.list || [])
-        const matchId = parseInt(this.$route.params.id)
-        const found = bets.find(b => b.matchId === matchId)
+      request.get('/bet/my').then(function (res) {
+        var data = res.data || res
+        var bets = Array.isArray(data) ? data : (data.records || data.list || [])
+        var matchId = parseInt(this.$route.params.id)
+        var found = bets.find(function (b) { return b.matchId === matchId })
         if (found) {
           this.myBet = found
         }
-      }).catch(() => {})
+      }.bind(this)).catch(function () {})
     },
     fetchUserPoints() {
-      request.get('/user/me').then(res => {
-        const user = res.data || res
+      request.get('/user/me').then(function (res) {
+        var user = res.data || res
         this.userPoints = user.points || 0
-      }).catch(() => {})
+      }.bind(this)).catch(function () {})
     },
     placeBet() {
       if (this.betForm.betSide === null) {
@@ -234,23 +265,23 @@ export default {
         matchId: parseInt(this.$route.params.id),
         betSide: this.betForm.betSide,
         betAmount: this.betForm.betAmount
-      }).then(() => {
+      }).then(function () {
         this.$message.success('押注成功!')
         this.fetchMyBet()
         this.fetchBetCount()
         this.fetchUserPoints()
-      }).catch(() => {}).finally(() => {
+      }.bind(this)).catch(function () {}).finally(function () {
         this.betLoading = false
-      })
+      }.bind(this))
     },
     formatTime(timeStr) {
       if (!timeStr) return ''
-      const d = new Date(timeStr)
-      const y = d.getFullYear()
-      const month = (d.getMonth() + 1).toString().padStart(2, '0')
-      const day = d.getDate().toString().padStart(2, '0')
-      const hour = d.getHours().toString().padStart(2, '0')
-      const min = d.getMinutes().toString().padStart(2, '0')
+      var d = new Date(timeStr)
+      var y = d.getFullYear()
+      var month = (d.getMonth() + 1).toString().padStart(2, '0')
+      var day = d.getDate().toString().padStart(2, '0')
+      var hour = d.getHours().toString().padStart(2, '0')
+      var min = d.getMinutes().toString().padStart(2, '0')
       return y + '-' + month + '-' + day + ' ' + hour + ':' + min
     }
   }
@@ -347,6 +378,55 @@ export default {
   font-size: 28px;
   color: var(--accent-primary);
   letter-spacing: 3px;
+}
+
+/* Large Score Display */
+.score-display-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 800;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  animation: score-reveal 0.5s var(--ease-out) both;
+}
+
+@keyframes score-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.score--live {
+  color: var(--accent-primary);
+  text-shadow: 0 0 20px rgba(0, 229, 160, 0.35);
+}
+
+.score--finished {
+  color: var(--text-secondary);
+}
+
+.score-large-a,
+.score-large-b {
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: center;
+}
+
+.score-large-sep {
+  opacity: 0.4;
+  font-weight: 400;
+  font-size: 32px;
 }
 
 .match-result-display {
@@ -588,6 +668,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 32px 24px;
   text-align: center;
 }

@@ -44,7 +44,9 @@ public class MatchSyncService {
                     continue;
                 }
 
-                LocalDateTime matchTime = OffsetDateTime.parse(startTimeStr).toLocalDateTime();
+                LocalDateTime matchTime = OffsetDateTime.parse(startTimeStr)
+                        .atZoneSameInstant(java.time.ZoneId.of("Asia/Shanghai"))
+                        .toLocalDateTime();
                 if (matchTime.isBefore(CUTOFF_DATE)) {
                     result.setTotalSkipped(result.getTotalSkipped() + 1);
                     continue;
@@ -152,7 +154,9 @@ public class MatchSyncService {
 
             // matchTime
             String startTimeStr = event.path("startTime").asText("");
-            LocalDateTime matchTime = OffsetDateTime.parse(startTimeStr).toLocalDateTime();
+            LocalDateTime matchTime = OffsetDateTime.parse(startTimeStr)
+                    .atZoneSameInstant(java.time.ZoneId.of("Asia/Shanghai"))
+                    .toLocalDateTime();
 
             // status
             String state = event.path("state").asText("");
@@ -188,6 +192,20 @@ public class MatchSyncService {
                 // 如果result节点缺失，result保持null（已完成但无结果数据）
             }
 
+            // score (game wins in BO3/BO5 format)
+            Integer scoreA = null;
+            Integer scoreB = null;
+            com.fasterxml.jackson.databind.JsonNode result0 = team0.path("result");
+            com.fasterxml.jackson.databind.JsonNode result1 = team1.path("result");
+            if (!result0.isMissingNode() && !result1.isMissingNode()) {
+                if (result0.has("gameWins")) {
+                    scoreA = result0.path("gameWins").asInt();
+                }
+                if (result1.has("gameWins")) {
+                    scoreB = result1.path("gameWins").asInt();
+                }
+            }
+
             // team logos
             String teamALogo = team0.path("image").asText(null);
             String teamBLogo = team1.path("image").asText(null);
@@ -203,6 +221,8 @@ public class MatchSyncService {
             match.setTeamBLogo(teamBLogo);
             match.setTournament(tournament);
             match.setMatchTime(matchTime);
+            match.setScoreA(scoreA);
+            match.setScoreB(scoreB);
             match.setStatus(status);
             match.setResult(result);
 

@@ -6,18 +6,21 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.egg.esports.common.BusinessException;
 import com.egg.esports.module.bet.EggBetService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 赛事服务
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EggMatchService {
@@ -140,6 +143,24 @@ public class EggMatchService {
     }
 
     /**
+     * 按联赛分组查询赛事（按联赛名+比赛时间排序）
+     *
+     * @return 联赛名 -> 赛事列表
+     */
+    public Map<String, List<EggMatch>> getMatchesByTournament() {
+        LambdaQueryWrapper<EggMatch> wrapper = new LambdaQueryWrapper<>();
+        wrapper.orderByAsc(EggMatch::getTournament, EggMatch::getMatchTime);
+        List<EggMatch> allMatches = matchMapper.selectList(wrapper);
+
+        Map<String, List<EggMatch>> grouped = new LinkedHashMap<>();
+        for (EggMatch match : allMatches) {
+            String tournamentName = match.getTournament() != null ? match.getTournament() : "未分组";
+            grouped.computeIfAbsent(tournamentName, k -> new java.util.ArrayList<>()).add(match);
+        }
+        return grouped;
+    }
+
+    /**
      * 批量导入赛事
      *
      * @param matches 赛事列表
@@ -212,8 +233,15 @@ public class EggMatchService {
                 changed = true;
             }
             if (match.getResult() != null && !match.getResult().equals(existing.getResult())) {
+                boolean isFirstResult = existing.getResult() == null;
                 existing.setResult(match.getResult());
                 changed = true;
+                // 自动结算：首次从Riot API获得结果时，联动结算所有押注
+                if (isFirstResult && existing.getStatus() != null && existing.getStatus() == 2) {
+                    log.info("自动结算: 赛事[{}] {} vs {} 结果={}", existing.getId(),
+                            existing.getTeamA(), existing.getTeamB(), match.getResult());
+                    betService.settleBet(existing.getId(), match.getResult());
+                }
             }
             if (match.getMatchTime() != null && !match.getMatchTime().equals(existing.getMatchTime())) {
                 existing.setMatchTime(match.getMatchTime());
@@ -241,6 +269,14 @@ public class EggMatchService {
             }
             if (match.getTournament() != null && !match.getTournament().equals(existing.getTournament())) {
                 existing.setTournament(match.getTournament());
+                changed = true;
+            }
+            if (match.getScoreA() != null && !match.getScoreA().equals(existing.getScoreA())) {
+                existing.setScoreA(match.getScoreA());
+                changed = true;
+            }
+            if (match.getScoreB() != null && !match.getScoreB().equals(existing.getScoreB())) {
+                existing.setScoreB(match.getScoreB());
                 changed = true;
             }
 
@@ -286,5 +322,26 @@ public class EggMatchService {
         betService.settleBet(matchId, result);
 
         return match;
+    }
+
+    /**
+     * 自动结算：扫描所有已结束且有结果但押注未结算的赛事
+     * 用于定时任务调用（Riot API 已在 sync 时写入了 result，但 bets 可能未结算）
+     *
+     * @return 结算数量
+     */
+    @Transactional
+    public int autoSettlePending() {
+        List<EggMatch> toSettle = matchMapper.selectFinishedWithResult();
+        int count = 0;
+        for (EggMatch match : toSettle) {
+            try {
+                betService.settleBet(match.getId(), match.getResult());
+                count++;
+            } catch (Exception e) {
+                log.warn("自动结算赛事[{}]失败: {}", match.getId(), e.getMessage());
+            }
+        }
+        return count;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -125,7 +126,11 @@ public class EggBetService {
             if (matchResult == 2) {
                 // 平局：退还所有下注
                 bet.setStatus(1); // 标记为猜中（退还）
-                eggBetMapper.updateById(bet);
+                eggBetMapper.update(null,
+                        new LambdaUpdateWrapper<EggBet>()
+                                .eq(EggBet::getId, bet.getId())
+                                .set(EggBet::getStatus, 1)
+                                .setSql("update_time = NOW()"));
                 // 退还积分
                 eggUserMapper.update(null,
                         new LambdaUpdateWrapper<EggUser>()
@@ -135,7 +140,11 @@ public class EggBetService {
             } else if (bet.getBetSide().equals(matchResult)) {
                 // 猜中
                 bet.setStatus(1);
-                eggBetMapper.updateById(bet);
+                eggBetMapper.update(null,
+                        new LambdaUpdateWrapper<EggBet>()
+                                .eq(EggBet::getId, bet.getId())
+                                .set(EggBet::getStatus, 1)
+                                .setSql("update_time = NOW()"));
                 // 返还积分：下注金额 * 倍数
                 int winAmount = bet.getBetAmount() * winMultiplier;
                 eggUserMapper.update(null,
@@ -157,7 +166,11 @@ public class EggBetService {
             } else {
                 // 未中
                 bet.setStatus(2);
-                eggBetMapper.updateById(bet);
+                eggBetMapper.update(null,
+                        new LambdaUpdateWrapper<EggBet>()
+                                .eq(EggBet::getId, bet.getId())
+                                .set(EggBet::getStatus, 2)
+                                .setSql("update_time = NOW()"));
                 // 重置连胜
                 eggUserMapper.update(null,
                         new LambdaUpdateWrapper<EggUser>()
@@ -203,5 +216,96 @@ public class EggBetService {
             item.put("createTime", bet.getCreateTime());
             return item;
         }).toList();
+    }
+
+    /**
+     * 查询我的下注记录（增强版，含赛事信息和盈亏计算）
+     */
+    public List<BetHistoryVO> getMyBetsEnhanced(Long userId, Integer status) {
+        LambdaQueryWrapper<EggBet> wrapper = new LambdaQueryWrapper<EggBet>()
+                .eq(EggBet::getUserId, userId);
+        if (status != null) {
+            wrapper.eq(EggBet::getStatus, status);
+        }
+        wrapper.orderByDesc(EggBet::getCreateTime);
+        List<EggBet> bets = eggBetMapper.selectList(wrapper);
+
+        List<BetHistoryVO> result = new ArrayList<>();
+        for (EggBet bet : bets) {
+            EggMatch match = eggMatchMapper.selectById(bet.getMatchId());
+            BetHistoryVO vo = new BetHistoryVO();
+            vo.setId(bet.getId());
+            vo.setMatchId(bet.getMatchId());
+            vo.setMatchTitle(match != null ? match.getTitle() : "未知赛事");
+            vo.setTeamA(match != null ? match.getTeamA() : "A队");
+            vo.setTeamB(match != null ? match.getTeamB() : "B队");
+            vo.setBetSide(bet.getBetSide());
+            vo.setBetAmount(bet.getBetAmount());
+            vo.setStatus(bet.getStatus());
+            vo.setCreateTime(bet.getCreateTime());
+
+            // 计算返还金额和净变化
+            int returnedAmount = calculateReturnedAmount(bet, match);
+            vo.setReturnedAmount(returnedAmount);
+            vo.setNetChange(returnedAmount - bet.getBetAmount());
+
+            result.add(vo);
+        }
+        return result;
+    }
+
+    /**
+     * 查询指定时间后已结算的下注记录
+     *
+     * @param userId 用户ID
+     * @param since  起始时间（ISO格式）
+     * @return 已结算的下注记录列表
+     */
+    public List<BetHistoryVO> getSettledSince(Long userId, LocalDateTime since) {
+        List<EggBet> bets = eggBetMapper.selectSettledSince(userId, since);
+
+        List<BetHistoryVO> result = new ArrayList<>();
+        for (EggBet bet : bets) {
+            EggMatch match = eggMatchMapper.selectById(bet.getMatchId());
+            BetHistoryVO vo = new BetHistoryVO();
+            vo.setId(bet.getId());
+            vo.setMatchId(bet.getMatchId());
+            vo.setMatchTitle(match != null ? match.getTitle() : "未知赛事");
+            vo.setTeamA(match != null ? match.getTeamA() : "A队");
+            vo.setTeamB(match != null ? match.getTeamB() : "B队");
+            vo.setBetSide(bet.getBetSide());
+            vo.setBetAmount(bet.getBetAmount());
+            vo.setStatus(bet.getStatus());
+            vo.setCreateTime(bet.getCreateTime());
+
+            int returnedAmount = calculateReturnedAmount(bet, match);
+            vo.setReturnedAmount(returnedAmount);
+            vo.setNetChange(returnedAmount - bet.getBetAmount());
+
+            result.add(vo);
+        }
+        return result;
+    }
+
+    /**
+     * 计算返还金额
+     * 猜中(status=1): betAmount * winMultiplier
+     * 平局(status=1, betSide与result不匹配但result=2): betAmount（退还）
+     * 未中(status=2): 0
+     */
+    private int calculateReturnedAmount(EggBet bet, EggMatch match) {
+        if (bet.getStatus() == null || bet.getStatus() == 0) {
+            return 0; // 待结算
+        }
+        if (bet.getStatus() == 2) {
+            return 0; // 未中
+        }
+        // status == 1 (猜中或平局退还)
+        if (match != null && match.getResult() != null && match.getResult() == 2) {
+            // 平局：退还下注金额
+            return bet.getBetAmount();
+        }
+        // 猜中：下注金额 * 倍数
+        return bet.getBetAmount() * winMultiplier;
     }
 }

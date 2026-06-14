@@ -20,6 +20,8 @@ public class SyncResult {
     private int intlCreated;
     /** 国际赛区更新数 */
     private int intlUpdated;
+    /** 自动结算数 */
+    private int autoSettled;
     /** 总获取数 */
     private int totalFetched;
     /** 跳过数（startTime早于2026-01-01等） */
