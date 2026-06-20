@@ -28,5 +28,8 @@ Desktop.ini
 *.ctxt
 .mtj.tmp/
 
+# Uploaded files
+uploads/
+
 # Git
 *.orig
