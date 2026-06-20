@@ -229,35 +229,6 @@
               </div>
             </div>
 
-            <!-- Bet Distribution -->
-            <div class="dashboard-card">
-              <div class="dashboard-card-header">
-                <h4 class="dashboard-card-title">押注分布</h4>
-              </div>
-              <div class="bet-distribution" v-if="recentBets.length > 0">
-                <div class="dist-row">
-                  <span class="dist-label dist-label--a">A队</span>
-                  <div class="dist-bar-track">
-                    <div class="dist-bar dist-bar--a" :style="{ width: teamAPercent + '%' }"></div>
-                  </div>
-                  <span class="dist-count">{{ teamACount }}</span>
-                </div>
-                <div class="dist-row">
-                  <span class="dist-label dist-label--b">B队</span>
-                  <div class="dist-bar-track">
-                    <div class="dist-bar dist-bar--b" :style="{ width: teamBPercent + '%' }"></div>
-                  </div>
-                  <span class="dist-count">{{ teamBCount }}</span>
-                </div>
-                <div class="dist-favorite" v-if="teamACount !== teamBCount">
-                  最常押注：<strong>{{ teamACount >= teamBCount ? 'A队' : 'B队' }}</strong>
-                </div>
-              </div>
-              <div v-else class="dashboard-empty">
-                <span>暂无数据</span>
-              </div>
-            </div>
-
             <!-- Recent Results Chart -->
             <div class="dashboard-card dashboard-card--wide">
               <div class="dashboard-card-header">
@@ -618,20 +589,6 @@ export default {
     streakPercent() {
       if (!this.user || !this.user.maxWinStreak || this.user.maxWinStreak === 0) return 0
       return Math.min(100, Math.round(((this.user.winStreak || 0) / this.user.maxWinStreak) * 100))
-    },
-    teamACount() {
-      return this.recentBets.filter(function (b) { return b.betSide === 0 }).length
-    },
-    teamBCount() {
-      return this.recentBets.filter(function (b) { return b.betSide === 1 }).length
-    },
-    teamAPercent() {
-      if (this.recentBets.length === 0) return 50
-      return Math.round((this.teamACount / this.recentBets.length) * 100)
-    },
-    teamBPercent() {
-      if (this.recentBets.length === 0) return 50
-      return Math.round((this.teamBCount / this.recentBets.length) * 100)
     },
     profitChartPoints() {
       var data = this.profitData
@@ -1565,78 +1522,6 @@ export default {
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 700;
-  color: var(--text-secondary);
-}
-
-/* Bet Distribution */
-.bet-distribution {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.dist-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dist-label {
-  width: 32px;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.dist-label--a {
-  color: var(--team-a);
-}
-
-.dist-label--b {
-  color: var(--team-b);
-}
-
-.dist-bar-track {
-  flex: 1;
-  height: 10px;
-  background: var(--bg-surface-3);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.dist-bar {
-  height: 100%;
-  border-radius: var(--radius-full);
-  transition: width 0.6s var(--ease-out);
-}
-
-.dist-bar--a {
-  background: var(--team-a);
-}
-
-.dist-bar--b {
-  background: var(--team-b);
-}
-
-.dist-count {
-  width: 24px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.dist-favorite {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  text-align: center;
-  padding-top: 4px;
-}
-
-.dist-favorite strong {
   color: var(--text-secondary);
 }
 
