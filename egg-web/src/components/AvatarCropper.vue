@@ -40,7 +40,6 @@
           :outputSize="1"
           :info="true"
           @imgLoad="onImgLoad"
-          @realTime="realTime"
         />
         <!-- 圆形遮罩 -->
         <div class="circle-mask"></div>
@@ -57,15 +56,9 @@
             <el-button icon="el-icon-refresh-left" @click="rotateL"></el-button>
             <el-button icon="el-icon-refresh-right" @click="rotateR"></el-button>
           </el-button-group>
-          <el-button size="small" style="margin-left:6px" @click="reset">重置</el-button>
-        </div>
-        <!-- 实时预览 -->
-        <div class="cropper-preview">
-          <div class="preview-circle">
-            <div :style="previews.div">
-              <img :src="previews.url" :style="previews.img" />
-            </div>
-          </div>
+          <el-button-group size="small" style="margin-left:6px">
+            <el-button @click="reset">重置</el-button>
+          </el-button-group>
         </div>
       </div>
     </div>
@@ -92,8 +85,7 @@ export default {
   data() {
     return {
       imgSrc: '',
-      uploading: false,
-      previews: {}
+      uploading: false
     }
   },
   computed: {
@@ -139,9 +131,6 @@ export default {
     reset() {
       this.$refs.cropper.refresh()
     },
-    realTime(data) {
-      this.previews = data
-    },
     confirm() {
       var self = this
       this.$refs.cropper.getCropBlob(function (blob) {
@@ -168,7 +157,6 @@ export default {
     },
     onClosed() {
       this.imgSrc = ''
-      this.previews = {}
       if (this.$refs.fileInput) {
         this.$refs.fileInput.value = ''
       }
@@ -235,19 +223,6 @@ export default {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-}
-
-/* ── 实时预览圆 ── */
-.cropper-preview {
-  flex-shrink: 0;
-}
-.preview-circle {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--border-default);
-  background: var(--bg-page);
 }
 
 /* ── vue-cropper 内部暗色覆盖 ── */
