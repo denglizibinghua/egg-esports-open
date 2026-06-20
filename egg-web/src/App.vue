@@ -557,6 +557,34 @@ a {
   background: transparent !important;
 }
 
+/* Element UI: Textarea (独立的 inner class) */
+.el-textarea__inner {
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-md) !important;
+  font-family: var(--font-body) !important;
+}
+.el-textarea__inner:hover {
+  border-color: var(--border-strong) !important;
+}
+.el-textarea__inner:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
+}
+.el-textarea__inner::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Element UI: Empty (空状态) */
+.el-empty__description p {
+  color: var(--text-tertiary) !important;
+}
+.el-empty__image svg {
+  fill: var(--text-tertiary) !important;
+  opacity: 0.3;
+}
+
 /* Element UI: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
