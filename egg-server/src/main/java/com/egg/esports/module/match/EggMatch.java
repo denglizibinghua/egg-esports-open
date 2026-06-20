@@ -1,10 +1,12 @@
 package com.egg.esports.module.match;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -57,4 +59,22 @@ public class EggMatch {
     private Integer result;
 
     private LocalDateTime createTime;
+
+    /** A队奖池 */
+    private Long poolA;
+
+    /** B队奖池 */
+    private Long poolB;
+
+    /** A队赔率（实时计算，非DB字段） */
+    @TableField(exist = false)
+    private BigDecimal oddsA;
+
+    /** B队赔率（实时计算，非DB字段） */
+    @TableField(exist = false)
+    private BigDecimal oddsB;
+
+    /** 押注人数（实时统计，非DB字段） */
+    @TableField(exist = false)
+    private Integer betCount;
 }

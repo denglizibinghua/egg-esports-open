@@ -33,6 +33,9 @@
             <el-form-item prop="confirmPassword">
               <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" prefix-icon="el-icon-lock" show-password @keyup.enter.native="handleRegister" />
             </el-form-item>
+            <el-form-item prop="email">
+              <el-input v-model="registerForm.email" placeholder="邮箱（选填，用于找回密码）" prefix-icon="el-icon-message" />
+            </el-form-item>
             <el-form-item>
               <el-button type="primary" class="submit-btn" :loading="registerLoading" @click="handleRegister">注 册</el-button>
             </el-form-item>
@@ -67,7 +70,8 @@ export default {
         username: '',
         nickname: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        email: ''
       },
       loginRules: {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -85,6 +89,9 @@ export default {
         confirmPassword: [
           { required: true, message: '请确认密码', trigger: 'blur' },
           { validator: validateConfirmPassword, trigger: 'blur' }
+        ],
+        email: [
+          { type: 'email', message: '请输入有效的邮箱地址', trigger: 'blur' }
         ]
       },
       loginLoading: false,
@@ -120,6 +127,9 @@ export default {
         }
         if (this.registerForm.nickname) {
           params.nickname = this.registerForm.nickname
+        }
+        if (this.registerForm.email) {
+          params.email = this.registerForm.email
         }
         request.post('/user/register', params).then(() => {
           this.$message.success('注册成功，请登录')

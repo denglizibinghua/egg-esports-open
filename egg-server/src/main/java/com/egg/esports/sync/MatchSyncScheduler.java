@@ -1,4 +1,4 @@
-package com.egg.esports.module.sync;
+package com.egg.esports.sync;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.egg.esports.module.bet.EggBet;
@@ -22,7 +22,7 @@ import java.util.List;
  *
  * <p>包含三个定时任务：
  * <ol>
- *   <li>Riot API 数据同步（每天 10:00 / 22:00）</li>
+ *   <li>Riot API 数据同步（每 10 分钟）</li>
  *   <li>自动结算检查（每 2 分钟）— 处理已结束且有结果但押注未结算的赛事</li>
  * </ol>
  */
@@ -42,7 +42,7 @@ public class MatchSyncScheduler {
     private boolean enabled;
 
     /**
-     * 每10分钟执行Riot API同步
+     * 每10分钟执行数据同步
      * 同步时会自动结算新获得结果的赛事（在 upsertByExternalId 中处理）
      */
     @Scheduled(cron = "0 */10 * * * ?")
@@ -54,11 +54,10 @@ public class MatchSyncScheduler {
 
         log.info("开始执行定时赛事数据同步...");
         try {
-            SyncResult result = matchSyncService.syncFromRiot();
-            log.info("定时同步完成: 获取={}, 跳过={}, CN新增={}, CN更新={}, INTL新增={}, INTL更新={}, 错误={}",
-                    result.getTotalFetched(), result.getTotalSkipped(),
-                    result.getCnCreated(), result.getCnUpdated(),
-                    result.getIntlCreated(), result.getIntlUpdated(),
+            SyncResult result = matchSyncService.syncAll();
+            log.info("定时同步完成: 获取={}, 新增={}, 更新={}, 跳过={}, 错误={}",
+                    result.getTotalFetched(), result.getTotalCreated(),
+                    result.getTotalUpdated(), result.getTotalSkipped(),
                     result.getErrors().size());
         } catch (Exception e) {
             log.error("定时赛事数据同步失败", e);
@@ -68,7 +67,7 @@ public class MatchSyncScheduler {
     /**
      * 每2分钟检查一次：已结束且有结果但押注未结算的赛事
      *
-     * <p>先触发一次轻量同步（Riot API 去重，无变化时几乎零开销），再执行结算。
+     * <p>先触发一次轻量同步（各 Adapter 去重，无变化时几乎零开销），再执行结算。
      * 确保结算前数据尽可能新鲜。
      */
     @Scheduled(cron = "0 */2 * * * ?")
@@ -79,7 +78,7 @@ public class MatchSyncScheduler {
 
         try {
             // 先同步一次，确保结算前 result 数据是最新的
-            matchSyncService.syncFromRiot();
+            matchSyncService.syncAll();
             // 再结算
             int settled = eggMatchService.autoSettlePending();
             if (settled > 0) {
@@ -114,6 +113,7 @@ public class MatchSyncScheduler {
                 List<EggBet> bets = betMapper.selectList(
                     new LambdaQueryWrapper<EggBet>()
                         .eq(EggBet::getMatchId, match.getId())
+                        .eq(EggBet::getStatus, 0)  // 仅活跃投注，避免重复提醒
                 );
                 for (EggBet bet : bets) {
                     // 去重：已存在同类型通知则跳过

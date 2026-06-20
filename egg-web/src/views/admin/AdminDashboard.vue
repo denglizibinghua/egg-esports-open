@@ -50,6 +50,7 @@
 
         <!-- Match Table -->
         <template v-else>
+          <div class="table-scroll">
           <el-table :data="matches" style="width: 100%">
             <el-table-column label="ID" width="70" prop="id" />
             <el-table-column label="标题" min-width="150" prop="title" />
@@ -98,6 +99,7 @@
               </template>
             </el-table-column>
           </el-table>
+          </div>
         </template>
 
         <el-pagination
@@ -140,6 +142,7 @@
               <span class="import-preview-count">已解析 {{ importParsedList.length }} 条赛事</span>
             </div>
 
+            <div class="table-scroll">
             <el-table :data="importParsedList" style="width: 100%" max-height="360" size="small">
               <el-table-column label="序号" width="60" align="center">
                 <template slot-scope="scope">{{ scope.$index + 1 }}</template>
@@ -161,6 +164,7 @@
                 </template>
               </el-table-column>
             </el-table>
+            </div>
 
             <div class="import-submit-row">
               <el-button type="primary" :loading="importSubmitting" @click="submitBatchImport">确认导入 {{ importParsedList.length }} 条</el-button>
@@ -230,20 +234,20 @@
                 <span class="sync-stat-label">跳过(历史数据)</span>
               </div>
               <div class="sync-stat-card">
-                <span class="sync-stat-value sync-stat-value--green">{{ syncResult.cnCreated }}</span>
-                <span class="sync-stat-label">CN新增</span>
+                <span class="sync-stat-value sync-stat-value--green">{{ syncResult.totalCreated }}</span>
+                <span class="sync-stat-label">新增</span>
               </div>
               <div class="sync-stat-card">
-                <span class="sync-stat-value sync-stat-value--blue">{{ syncResult.cnUpdated }}</span>
-                <span class="sync-stat-label">CN更新</span>
+                <span class="sync-stat-value sync-stat-value--blue">{{ syncResult.totalUpdated }}</span>
+                <span class="sync-stat-label">更新</span>
               </div>
-              <div class="sync-stat-card">
-                <span class="sync-stat-value sync-stat-value--orange">{{ syncResult.intlCreated }}</span>
-                <span class="sync-stat-label">国际新增</span>
-              </div>
-              <div class="sync-stat-card">
-                <span class="sync-stat-value sync-stat-value--purple">{{ syncResult.intlUpdated }}</span>
-                <span class="sync-stat-label">国际更新</span>
+            </div>
+
+            <!-- Per-Game Stats -->
+            <div v-if="syncResult.perGameStats" class="sync-per-game">
+              <div v-for="(stats, gameKey) in syncResult.perGameStats" :key="gameKey" class="sync-per-game-item">
+                <span class="sync-per-game-label">{{ gameKey }}:</span>
+                <span class="sync-per-game-val">+{{ stats[0] }} ~{{ stats[1] }} -{{ stats[2] }}</span>
               </div>
             </div>
 
@@ -258,6 +262,159 @@
             </div>
           </div>
         </div>
+      </el-tab-pane>
+
+      <el-tab-pane label="公告管理" name="announcement">
+        <div class="tab-header">
+          <span class="announcement-tab-title">公告列表</span>
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="openAnnouncementDialog()">发布公告</el-button>
+        </div>
+
+        <div v-if="announcementLoading" class="skeleton-table">
+          <div class="skeleton-table-header">
+            <div class="skeleton-line skeleton-line--cell-lg"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+          </div>
+          <div v-for="i in 4" :key="'ann-skel-'+i" class="skeleton-table-row">
+            <div class="skeleton-line skeleton-line--cell-lg"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+          </div>
+        </div>
+
+        <div v-else-if="announcements.length === 0" class="empty-state">
+          <div class="empty-icon">📢</div>
+          <h3 class="empty-title">暂无公告</h3>
+          <p class="empty-desc">发布公告，向用户传达重要信息</p>
+          <el-button type="primary" class="empty-action" @click="openAnnouncementDialog()">发布公告</el-button>
+        </div>
+
+        <template v-else>
+          <div class="table-scroll">
+          <el-table :data="announcements" style="width: 100%">
+            <el-table-column label="标题" min-width="150" prop="title" />
+            <el-table-column label="关联游戏" width="120">
+              <template slot-scope="scope">
+                {{ getGameName(scope.row.gameId) || '全部' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="状态" width="100" align="center">
+              <template slot-scope="scope">
+                <span v-if="scope.row.status === 1" class="status-badge status-badge--live">
+                  <span class="status-dot status-dot--pulse"></span>活跃
+                </span>
+                <span v-else class="status-badge status-badge--finished">
+                  <span class="status-dot"></span>停用
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="时间范围" width="220">
+              <template slot-scope="scope">
+                <span class="ann-time-range">{{ formatDate(scope.row.startTime) }} ~ {{ formatDate(scope.row.endTime) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" width="160">
+              <template slot-scope="scope">
+                {{ formatDate(scope.row.createTime) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="140" align="center">
+              <template slot-scope="scope">
+                <el-button type="text" size="small" @click="openAnnouncementDialog(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" class="delete-btn" @click="handleDeleteAnnouncement(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          </div>
+        </template>
+
+        <el-pagination
+          v-if="announcementTotal > 0"
+          background
+          layout="prev, pager, next"
+          :total="announcementTotal"
+          :page-size="announcementPageSize"
+          :current-page.sync="announcementPage"
+          @current-change="fetchAnnouncements"
+        />
+      </el-tab-pane>
+
+      <el-tab-pane label="游戏管理" name="game">
+        <div class="tab-header">
+          <span class="announcement-tab-title">游戏列表</span>
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="openGameDialog()">添加游戏</el-button>
+        </div>
+
+        <!-- Loading Skeleton -->
+        <div v-if="gameLoading" class="skeleton-table">
+          <div class="skeleton-table-header">
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-lg"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+          </div>
+          <div v-for="i in 6" :key="'game-skel-'+i" class="skeleton-table-row">
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-lg"></div>
+            <div class="skeleton-line skeleton-line--cell-md"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+            <div class="skeleton-line skeleton-line--cell-sm"></div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="games.length === 0" class="empty-state">
+          <div class="empty-icon">🎮</div>
+          <h3 class="empty-title">还没有游戏</h3>
+          <p class="empty-desc">添加游戏，让赛事按游戏分类管理</p>
+          <el-button type="primary" class="empty-action" @click="openGameDialog()">添加游戏</el-button>
+        </div>
+
+        <!-- Game Table -->
+        <template v-else>
+          <div class="table-scroll">
+          <el-table :data="games" style="width: 100%">
+            <el-table-column label="ID" width="70" prop="id" />
+            <el-table-column label="游戏名称" min-width="150" prop="name" />
+            <el-table-column label="图标" width="120" align="center">
+              <template slot-scope="scope">
+                <el-image
+                  v-if="scope.row.icon"
+                  :src="scope.row.icon"
+                  style="width: 32px; height: 32px; border-radius: var(--radius-sm);"
+                  fit="cover"
+                />
+                <span v-else class="game-icon-empty">-</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="排序" width="80" align="center" prop="sortOrder" />
+            <el-table-column label="状态" width="100" align="center">
+              <template slot-scope="scope">
+                <span v-if="scope.row.status === 1" class="status-badge status-badge--live">
+                  <span class="status-dot status-dot--pulse"></span>启用
+                </span>
+                <span v-else class="status-badge status-badge--finished">
+                  <span class="status-dot"></span>停用
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="140" align="center">
+              <template slot-scope="scope">
+                <el-button type="text" size="small" @click="openGameDialog(scope.row)">编辑</el-button>
+                <el-button type="text" size="small" class="delete-btn" @click="handleDeleteGame(scope.row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          </div>
+        </template>
       </el-tab-pane>
     </el-tabs>
 
@@ -275,6 +432,109 @@
       <span slot="footer">
         <el-button @click="settleDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="settleLoading" @click="handleSettle">确认结算</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- Announcement Dialog -->
+    <el-dialog
+      :title="announcementForm.id ? '编辑公告' : '发布公告'"
+      :visible.sync="announcementDialogVisible"
+      width="520px"
+    >
+      <el-form :model="announcementForm" label-width="80px" class="announcement-form">
+        <el-form-item label="标题">
+          <el-input v-model="announcementForm.title" placeholder="公告标题" maxlength="50" show-word-limit />
+        </el-form-item>
+        <el-form-item label="内容">
+          <el-input
+            v-model="announcementForm.content"
+            type="textarea"
+            :rows="3"
+            placeholder="公告内容"
+            maxlength="200"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="关联游戏">
+          <el-select v-model="announcementForm.gameId" placeholder="全部游戏（可选）" clearable style="width: 100%">
+            <el-option
+              v-for="game in adminGames"
+              :key="game.id"
+              :label="game.name"
+              :value="game.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-switch
+            v-model="announcementForm.status"
+            :active-value="1"
+            :inactive-value="0"
+            active-text="启用"
+            inactive-text="停用"
+          />
+        </el-form-item>
+        <el-form-item label="开始时间">
+          <el-date-picker
+            v-model="announcementForm.startTime"
+            type="datetime"
+            placeholder="选择开始时间"
+            style="width: 100%"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="结束时间">
+          <el-date-picker
+            v-model="announcementForm.endTime"
+            type="datetime"
+            placeholder="选择结束时间"
+            style="width: 100%"
+            value-format="yyyy-MM-dd HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number v-model="announcementForm.sortOrder" :min="0" :max="999" />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="announcementDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="announcementSubmitting" @click="handleSaveAnnouncement">
+          {{ announcementForm.id ? '保存修改' : '发布' }}
+        </el-button>
+      </span>
+    </el-dialog>
+
+    <!-- Game Dialog -->
+    <el-dialog
+      :title="gameForm.id ? '编辑游戏' : '添加游戏'"
+      :visible.sync="gameDialogVisible"
+      width="480px"
+    >
+      <el-form :model="gameForm" label-width="80px" class="announcement-form">
+        <el-form-item label="名称">
+          <el-input v-model="gameForm.name" placeholder="例如: VALORANT" maxlength="50" show-word-limit />
+        </el-form-item>
+        <el-form-item label="图标URL">
+          <el-input v-model="gameForm.icon" placeholder="图标地址（可选）" />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number v-model="gameForm.sortOrder" :min="0" :max="999" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-switch
+            v-model="gameForm.status"
+            :active-value="1"
+            :inactive-value="0"
+            active-text="启用"
+            inactive-text="停用"
+          />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="gameDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="gameSubmitting" @click="handleSaveGame">
+          {{ gameForm.id ? '保存修改' : '添加' }}
+        </el-button>
       </span>
     </el-dialog>
   </div>
@@ -306,11 +566,51 @@ export default {
       importErrorsExpanded: false,
       syncLoading: false,
       syncResult: null,
-      lastSyncTime: null
+      lastSyncTime: null,
+      announcements: [],
+      announcementLoading: false,
+      announcementPage: 1,
+      announcementPageSize: 20,
+      announcementTotal: 0,
+      announcementDialogVisible: false,
+      announcementSubmitting: false,
+      announcementForm: {
+        id: null,
+        title: '',
+        content: '',
+        gameId: null,
+        status: 1,
+        startTime: '',
+        endTime: '',
+        sortOrder: 0
+      },
+      adminGames: [],
+      games: [],
+      gameLoading: false,
+      gameDialogVisible: false,
+      gameSubmitting: false,
+      gameForm: {
+        id: null,
+        name: '',
+        icon: '',
+        sortOrder: 0,
+        status: 1
+      }
     }
   },
   created() {
     this.fetchMatches()
+  },
+  watch: {
+    activeTab(tab) {
+      if (tab === 'announcement' && this.announcements.length === 0) {
+        this.fetchAnnouncements()
+        this.fetchAdminGames()
+      }
+      if (tab === 'game' && this.games.length === 0) {
+        this.fetchGames()
+      }
+    }
   },
   methods: {
     fetchMatches() {
@@ -474,6 +774,194 @@ export default {
       var min = d.getMinutes().toString().padStart(2, '0')
       var sec = d.getSeconds().toString().padStart(2, '0')
       return y + '-' + m + '-' + day + ' ' + h + ':' + min + ':' + sec
+    },
+    fetchAnnouncements() {
+      this.announcementLoading = true
+      request.get('/announcement/list', {
+        params: { page: this.announcementPage, size: this.announcementPageSize }
+      }).then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.announcements = data
+          this.announcementTotal = data.length
+        } else if (data.records) {
+          this.announcements = data.records
+          this.announcementTotal = data.total || data.records.length
+        } else {
+          this.announcements = data.list || data.content || []
+          this.announcementTotal = data.total || data.totalElements || 0
+        }
+      }).catch(() => {}).finally(() => {
+        this.announcementLoading = false
+      })
+    },
+    fetchAdminGames() {
+      request.get('/game/list').then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.adminGames = data
+        } else if (data.records) {
+          this.adminGames = data.records
+        } else {
+          this.adminGames = data.list || data.content || []
+        }
+      }).catch(() => {
+        this.adminGames = []
+      })
+    },
+    getGameName(gameId) {
+      if (!gameId) return ''
+      var game = this.adminGames.find(function (g) { return g.id === gameId })
+      return game ? game.name : ''
+    },
+    openAnnouncementDialog(row) {
+      if (row) {
+        this.announcementForm = {
+          id: row.id,
+          title: row.title || '',
+          content: row.content || '',
+          gameId: row.gameId || null,
+          status: row.status != null ? row.status : 1,
+          startTime: row.startTime || '',
+          endTime: row.endTime || '',
+          sortOrder: row.sortOrder || 0
+        }
+      } else {
+        this.announcementForm = {
+          id: null,
+          title: '',
+          content: '',
+          gameId: null,
+          status: 1,
+          startTime: '',
+          endTime: '',
+          sortOrder: 0
+        }
+      }
+      this.announcementDialogVisible = true
+    },
+    handleSaveAnnouncement() {
+      if (!this.announcementForm.title || !this.announcementForm.title.trim()) {
+        this.$message.warning('请输入公告标题')
+        return
+      }
+      if (!this.announcementForm.content || !this.announcementForm.content.trim()) {
+        this.$message.warning('请输入公告内容')
+        return
+      }
+      this.announcementSubmitting = true
+      var payload = {
+        title: this.announcementForm.title,
+        content: this.announcementForm.content,
+        gameId: this.announcementForm.gameId || null,
+        status: this.announcementForm.status,
+        startTime: this.announcementForm.startTime || null,
+        endTime: this.announcementForm.endTime || null,
+        sortOrder: this.announcementForm.sortOrder || 0
+      }
+      var promise
+      if (this.announcementForm.id) {
+        promise = request.put('/announcement/' + this.announcementForm.id, payload)
+      } else {
+        promise = request.post('/announcement', payload)
+      }
+      promise.then(() => {
+        this.$message.success(this.announcementForm.id ? '修改成功' : '发布成功')
+        this.announcementDialogVisible = false
+        this.fetchAnnouncements()
+      }).catch(() => {}).finally(() => {
+        this.announcementSubmitting = false
+      })
+    },
+    handleDeleteAnnouncement(row) {
+      this.$confirm('确定删除公告「' + row.title + '」？', '确认删除', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        request.delete('/announcement/' + row.id).then(() => {
+          this.$message.success('删除成功')
+          this.fetchAnnouncements()
+        }).catch(() => {})
+      }).catch(() => {})
+    },
+    fetchGames() {
+      this.gameLoading = true
+      request.get('/game/list').then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.games = data
+        } else if (data.records) {
+          this.games = data.records
+        } else {
+          this.games = data.list || data.content || []
+        }
+      }).catch(() => {
+        this.games = []
+      }).finally(() => {
+        this.gameLoading = false
+      })
+    },
+    openGameDialog(row) {
+      if (row) {
+        this.gameForm = {
+          id: row.id,
+          name: row.name || '',
+          icon: row.icon || '',
+          sortOrder: row.sortOrder != null ? row.sortOrder : 0,
+          status: row.status != null ? row.status : 1
+        }
+      } else {
+        this.gameForm = {
+          id: null,
+          name: '',
+          icon: '',
+          sortOrder: 0,
+          status: 1
+        }
+      }
+      this.gameDialogVisible = true
+    },
+    handleSaveGame() {
+      if (!this.gameForm.name || !this.gameForm.name.trim()) {
+        this.$message.warning('请输入游戏名称')
+        return
+      }
+      this.gameSubmitting = true
+      var payload = {
+        name: this.gameForm.name,
+        icon: this.gameForm.icon || null,
+        sortOrder: this.gameForm.sortOrder != null ? this.gameForm.sortOrder : 0,
+        status: this.gameForm.status
+      }
+      var promise
+      if (this.gameForm.id) {
+        promise = request.put('/game/' + this.gameForm.id, payload)
+      } else {
+        promise = request.post('/game', payload)
+      }
+      promise.then(() => {
+        this.$message.success('保存成功')
+        this.gameDialogVisible = false
+        this.fetchGames()
+        this.fetchAdminGames()
+      }).catch(() => {}).finally(() => {
+        this.gameSubmitting = false
+      })
+    },
+    handleDeleteGame(row) {
+      var tip = row.status === 1 ? '游戏当前为启用状态，' : ''
+      this.$confirm(tip + '确定删除游戏「' + row.name + '」？', '确认删除', {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        request.delete('/game/' + row.id).then(() => {
+          this.$message.success('删除成功')
+          this.fetchGames()
+          this.fetchAdminGames()
+        }).catch(() => {})
+      }).catch(() => {})
     }
   }
 }
@@ -899,6 +1387,33 @@ export default {
   overflow: hidden;
 }
 
+.sync-per-game {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-top: 8px;
+  background: var(--bg-surface-3);
+  border-radius: var(--radius-md);
+}
+
+.sync-per-game-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.sync-per-game-label {
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.sync-per-game-val {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
 .sync-errors-title {
   padding: 10px 16px;
   font-size: 13px;
@@ -921,5 +1436,70 @@ export default {
 
 .sync-error-item:last-child {
   border-bottom: none;
+}
+
+/* Announcement Tab */
+.announcement-tab-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.delete-btn {
+  color: var(--accent-danger) !important;
+}
+
+.ann-time-range {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.announcement-form .el-form-item {
+  margin-bottom: 18px;
+}
+
+.announcement-form .el-textarea__inner {
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.announcement-form .el-textarea__inner:focus {
+  border-color: var(--accent-primary) !important;
+}
+
+.announcement-form .el-select .el-input__inner {
+  cursor: pointer;
+}
+
+.announcement-form .el-input-number {
+  width: 160px;
+}
+
+.announcement-form .el-switch__label {
+  color: var(--text-tertiary);
+}
+
+.announcement-form .el-switch__label.is-active {
+  color: var(--accent-primary);
+}
+
+/* Game Tab */
+.game-icon-empty {
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .page-title { font-size: 24px; }
+  .tab-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+@media (max-width: 479px) {
+  .page-title { font-size: 20px; }
 }
 </style>

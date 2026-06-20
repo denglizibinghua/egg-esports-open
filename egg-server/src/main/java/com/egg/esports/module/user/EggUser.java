@@ -1,10 +1,12 @@
 package com.egg.esports.module.user;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -19,6 +21,8 @@ public class EggUser {
     private String password;
 
     private String nickname;
+
+    private String email;
 
     private String avatar;
 
@@ -35,4 +39,24 @@ public class EggUser {
     private Integer role;
 
     private LocalDateTime createTime;
+
+    @TableField("loan_amount")
+    private Integer loanAmount;  // 0 or negative
+
+    @TableField("loan_limit")
+    private Integer loanLimit;
+
+    @TableField("last_stipend_date")
+    private LocalDate lastStipendDate;
+
+    /** 连续登录失败次数，登录成功时重置为0 */
+    @TableField("login_attempts")
+    private Integer loginAttempts;
+
+    /** 锁定截止时间，NULL表示未锁定 */
+    @TableField("locked_until")
+    private LocalDateTime lockedUntil;
+
+    @TableField(exist = false)
+    private Integer rankingScore;
 }

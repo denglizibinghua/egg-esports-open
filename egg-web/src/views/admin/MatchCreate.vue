@@ -23,6 +23,17 @@
           <el-input v-model="form.tournament" placeholder="例如: VCT Champions 2024" />
         </el-form-item>
 
+        <el-form-item label="游戏" prop="gameId">
+          <el-select v-model="form.gameId" placeholder="选择游戏" style="width: 100%">
+            <el-option
+              v-for="game in games"
+              :key="game.id"
+              :label="game.name"
+              :value="game.id"
+            />
+          </el-select>
+        </el-form-item>
+
         <el-form-item label="比赛时间" prop="matchTime">
           <el-date-picker
             v-model="form.matchTime"
@@ -57,6 +68,7 @@ export default {
         matchTime: '',
         gameId: 1
       },
+      games: [],
       rules: {
         title: [{ required: true, message: '请输入赛事标题', trigger: 'blur' }],
         teamA: [{ required: true, message: '请输入A队名称', trigger: 'blur' }],
@@ -71,7 +83,25 @@ export default {
       }
     }
   },
+  created() {
+    this.fetchGames()
+  },
   methods: {
+    fetchGames() {
+      request.get('/game/list').then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.games = data
+        } else if (data.records) {
+          this.games = data.records
+        } else {
+          this.games = data.list || data.content || []
+        }
+        if (this.games.length > 0 && (this.form.gameId === 1 || !this.form.gameId)) {
+          this.form.gameId = this.games[0].id
+        }
+      }).catch(() => {})
+    },
     handleSubmit() {
       this.$refs.form.validate(valid => {
         if (!valid) return

@@ -2,6 +2,23 @@
   <div class="leaderboard">
     <div class="page-header">
       <h2 class="page-title">排行榜</h2>
+      <div class="game-filter">
+        <el-select
+          v-model="selectedGameId"
+          placeholder="全部游戏"
+          clearable
+          size="small"
+          @change="handleGameChange"
+        >
+          <el-option :value="null" label="全部游戏" />
+          <el-option
+            v-for="game in games"
+            :key="game.id"
+            :label="game.name"
+            :value="game.id"
+          />
+        </el-select>
+      </div>
     </div>
 
     <!-- Loading Skeleton -->
@@ -55,7 +72,7 @@
             <el-avatar :size="56" icon="el-icon-user-solid" />
           </div>
           <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
-          <div class="podium-points">{{ top3[1].points }} 积分</div>
+          <div class="podium-points">{{ selectedGameId != null ? (top3[1].correctBets || 0) + ' 猜中' : top3[1].points + ' 积分' }}</div>
         </div>
 
         <div v-if="top3[0]" class="podium-item gold">
@@ -65,7 +82,7 @@
             <el-avatar :size="72" icon="el-icon-user-solid" />
           </div>
           <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
-          <div class="podium-points">{{ top3[0].points }} 积分</div>
+          <div class="podium-points">{{ selectedGameId != null ? (top3[0].correctBets || 0) + ' 猜中' : top3[0].points + ' 积分' }}</div>
         </div>
 
         <div v-if="top3[2]" class="podium-item bronze">
@@ -74,32 +91,34 @@
             <el-avatar :size="56" icon="el-icon-user-solid" />
           </div>
           <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
-          <div class="podium-points">{{ top3[2].points }} 积分</div>
+          <div class="podium-points">{{ selectedGameId != null ? (top3[2].correctBets || 0) + ' 猜中' : top3[2].points + ' 积分' }}</div>
         </div>
       </div>
 
       <!-- Full Leaderboard Table -->
-      <el-table :data="leaderboard" style="width: 100%" class="leaderboard-table">
-        <el-table-column label="排名" width="80" align="center">
-          <template slot-scope="scope">
-            <span :class="getRankClass(scope.$index + 1 + (currentPage - 1) * pageSize)">
-              {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="昵称" min-width="150">
-          <template slot-scope="scope">
-            <span>{{ scope.row.nickname || scope.row.username }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="积分" width="100" align="center" prop="points" />
-        <el-table-column label="胜率" width="100" align="center">
-          <template slot-scope="scope">
-            {{ getAccuracy(scope.row) }}%
-          </template>
-        </el-table-column>
-        <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
-      </el-table>
+      <div class="table-scroll">
+        <el-table :data="leaderboard" style="width: 100%" class="leaderboard-table">
+          <el-table-column label="排名" width="80" align="center">
+            <template slot-scope="scope">
+              <span :class="getRankClass(scope.$index + 1 + (currentPage - 1) * pageSize)">
+                {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="昵称" min-width="150">
+            <template slot-scope="scope">
+              <span>{{ scope.row.nickname || scope.row.username }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="积分" width="100" align="center" prop="points" />
+          <el-table-column label="胜率" width="100" align="center">
+            <template slot-scope="scope">
+              {{ getAccuracy(scope.row) }}%
+            </template>
+          </el-table-column>
+          <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
+        </el-table>
+      </div>
     </template>
 
     <el-pagination
@@ -126,28 +145,54 @@ export default {
       loading: false,
       currentPage: 1,
       pageSize: 20,
-      total: 0
+      total: 0,
+      games: [],
+      selectedGameId: null
     }
   },
   created() {
+    this.fetchGames()
     this.fetchTop3()
     this.fetchLeaderboard()
   },
   methods: {
+    fetchGames() {
+      request.get('/game/list').then(res => {
+        const data = res.data || res
+        if (Array.isArray(data)) {
+          this.games = data
+        } else if (data.records) {
+          this.games = data.records
+        } else {
+          this.games = data.list || data.content || []
+        }
+      }).catch(() => {})
+    },
+    handleGameChange() {
+      this.currentPage = 1
+      this.fetchTop3()
+      this.fetchLeaderboard()
+    },
     fetchTop3() {
-      request.get('/leaderboard/top/3').then(res => {
+      const params = {}
+      if (this.selectedGameId != null) {
+        params.gameId = this.selectedGameId
+      }
+      request.get('/leaderboard/top/3', { params }).then(res => {
         const data = res.data || res
         this.top3 = Array.isArray(data) ? data : []
       }).catch(() => {})
     },
     fetchLeaderboard() {
       this.loading = true
-      request.get('/leaderboard/points', {
-        params: {
-          page: this.currentPage,
-          size: this.pageSize
-        }
-      }).then(res => {
+      const params = {
+        page: this.currentPage,
+        size: this.pageSize
+      }
+      if (this.selectedGameId != null) {
+        params.gameId = this.selectedGameId
+      }
+      request.get('/leaderboard/points', { params }).then(res => {
         const data = res.data || res
         if (Array.isArray(data)) {
           this.leaderboard = data
@@ -165,7 +210,7 @@ export default {
     },
     getAccuracy(row) {
       if (!row.totalBets || row.totalBets === 0) return 0
-      return Math.round((row.correctBets / row.totalBets) * 100)
+      return Math.min(100, Math.round((row.correctBets / row.totalBets) * 100))
     },
     getRankClass(rank) {
       if (rank === 1) return 'rank-gold'
@@ -180,6 +225,11 @@ export default {
 <style scoped>
 .page-header {
   margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .page-title {
@@ -187,6 +237,23 @@ export default {
   font-family: var(--font-display);
   font-size: 32px;
   letter-spacing: 1px;
+}
+
+.game-filter {
+  display: flex;
+  align-items: center;
+}
+
+.game-filter >>> .el-input__inner {
+  background: var(--bg-surface-1);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  min-width: 160px;
+}
+
+.game-filter >>> .el-input__inner:focus {
+  border-color: var(--accent-primary);
 }
 
 .podium {
@@ -385,4 +452,134 @@ export default {
 .skeleton-line--rank-sm { width: 24px; height: 18px; flex-shrink: 0; }
 .skeleton-line--nickname { width: 120px; height: 14px; flex: 1; }
 .skeleton-line--score { width: 60px; height: 14px; flex-shrink: 0; }
+
+/* Table scroll wrapper for mobile overflow */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================
+   Mobile: < 768px
+   ============================ */
+@media (max-width: 767px) {
+  .page-header {
+    gap: 8px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .podium {
+    gap: 8px;
+    padding: 16px 0;
+    margin-bottom: 24px;
+  }
+
+  .podium-item {
+    min-width: 0;
+    padding: 16px 12px;
+    flex: 1;
+  }
+
+  .podium-item.gold {
+    min-width: 0;
+    flex: 1.15;
+    padding-bottom: 24px;
+  }
+
+  .podium-rank {
+    font-size: 20px;
+  }
+
+  .podium-crown {
+    font-size: 22px;
+  }
+
+  .podium-name {
+    font-size: 13px;
+  }
+
+  .podium-points {
+    font-size: 12px;
+  }
+
+  .podium-avatar >>> .el-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+  }
+
+  .gold .podium-avatar >>> .el-avatar {
+    width: 52px !important;
+    height: 52px !important;
+    line-height: 52px !important;
+  }
+
+  .leaderboard-table >>> .el-table__header th:first-child,
+  .leaderboard-table >>> .el-table__body td:first-child {
+    width: 50px !important;
+    min-width: 50px !important;
+  }
+
+  .leaderboard >>> .el-pagination {
+    padding: 12px 0;
+  }
+}
+
+/* ============================
+   Small mobile: < 480px
+   ============================ */
+@media (max-width: 479px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .podium {
+    gap: 6px;
+    padding: 12px 0;
+  }
+
+  .podium-item {
+    padding: 10px 8px;
+  }
+
+  .podium-item.gold {
+    padding-bottom: 20px;
+  }
+
+  .podium-rank {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .podium-crown {
+    font-size: 18px;
+  }
+
+  .podium-name {
+    font-size: 12px;
+  }
+
+  .podium-points {
+    font-size: 11px;
+  }
+
+  .podium-avatar >>> .el-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+  }
+
+  .gold .podium-avatar >>> .el-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    line-height: 42px !important;
+  }
+
+  .leaderboard-table >>> .el-table__body-wrapper {
+    overflow-x: auto;
+  }
+}
 </style>

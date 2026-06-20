@@ -4,9 +4,28 @@ import { getToken, getUser } from '@/utils/auth'
 
 Vue.use(VueRouter)
 
+// 修复 Vue Router v3 重复导航 & 取消导航报错
+const originalPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(function (err) {
+    if (err.name !== 'NavigationDuplicated' && err.name !== 'NavigationCancelled') throw err
+  })
+}
+const originalReplace = VueRouter.prototype.replace
+VueRouter.prototype.replace = function replace(location) {
+  return originalReplace.call(this, location).catch(function (err) {
+    if (err.name !== 'NavigationDuplicated' && err.name !== 'NavigationCancelled') throw err
+  })
+}
+
 const routes = [
   {
     path: '/',
+    name: 'Home',
+    component: () => import('@/views/Home.vue')
+  },
+  {
+    path: '/matches',
     name: 'MatchList',
     component: () => import('@/views/MatchList.vue')
   },
@@ -26,9 +45,21 @@ const routes = [
     component: () => import('@/views/Login.vue')
   },
   {
+    path: '/bank',
+    name: 'Bank',
+    component: () => import('@/views/Bank.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/user',
     name: 'UserCenter',
     component: () => import('@/views/UserCenter.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('@/views/Notifications.vue'),
     meta: { requiresAuth: true }
   },
   {

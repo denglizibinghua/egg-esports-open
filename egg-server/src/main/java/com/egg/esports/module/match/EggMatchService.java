@@ -4,13 +4,18 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.egg.esports.common.BusinessException;
+import com.egg.esports.common.annotation.OperationLog;
+import com.egg.esports.module.bet.EggBet;
+import com.egg.esports.module.bet.EggBetMapper;
 import com.egg.esports.module.bet.EggBetService;
+import com.egg.esports.module.odds.OddsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,6 +34,10 @@ public class EggMatchService {
 
     private final EggBetService betService;
 
+    private final EggBetMapper betMapper;
+
+    private final OddsService oddsService;
+
     /**
      * 分页查询赛事列表
      *
@@ -37,22 +46,53 @@ public class EggMatchService {
      * @param size   每页条数
      * @return 分页结果
      */
-    public IPage<EggMatch> getMatchList(Integer status, Integer page, Integer size) {
-        Page<EggMatch> pageParam = new Page<>(page, size);
+    public IPage<EggMatch> getMatchList(Integer status, Long gameId, Integer page, Integer size) {
         LambdaQueryWrapper<EggMatch> wrapper = new LambdaQueryWrapper<>();
 
         if (status != null) {
             wrapper.eq(EggMatch::getStatus, status);
         }
+        if (gameId != null) {
+            wrapper.eq(EggMatch::getGameId, gameId);
+        }
 
-        // 未开始(0)按比赛时间升序，已结束(2)按比赛时间降序，其他默认降序
-        if (status != null && status == 0) {
+        // 全部(status=null)：不限制条数，按 tournament + match_time 排序，前端按赛事分组折叠
+        // 未开始(status=0)：按比赛时间升序
+        // 已结束/进行中：按比赛时间降序
+        if (status == null) {
+            wrapper.orderByAsc(EggMatch::getTournament).orderByDesc(EggMatch::getMatchTime);
+            List<EggMatch> allMatches = matchMapper.selectList(wrapper);
+            // 填充赔率
+            for (EggMatch m : allMatches) {
+                long pa = m.getPoolA() != null ? m.getPoolA() : 0L;
+                long pb = m.getPoolB() != null ? m.getPoolB() : 0L;
+                Map<String, BigDecimal> odds = oddsService.calculate(pa, pb);
+                m.setOddsA(odds.get("oddsA"));
+                m.setOddsB(odds.get("oddsB"));
+            }
+            Page<EggMatch> fakePage = new Page<>(1, allMatches.size());
+            fakePage.setRecords(allMatches);
+            fakePage.setTotal(allMatches.size());
+            return fakePage;
+        }
+
+        Page<EggMatch> pageParam = new Page<>(page, size);
+        if (status == 0) {
             wrapper.orderByAsc(EggMatch::getMatchTime);
         } else {
             wrapper.orderByDesc(EggMatch::getMatchTime);
         }
 
-        return matchMapper.selectPage(pageParam, wrapper);
+        IPage<EggMatch> pageResult = matchMapper.selectPage(pageParam, wrapper);
+        // 填充赔率
+        for (EggMatch m : pageResult.getRecords()) {
+            long pa = m.getPoolA() != null ? m.getPoolA() : 0L;
+            long pb = m.getPoolB() != null ? m.getPoolB() : 0L;
+            Map<String, BigDecimal> odds = oddsService.calculate(pa, pb);
+            m.setOddsA(odds.get("oddsA"));
+            m.setOddsB(odds.get("oddsB"));
+        }
+        return pageResult;
     }
 
     /**
@@ -63,6 +103,12 @@ public class EggMatchService {
         if (match == null) {
             throw new BusinessException("赛事不存在");
         }
+        // 填充赔率
+        long poolA = match.getPoolA() != null ? match.getPoolA() : 0L;
+        long poolB = match.getPoolB() != null ? match.getPoolB() : 0L;
+        Map<String, BigDecimal> odds = oddsService.calculate(poolA, poolB);
+        match.setOddsA(odds.get("oddsA"));
+        match.setOddsB(odds.get("oddsB"));
         return match;
     }
 
@@ -132,14 +178,39 @@ public class EggMatchService {
     }
 
     /**
-     * 获取热门赛事（即将开始 + 进行中，按时间排序，最多返回 limit 条）
+     * 获取热门赛事（status 0/1/2，按押注人数排序，最多返回 limit 条）
      */
-    public List<EggMatch> getHotMatches(int limit) {
+    public List<EggMatch> getHotMatches(int limit, Long gameId) {
         LambdaQueryWrapper<EggMatch> wrapper = new LambdaQueryWrapper<>();
-        wrapper.in(EggMatch::getStatus, 0, 1)
-                .orderByAsc(EggMatch::getMatchTime)
-                .last("LIMIT " + limit);
-        return matchMapper.selectList(wrapper);
+        wrapper.in(EggMatch::getStatus, 0, 1, 2);
+        if (gameId != null) {
+            wrapper.eq(EggMatch::getGameId, gameId);
+        }
+        wrapper.orderByDesc(EggMatch::getMatchTime);
+        List<EggMatch> matches = matchMapper.selectList(wrapper);
+
+        // 填充赔率 + 押注人数
+        for (EggMatch m : matches) {
+            long pa = m.getPoolA() != null ? m.getPoolA() : 0L;
+            long pb = m.getPoolB() != null ? m.getPoolB() : 0L;
+            Map<String, BigDecimal> odds = oddsService.calculate(pa, pb);
+            m.setOddsA(odds.get("oddsA"));
+            m.setOddsB(odds.get("oddsB"));
+            Long count = betMapper.selectCount(new LambdaQueryWrapper<EggBet>().eq(EggBet::getMatchId, m.getId()));
+            m.setBetCount(count != null ? count.intValue() : 0);
+        }
+
+        // 排序：status ASC，同状态 betCount DESC
+        matches.sort((a, b) -> {
+            int sa = a.getStatus() != null ? a.getStatus() : 2;
+            int sb = b.getStatus() != null ? b.getStatus() : 2;
+            if (sa != sb) return Integer.compare(sa, sb);
+            int ca = a.getBetCount() != null ? a.getBetCount() : 0;
+            int cb = b.getBetCount() != null ? b.getBetCount() : 0;
+            return Integer.compare(cb, ca); // DESC
+        });
+
+        return matches.size() > limit ? matches.subList(0, limit) : matches;
     }
 
     /**
@@ -151,6 +222,15 @@ public class EggMatchService {
         LambdaQueryWrapper<EggMatch> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByAsc(EggMatch::getTournament, EggMatch::getMatchTime);
         List<EggMatch> allMatches = matchMapper.selectList(wrapper);
+
+        // 填充赔率
+        for (EggMatch m : allMatches) {
+            long pa = m.getPoolA() != null ? m.getPoolA() : 0L;
+            long pb = m.getPoolB() != null ? m.getPoolB() : 0L;
+            Map<String, BigDecimal> odds = oddsService.calculate(pa, pb);
+            m.setOddsA(odds.get("oddsA"));
+            m.setOddsB(odds.get("oddsB"));
+        }
 
         Map<String, List<EggMatch>> grouped = new LinkedHashMap<>();
         for (EggMatch match : allMatches) {
@@ -223,7 +303,7 @@ public class EggMatchService {
             throw new BusinessException("externalId不能为空");
         }
 
-        EggMatch existing = matchMapper.selectByExternalId(match.getExternalId());
+        EggMatch existing = matchMapper.selectByExternalIdAndGameId(match.getExternalId(), match.getGameId());
         if (existing != null) {
             // 更新已有记录（仅更新有变化的字段）
             boolean changed = false;
@@ -233,15 +313,10 @@ public class EggMatchService {
                 changed = true;
             }
             if (match.getResult() != null && !match.getResult().equals(existing.getResult())) {
-                boolean isFirstResult = existing.getResult() == null;
                 existing.setResult(match.getResult());
                 changed = true;
-                // 自动结算：首次从Riot API获得结果时，联动结算所有押注
-                if (isFirstResult && existing.getStatus() != null && existing.getStatus() == 2) {
-                    log.info("自动结算: 赛事[{}] {} vs {} 结果={}", existing.getId(),
-                            existing.getTeamA(), existing.getTeamB(), match.getResult());
-                    betService.settleBet(existing.getId(), match.getResult());
-                }
+                // 不再在此处自动结算——统一交由 autoSettlePending 定时任务处理
+                // 避免 syncAll → settleBet 与 autoSettlePending → settleBet 双重触发导致通知重复
             }
             if (match.getMatchTime() != null && !match.getMatchTime().equals(existing.getMatchTime())) {
                 existing.setMatchTime(match.getMatchTime());
@@ -331,6 +406,7 @@ public class EggMatchService {
      * @return 结算数量
      */
     @Transactional
+    @OperationLog(module = "赛事", value = "自动结算")
     public int autoSettlePending() {
         List<EggMatch> toSettle = matchMapper.selectFinishedWithResult();
         int count = 0;

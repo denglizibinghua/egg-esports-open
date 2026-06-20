@@ -8,10 +8,56 @@
         </div>
         <div class="header-right">
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
           <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
           <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
+            <!-- Notification Bell -->
+            <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="nav-badge">
+              <el-popover
+                placement="bottom"
+                width="360"
+                trigger="click"
+                v-model="notificationPopoverVisible"
+              >
+                <div class="notification-preview">
+                  <div class="notification-preview-header">
+                    <span class="notification-preview-title">通知</span>
+                    <el-button type="text" size="small" @click="markAllRead">全部已读</el-button>
+                  </div>
+                  <div v-if="recentNotifications.length === 0" class="notification-empty">
+                    暂无通知
+                  </div>
+                  <div v-else>
+                    <div
+                      v-for="item in recentNotifications"
+                      :key="item.id"
+                      class="notification-item"
+                      :class="{ 'notification-item--unread': item.isRead === 0 }"
+                      @click="handleNotificationClick(item)"
+                    >
+                      <div class="notification-item-icon">
+                        <i :class="getNotificationIcon(item.type)"></i>
+                      </div>
+                      <div class="notification-item-content">
+                        <div class="notification-item-title">{{ item.title }}</div>
+                        <div class="notification-item-desc">{{ item.content }}</div>
+                        <div class="notification-item-time">{{ formatNotificationTime(item.createTime) }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="notification-preview-footer">
+                    <router-link to="/notifications" @click.native="notificationPopoverVisible = false">
+                      查看全部通知
+                    </router-link>
+                  </div>
+                </div>
+                <el-button slot="reference" class="nav-btn nav-bell-btn" :class="{ 'has-notification': unreadCount > 0 }">
+                  <i class="el-icon-bell"></i>
+                </el-button>
+              </el-popover>
+            </el-badge>
             <el-dropdown trigger="hover" @command="handleUserCommand">
               <span class="user-dropdown-trigger">
                 {{ userNickname }}
@@ -27,7 +73,51 @@
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
         </div>
+        <!-- Mobile Hamburger Toggle -->
+        <button class="mobile-toggle" @click="toggleMobileMenu" aria-label="菜单">
+          <span class="mobile-toggle-bar"></span>
+          <span class="mobile-toggle-bar"></span>
+          <span class="mobile-toggle-bar"></span>
+        </button>
       </el-header>
+      <!-- Mobile Drawer -->
+      <transition name="drawer-fade">
+        <div v-if="mobileMenuOpen" class="drawer-overlay" @click.self="mobileMenuOpen = false">
+          <transition name="drawer-slide">
+            <div v-if="mobileMenuOpen" class="drawer-panel">
+              <div class="drawer-header">
+                <span class="drawer-title">菜单</span>
+                <button class="drawer-close" @click="mobileMenuOpen = false" aria-label="关闭">
+                  <span></span><span></span>
+                </button>
+              </div>
+              <div class="drawer-body">
+                <div v-if="isLoggedIn" class="drawer-user">
+                  <span class="drawer-user-name">{{ userNickname }}</span>
+                </div>
+                <div class="drawer-nav">
+                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/'); mobileMenuOpen = false">主页</button>
+                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches'); mobileMenuOpen = false">赛程</button>
+                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard'); mobileMenuOpen = false">排行榜</button>
+                  <button v-if="isAdmin" class="nav-btn drawer-nav-item admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin'); mobileMenuOpen = false">管理</button>
+                </div>
+                <div class="drawer-divider"></div>
+                <template v-if="isLoggedIn">
+                  <button class="nav-btn drawer-nav-item" @click="$router.push('/notifications'); mobileMenuOpen = false">
+                    <i class="el-icon-bell drawer-nav-icon"></i>通知
+                    <span v-if="unreadCount > 0" class="drawer-badge">{{ unreadCount }}</span>
+                  </button>
+                  <div class="drawer-divider"></div>
+                  <button class="nav-btn drawer-nav-item drawer-logout" @click="handleUserCommand('logout'); mobileMenuOpen = false">退出登录</button>
+                </template>
+                <template v-else>
+                  <button class="nav-btn drawer-nav-item" @click="$router.push('/login'); mobileMenuOpen = false">登录</button>
+                </template>
+              </div>
+            </div>
+          </transition>
+        </div>
+      </transition>
       <el-main class="app-main">
         <router-view />
       </el-main>
@@ -37,15 +127,27 @@
 
 <script>
 import { getToken, getUser, removeToken } from '@/utils/auth'
+import request from '@/utils/request'
+import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
 
 export default {
   name: 'App',
+  data() {
+    return {
+      unreadCount: 0,
+      notificationPopoverVisible: false,
+      recentNotifications: [],
+      notificationPollTimer: null,
+      currentUser: null,
+      mobileMenuOpen: false
+    }
+  },
   computed: {
     isLoggedIn() {
       return !!getToken()
     },
     user() {
-      return getUser() || {}
+      return this.currentUser || {}
     },
     userNickname() {
       return this.user.nickname || this.user.username || '用户'
@@ -54,14 +156,120 @@ export default {
       return this.user && this.user.role === 1
     }
   },
+  created() {
+    this.refreshUser()
+    if (getToken()) {
+      this.fetchUnreadCount()
+      this.fetchRecentNotifications()
+      this.notificationPollTimer = setInterval(() => {
+        this.fetchUnreadCount()
+      }, 30000)
+      // 建立 WebSocket 连接（评论实时推送）
+      wsConnect(getToken()).catch(() => {})
+    }
+  },
+  watch: {
+    $route() {
+      // 路由变化时刷新用户信息（处理登录/切换账号后 localStorage 更新）
+      this.refreshUser()
+    },
+    notificationPopoverVisible(val) {
+      // 打开通知弹窗时刷新列表
+      if (val && getToken()) {
+        this.fetchRecentNotifications()
+      }
+    }
+  },
+  beforeDestroy() {
+    if (this.notificationPollTimer) {
+      clearInterval(this.notificationPollTimer)
+      this.notificationPollTimer = null
+    }
+    wsDisconnect()
+  },
   methods: {
+    refreshUser() {
+      this.currentUser = getUser()
+    },
+    toggleMobileMenu() {
+      this.mobileMenuOpen = !this.mobileMenuOpen
+    },
     handleUserCommand(command) {
       if (command === 'profile') {
         this.$router.push('/user')
       } else if (command === 'logout') {
         removeToken()
+        this.currentUser = null
         this.$router.push('/login')
       }
+    },
+    fetchUnreadCount() {
+      request.get('/notification/unread-count').then(function (res) {
+        var newCount = res.data != null ? res.data : 0
+        // 未读数增加时刷新通知列表
+        if (newCount > this.unreadCount) {
+          this.fetchRecentNotifications()
+        }
+        this.unreadCount = newCount
+      }.bind(this)).catch(function () {})
+    },
+    fetchRecentNotifications() {
+      request.get('/notification/list', { params: { page: 1, size: 5 } }).then(function (res) {
+        var data = res.data || res
+        this.recentNotifications = data.records || data.list || []
+      }.bind(this)).catch(function () {})
+    },
+    markAllRead() {
+      request.put('/notification/read-all').then(function () {
+        this.unreadCount = 0
+        this.recentNotifications.forEach(function (n) { n.isRead = 1 })
+      }.bind(this)).catch(function () {})
+    },
+    handleNotificationClick(item) {
+      if (item.isRead === 0) {
+        request.put('/notification/read/' + item.id).then(function () {
+          item.isRead = 1
+          this.unreadCount = Math.max(0, this.unreadCount - 1)
+        }.bind(this)).catch(function () {})
+      }
+      if (item.type === 1) {
+        // 比赛即将开始
+        if (item.relatedId) {
+          this.$router.push('/match/' + item.relatedId)
+        } else {
+          this.$router.push('/matches')
+        }
+      } else if (item.type === 2) {
+        // 押注已结算
+        this.$router.push('/matches')
+      } else if (item.type === 3 || item.type === 4) {
+        // 评论被回复 / 被@提及：跳转到对应赛事评论区
+        if (item.relatedId) {
+          this.$router.push('/match/' + item.relatedId)
+        } else {
+          this.$router.push('/matches')
+        }
+      }
+      this.notificationPopoverVisible = false
+    },
+    getNotificationIcon(type) {
+      var icons = {
+        1: 'el-icon-bell',
+        2: 'el-icon-s-check',
+        3: 'el-icon-chat-dot-square',
+        4: 'el-icon-attract'
+      }
+      return icons[type] || 'el-icon-info'
+    },
+    formatNotificationTime(time) {
+      if (!time) return ''
+      var d = new Date(time)
+      var now = new Date()
+      var diff = now - d
+      if (diff < 60000) return '刚刚'
+      if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
+      if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
+      return d.toLocaleDateString('zh-CN')
     }
   }
 }
@@ -90,6 +298,9 @@ export default {
   --radius-lg: 16px;
   --radius-xl: 20px;
   --radius-full: 9999px;
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1200px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.40);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.05);
@@ -557,6 +768,358 @@ a {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Notification Bell */
+.nav-badge {
+  margin-right: 4px;
+}
+
+.nav-badge .el-badge__content {
+  background-color: var(--accent-danger) !important;
+}
+
+.nav-bell-btn {
+  background: transparent !important;
+  border: 1px solid var(--bg-surface-3) !important;
+  color: var(--text-secondary) !important;
+  padding: 8px 12px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer;
+  font-size: 16px !important;
+  transition: all 0.2s var(--ease-out);
+  line-height: 1 !important;
+  height: auto !important;
+}
+
+.nav-bell-btn:hover {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-primary) !important;
+}
+
+.nav-bell-btn.has-notification {
+  color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.notification-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bg-surface-3);
+  margin-bottom: 8px;
+}
+
+.notification-preview-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notification-preview-footer {
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid var(--bg-surface-3);
+  margin-top: 8px;
+}
+
+.notification-preview-footer a {
+  color: var(--accent-secondary);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.notification-preview-footer a:hover {
+  color: var(--accent-primary);
+}
+
+.notification-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.notification-item {
+  display: flex;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notification-item--unread {
+  background: rgba(0, 229, 160, 0.05);
+}
+
+.notification-item:hover {
+  background: var(--bg-surface-2);
+}
+
+.notification-item-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  color: var(--accent-secondary);
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.notification-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.notification-item-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-item-time {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* Popover dark theme */
+.el-popover {
+  background: var(--bg-surface-2) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+
+.el-popover .popper__arrow::after,
+.el-popover .popper__arrow {
+  border-bottom-color: var(--bg-surface-2) !important;
+}
+
+/* ── Mobile Hamburger & Drawer ── */
+.mobile-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: 8px;
+  transition: background var(--duration-fast) ease;
+}
+
+.mobile-toggle:hover {
+  background: var(--bg-surface-2);
+}
+
+.mobile-toggle-bar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 1px;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+/* Drawer Overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Drawer Panel */
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 280px;
+  height: 100vh;
+  background: var(--bg-surface-2);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.drawer-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+
+.drawer-close {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast) ease;
+}
+
+.drawer-close:hover {
+  background: var(--bg-surface-3);
+}
+
+.drawer-close span {
+  position: absolute;
+  width: 14px;
+  height: 2px;
+  background: var(--text-secondary);
+  border-radius: 1px;
+}
+
+.drawer-close span:first-child {
+  transform: rotate(45deg);
+}
+
+.drawer-close span:last-child {
+  transform: rotate(-45deg);
+}
+
+.drawer-body {
+  flex: 1;
+  padding: 12px 12px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-user {
+  padding: 12px 12px 16px;
+}
+
+.drawer-user-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px !important;
+  font-size: 15px !important;
+  border-radius: var(--radius-md) !important;
+  text-align: left;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.drawer-nav-item:hover {
+  background: var(--bg-surface-3) !important;
+}
+
+.drawer-nav-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.drawer-badge {
+  margin-left: auto;
+  background: var(--accent-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: var(--radius-full);
+  padding: 0 6px;
+}
+
+.drawer-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 8px 12px;
+}
+
+.drawer-logout {
+  color: var(--accent-danger) !important;
+}
+
+.drawer-logout:hover {
+  background: rgba(255, 77, 109, 0.08) !important;
+}
+
+/* Drawer transitions */
+.drawer-fade-enter-active,
+.drawer-fade-leave-active {
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.drawer-fade-enter,
+.drawer-fade-leave-to {
+  opacity: 0;
+}
+
+.drawer-slide-enter-active,
+.drawer-slide-leave-active {
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.drawer-slide-enter,
+.drawer-slide-leave-to {
+  transform: translateX(100%);
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 767px) {
+  .header-right {
+    display: none !important;
+  }
+
+  .mobile-toggle {
+    display: flex;
+  }
+
+  .app-header {
+    padding: 0 16px;
+  }
+
+  .app-main {
+    padding: 16px;
   }
 }
 </style>

@@ -40,4 +40,6 @@ public class BetHistoryVO {
     private Integer status;
 
     private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
 }

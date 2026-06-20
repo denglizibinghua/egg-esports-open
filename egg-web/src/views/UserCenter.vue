@@ -75,9 +75,15 @@
               <div class="user-points">
                 <div class="points-value">{{ user.points }}</div>
                 <div class="points-label">积分</div>
+                <div class="points-sub" v-if="loanStatus && loanStatus.rankingScore !== undefined">
+                  排名分 {{ loanStatus.rankingScore }}
+                </div>
               </div>
               <el-button class="edit-profile-btn" size="small" @click="openEditDialog">
                 <i class="el-icon-edit"></i> 编辑资料
+              </el-button>
+              <el-button class="edit-profile-btn" size="small" @click="passwordDialogVisible = true" style="margin-left: 8px;">
+                <i class="el-icon-lock"></i> 修改密码
               </el-button>
             </div>
           </div>
@@ -117,6 +123,23 @@
             <code class="profile-url">{{ profileUrl }}</code>
             <el-button type="text" class="copy-url-btn" @click="copyProfileUrl">复制</el-button>
           </div>
+
+          <!-- Bank Quick Link -->
+          <div class="bank-link-card" v-if="loanStatus">
+            <router-link to="/bank" class="bank-link">
+              <div class="bank-link-left">
+                <i class="el-icon-bank-card"></i>
+                <span>银行中心</span>
+              </div>
+              <div class="bank-link-right">
+                <span class="bank-link-debt" v-if="loanStatus.loanAmount < 0">
+                  贷款 {{ formatLoanAmount(loanStatus.loanAmount) }}
+                </span>
+                <span class="bank-link-clean" v-else>无贷款</span>
+                <i class="el-icon-arrow-right"></i>
+              </div>
+            </router-link>
+          </div>
         </el-tab-pane>
 
         <el-tab-pane label="数据仪表盘" name="dashboard">
@@ -124,7 +147,7 @@
             <!-- Points Trend -->
             <div class="dashboard-card dashboard-card--wide">
               <div class="dashboard-card-header">
-                <h4 class="dashboard-card-title">积分走势</h4>
+                <h4 class="dashboard-card-title">最近投注</h4>
                 <span class="dashboard-card-subtitle">最近 {{ recentBets.length }} 场</span>
               </div>
               <div class="points-trend" v-if="recentBets.length > 0">
@@ -256,6 +279,98 @@
                 </div>
               </div>
             </div>
+
+            <!-- Profit Curve -->
+            <div class="dashboard-card dashboard-card--wide">
+              <div class="dashboard-card-header">
+                <h4 class="dashboard-card-title">收益曲线</h4>
+                <span class="dashboard-card-subtitle">累计积分变化 · {{ profitData.length }} 个数据点</span>
+              </div>
+              <div class="chart-container" v-if="profitData && profitData.length > 0" v-loading="profitLoading">
+                <svg viewBox="0 0 800 220" class="profit-chart" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.3" />
+                      <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  <!-- Grid lines -->
+                  <line x1="50" y1="15" x2="50" y2="195" class="chart-axis-line" />
+                  <line x1="50" y1="195" x2="790" y2="195" class="chart-axis-line" />
+                  <line x1="50" y1="105" x2="790" y2="105" class="chart-grid-line" />
+                  <line x1="50" y1="60" x2="790" y2="60" class="chart-grid-line" />
+                  <line x1="50" y1="150" x2="790" y2="150" class="chart-grid-line" />
+                  <!-- Fill area -->
+                  <polygon :points="profitChartFill" fill="url(#profitGradient)" class="chart-fill" />
+                  <!-- Line -->
+                  <polyline :points="profitChartPoints" fill="none" class="chart-line" />
+                  <!-- Y axis labels -->
+                  <text x="45" y="198" class="chart-label chart-label--y" text-anchor="end">{{ profitChartMeta ? profitChartMeta.min : '' }}</text>
+                  <text x="45" y="18" class="chart-label chart-label--y" text-anchor="end">{{ profitChartMeta ? profitChartMeta.max : '' }}</text>
+                  <!-- X axis labels -->
+                  <text x="50" y="213" class="chart-label chart-label--x" text-anchor="start">{{ profitChartMeta ? profitChartMeta.first : '' }}</text>
+                  <text x="790" y="213" class="chart-label chart-label--x" text-anchor="end">{{ profitChartMeta ? profitChartMeta.last : '' }}</text>
+                  <!-- Data dots (interactive) -->
+                  <g v-for="(dot, i) in profitDotCoords" :key="'dot-'+i">
+                    <circle
+                      :cx="dot.x"
+                      :cy="dot.y"
+                      r="12"
+                      fill="transparent"
+                      class="chart-hit-area"
+                      @mouseenter="chartTooltip = { x: dot.x, y: dot.y, data: profitData[i] }"
+                      @mouseleave="chartTooltip = null"
+                    />
+                    <circle
+                      :cx="dot.x"
+                      :cy="dot.y"
+                      r="3.5"
+                      class="chart-dot"
+                    />
+                  </g>
+                  <!-- Tooltip -->
+                  <g v-if="chartTooltip" class="chart-tooltip-group">
+                    <line
+                      :x1="chartTooltip.x"
+                      y1="15"
+                      :x2="chartTooltip.x"
+                      y2="195"
+                      class="chart-tooltip-line"
+                    />
+                    <circle
+                      :cx="chartTooltip.x"
+                      :cy="chartTooltip.y"
+                      r="5"
+                      class="chart-tooltip-dot"
+                    />
+                    <rect
+                      :x="chartTooltip.x > 600 ? chartTooltip.x - 130 : chartTooltip.x + 10"
+                      :y="chartTooltip.y > 150 ? chartTooltip.y - 48 : chartTooltip.y - 8"
+                      width="120"
+                      height="40"
+                      rx="6"
+                      class="chart-tooltip-bg"
+                    />
+                    <text
+                      :x="chartTooltip.x > 600 ? chartTooltip.x - 70 : chartTooltip.x + 70"
+                      :y="chartTooltip.y > 150 ? chartTooltip.y - 30 : chartTooltip.y + 10"
+                      class="chart-tooltip-text chart-tooltip-text--val"
+                      text-anchor="middle"
+                    >{{ chartTooltip.data.points }} 分</text>
+                    <text
+                      :x="chartTooltip.x > 600 ? chartTooltip.x - 70 : chartTooltip.x + 70"
+                      :y="chartTooltip.y > 150 ? chartTooltip.y - 14 : chartTooltip.y + 26"
+                      class="chart-tooltip-text chart-tooltip-text--time"
+                      text-anchor="middle"
+                    >{{ chartTooltip.data.time }}</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="empty-state chart-empty" v-else>
+                <p>暂无结算数据</p>
+                <span>结算后积分变化将在这里展示</span>
+              </div>
+            </div>
           </div>
         </el-tab-pane>
 
@@ -285,6 +400,7 @@
             </div>
 
             <template v-else>
+              <div class="table-scroll">
               <el-table :data="bets" style="width: 100%" v-loading="betsLoading" :row-class-name="betRowClass">
                 <el-table-column label="赛事" min-width="180">
                   <template slot-scope="scope">
@@ -328,6 +444,7 @@
                   </template>
                 </el-table-column>
               </el-table>
+              </div>
 
               <el-pagination
                 v-if="betTotal > 0"
@@ -382,6 +499,25 @@
         <el-button type="primary" :loading="editSaving" @click="saveProfile">保存</el-button>
       </span>
     </el-dialog>
+
+    <!-- Password Change Dialog -->
+    <el-dialog title="修改密码" :visible.sync="passwordDialogVisible" width="420px" :close-on-click-modal="false">
+      <el-form ref="passwordForm" :model="passwordForm" :rules="passwordRules" label-width="80px">
+        <el-form-item label="原密码" prop="oldPassword">
+          <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入原密码" show-password />
+        </el-form-item>
+        <el-form-item label="新密码" prop="newPassword">
+          <el-input v-model="passwordForm.newPassword" type="password" placeholder="6-30个字符" show-password />
+        </el-form-item>
+        <el-form-item label="确认密码" prop="confirmPassword">
+          <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="再次输入新密码" show-password />
+        </el-form-item>
+      </el-form>
+      <span slot="footer">
+        <el-button @click="passwordDialogVisible = false" :disabled="passwordSaving">取消</el-button>
+        <el-button type="primary" @click="submitPassword" :loading="passwordSaving">确认修改</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -419,13 +555,50 @@ export default {
         ]
       },
       settlementCount: 0,
-      settledBetKeys: []
+      settledBetKeys: [],
+      profitData: [],
+      profitLoading: false,
+      chartTooltip: null,
+      passwordDialogVisible: false,
+      passwordSaving: false,
+      passwordForm: {
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      },
+      passwordRules: {
+        oldPassword: [
+          { required: true, message: '请输入原密码', trigger: 'blur' }
+        ],
+        newPassword: [
+          { required: true, message: '请输入新密码', trigger: 'blur' },
+          { min: 6, max: 30, message: '密码长度需在6-30个字符之间', trigger: 'blur' }
+        ],
+        confirmPassword: [
+          { required: true, message: '请再次输入新密码', trigger: 'blur' },
+          {
+            validator: (rule, value, callback) => {
+              if (value !== this.passwordForm.newPassword) {
+                callback(new Error('两次输入的密码不一致'))
+              } else {
+                callback()
+              }
+            },
+            trigger: 'blur'
+          }
+        ]
+      },
+      loanStatus: null,
+      claimingStipend: false,
+      loanConfig: {
+        dailyStipend: 100
+      }
     }
   },
   computed: {
     accuracy() {
       if (!this.user || !this.user.totalBets || this.user.totalBets === 0) return 0
-      return Math.round((this.user.correctBets / this.user.totalBets) * 100)
+      return Math.min(100, Math.round((this.user.correctBets / this.user.totalBets) * 100))
     },
     profileUrl() {
       if (!this.user || !this.user.id) return ''
@@ -456,6 +629,94 @@ export default {
     },
     uploadHeaders() {
       return { Authorization: 'Bearer ' + getToken() }
+    },
+    profitChartPoints() {
+      var data = this.profitData
+      if (!data || data.length === 0) return ''
+      var n = data.length
+      var padL = 50, padR = 10, padT = 15, padB = 25
+      var w = 800 - padL - padR
+      var h = 220 - padT - padB
+      var vals = data.map(function (d) { return d.points })
+      var minP = Math.min.apply(null, vals)
+      var maxP = Math.max.apply(null, vals)
+      var range = maxP - minP || 1
+      var pad = range * 0.1
+      minP = minP - pad
+      maxP = maxP + pad
+      range = maxP - minP
+      var pts = []
+      for (var i = 0; i < n; i++) {
+        var x = n === 1 ? padL + w / 2 : padL + i * (w / (n - 1))
+        var y = padT + h - ((data[i].points - minP) / range) * h
+        pts.push(x.toFixed(1) + ',' + y.toFixed(1))
+      }
+      return pts.join(' ')
+    },
+    profitChartFill() {
+      var data = this.profitData
+      if (!data || data.length === 0) return ''
+      var n = data.length
+      var padL = 50, padR = 10, padT = 15, padB = 25
+      var w = 800 - padL - padR
+      var h = 220 - padT - padB
+      var vals = data.map(function (d) { return d.points })
+      var minP = Math.min.apply(null, vals)
+      var maxP = Math.max.apply(null, vals)
+      var range = maxP - minP || 1
+      var pad = range * 0.1
+      minP = minP - pad
+      maxP = maxP + pad
+      range = maxP - minP
+      var pts = []
+      for (var i = 0; i < n; i++) {
+        var x = n === 1 ? padL + w / 2 : padL + i * (w / (n - 1))
+        var y = padT + h - ((data[i].points - minP) / range) * h
+        pts.push(x.toFixed(1) + ',' + y.toFixed(1))
+      }
+      var bottomY = padT + h
+      var firstX = n === 1 ? padL + w / 2 : padL
+      var lastX = n === 1 ? padL + w / 2 : padL + (n - 1) * (w / (n - 1))
+      pts.push(lastX.toFixed(1) + ',' + bottomY)
+      pts.push(firstX.toFixed(1) + ',' + bottomY)
+      return pts.join(' ')
+    },
+    profitChartMeta() {
+      var data = this.profitData
+      if (!data || data.length === 0) return null
+      var vals = data.map(function (d) { return d.points })
+      var minP = Math.min.apply(null, vals)
+      var maxP = Math.max.apply(null, vals)
+      return {
+        min: minP,
+        max: maxP,
+        first: data[0].time,
+        last: data[data.length - 1].time,
+        count: data.length
+      }
+    },
+    profitDotCoords() {
+      var data = this.profitData
+      if (!data || data.length === 0) return []
+      var n = data.length
+      var padL = 50, padR = 10, padT = 15, padB = 25
+      var w = 800 - padL - padR
+      var h = 220 - padT - padB
+      var vals = data.map(function (d) { return d.points })
+      var minP = Math.min.apply(null, vals)
+      var maxP = Math.max.apply(null, vals)
+      var range = maxP - minP || 1
+      var pad = range * 0.1
+      minP = minP - pad
+      maxP = maxP + pad
+      range = maxP - minP
+      var dots = []
+      for (var i = 0; i < n; i++) {
+        var x = n === 1 ? padL + w / 2 : padL + i * (w / (n - 1))
+        var y = padT + h - ((data[i].points - minP) / range) * h
+        dots.push({ x: x, y: y, idx: i })
+      }
+      return dots
     }
   },
   created() {
@@ -468,6 +729,8 @@ export default {
     this.fetchMyRank()
     this.fetchRecentBets()
     this.fetchSettledSince()
+    this.fetchProfitData()
+    this.fetchLoanStatus()
   },
   methods: {
     fetchUserInfo() {
@@ -543,6 +806,43 @@ export default {
         }.bind(this)).catch(function () {})
       }
       localStorage.setItem(LAST_VISIT_KEY, now)
+    },
+    fetchProfitData() {
+      this.profitLoading = true
+      request.get('/bet/settled-since').then(function (res) {
+        var data = res.data || res
+        var list = Array.isArray(data) ? data : (data.records || data.list || [])
+        // Sort by createTime ascending
+        list.sort(function (a, b) {
+          return new Date(a.createTime) - new Date(b.createTime)
+        })
+        // Build cumulative points starting from 1000
+        var cumulative = 1000
+        var result = []
+        for (var i = 0; i < list.length; i++) {
+          var net = list[i].netChange
+          if (net === null || net === undefined) {
+            if (list[i].status === 1) net = list[i].betAmount
+            else if (list[i].status === 2) net = -list[i].betAmount
+            else net = 0
+          }
+          cumulative += net
+          var d = new Date(list[i].createTime)
+          var m = d.getMonth() + 1
+          var day = d.getDate()
+          var h = d.getHours().toString().padStart(2, '0')
+          var min = d.getMinutes().toString().padStart(2, '0')
+          result.push({
+            time: m + '/' + day + ' ' + h + ':' + min,
+            points: cumulative
+          })
+        }
+        this.profitData = result
+      }.bind(this)).catch(function () {
+        this.profitData = []
+      }.bind(this)).finally(function () {
+        this.profitLoading = false
+      }.bind(this))
     },
     betRowClass: function (_ref) {
       var row = _ref.row
@@ -633,6 +933,22 @@ export default {
         }.bind(this))
       }.bind(this))
     },
+    submitPassword() {
+      this.$refs.passwordForm.validate(valid => {
+        if (!valid) return
+        this.passwordSaving = true
+        request.put('/user/password', {
+          oldPassword: this.passwordForm.oldPassword,
+          newPassword: this.passwordForm.newPassword
+        }).then(() => {
+          this.$message.success('密码修改成功')
+          this.passwordDialogVisible = false
+          this.passwordForm = { oldPassword: '', newPassword: '', confirmPassword: '' }
+          this.$refs.passwordForm.resetFields()
+        }).catch(() => {})
+        .finally(() => { this.passwordSaving = false })
+      })
+    },
     copyProfileUrl() {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(this.profileUrl).then(function () {
@@ -674,6 +990,30 @@ export default {
       var team = bet.betSide === 0 ? 'A队' : 'B队'
       var status = bet.status === 1 ? '猜中' : bet.status === 2 ? '未中' : '待结算'
       return (bet.matchTitle || '赛事') + ' | ' + team + ' | ' + bet.betAmount + '分 | ' + status
+    },
+    fetchLoanStatus() {
+      request.get('/loan/status').then(function (res) {
+        this.loanStatus = res.data || res
+      }.bind(this)).catch(function () {})
+    },
+    claimStipend() {
+      this.claimingStipend = true
+      request.post('/loan/stipend').then(function (res) {
+        var data = res.data || res
+        this.$message.success('领取成功! +' + data.amount + ' 积分')
+        this.fetchUserInfo()
+        this.fetchLoanStatus()
+      }.bind(this)).catch(function (err) {
+        var msg = (err && err.response && err.response.data && err.response.data.message) || '领取失败'
+        this.$message.error(msg)
+      }.bind(this)).finally(function () {
+        this.claimingStipend = false
+      }.bind(this))
+    },
+    formatLoanAmount(amount) {
+      if (amount === null || amount === undefined) return '0'
+      if (amount >= 0) return '0'
+      return amount.toString()
     },
     formatDate(timeStr) {
       if (!timeStr) return '-'
@@ -843,6 +1183,13 @@ export default {
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.points-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
 }
 
 /* Rank Badge */
@@ -1144,14 +1491,14 @@ export default {
   font-weight: 800;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .gauge-unit {
   font-size: 14px;
   color: var(--text-tertiary);
   font-weight: 600;
-  align-self: flex-start;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .gauge-stats {
@@ -1580,5 +1927,197 @@ export default {
 
 .avatar-uploader {
   display: inline-block;
+}
+
+/* Profit Curve Chart */
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 220px;
+}
+
+.profit-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chart-axis-line {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.chart-grid-line {
+  stroke: var(--border-subtle);
+  stroke-width: 0.5;
+  stroke-dasharray: 4 4;
+  opacity: 0.5;
+}
+
+.chart-fill {
+  animation: chart-fade-in 0.8s var(--ease-out) both;
+}
+
+.chart-line {
+  stroke: var(--accent-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: chart-draw 1s var(--ease-out) both;
+}
+
+@keyframes chart-draw {
+  from {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+  }
+  to {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes chart-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.chart-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-tertiary);
+}
+
+.chart-label--y {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.chart-label--x {
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.chart-dot {
+  fill: var(--accent-primary);
+  opacity: 0.6;
+  transition: opacity 0.15s ease, r 0.15s ease;
+}
+
+.chart-hit-area {
+  cursor: crosshair;
+}
+
+.chart-hit-area:hover ~ .chart-dot {
+  opacity: 1;
+  r: 5;
+}
+
+.chart-tooltip-line {
+  stroke: var(--accent-primary);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  opacity: 0.5;
+}
+
+.chart-tooltip-dot {
+  fill: var(--accent-primary);
+  stroke: var(--bg-surface-1);
+  stroke-width: 2;
+}
+
+.chart-tooltip-bg {
+  fill: var(--bg-surface-2);
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.chart-tooltip-text {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tooltip-text--val {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--accent-primary);
+}
+
+.chart-tooltip-text--time {
+  font-size: 10px;
+  font-weight: 400;
+  fill: var(--text-tertiary);
+}
+
+.chart-empty {
+  min-height: 180px;
+}
+
+.chart-empty p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.chart-empty span {
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* Bank Quick Link */
+.bank-link-card {
+  margin-top: 20px;
+}
+
+.bank-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) ease,
+              background var(--duration-fast) ease;
+}
+
+.bank-link:hover {
+  border-color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.04);
+}
+
+.bank-link-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bank-link-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+.bank-link-debt {
+  font-family: var(--font-mono);
+  color: #f56c6c;
+}
+
+.bank-link-clean {
+  color: var(--accent-primary);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

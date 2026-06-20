@@ -1,0 +1,55 @@
+# ============================================
+# Egg 赛事竞猜 — 生产环境配置
+# 启动方式: java -jar egg-esports.jar --spring.profiles.active=prod
+# ============================================
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=true}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl  # 生产环境关闭 SQL 日志
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}                      # 必填，无默认值
+  expiration: ${JWT_EXPIRATION:604800000}     # 7天
+
+# 业务配置
+egg:
+  bet:
+    init-points: ${EGG_INIT_POINTS:1000}
+    win-multiplier: ${EGG_WIN_MULTIPLIER:2}
+  sync:
+    enabled: ${EGG_SYNC_ENABLED:true}
+  cors:
+    allowed-origins: ${EGG_CORS_ORIGINS}      # 必填，逗号分隔，如 https://egg.example.com
+  upload:
+    path: ${EGG_UPLOAD_PATH:/data/uploads}     # 生产环境使用绝对路径
+  riot:
+    api-key: ${RIOT_API_KEY}
+    base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule
+    leagues:
+      - id: 111691194187846945
+        name: VCT CN
+      - id: 109940824119741550
+        name: Masters
+      - id: 107254585505459304
+        name: Champions
+      - id: 109974795266458277
+        name: VCT Americas
+      - id: 106109559530232966
+        name: VCT EMEA
+      - id: 109974804058058602
+        name: VCT Pacific

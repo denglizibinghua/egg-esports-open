@@ -4,6 +4,24 @@
       <h2 class="page-title">赛事列表</h2>
     </div>
 
+    <div class="game-tabs" v-if="games.length > 0">
+      <button class="game-tab" :class="{ active: selectedGameId === null }" @click="switchGame(null)">
+        全部游戏
+      </button>
+      <button
+        v-for="game in games"
+        :key="game.id"
+        class="game-tab"
+        :class="{ active: selectedGameId === game.id }"
+        @click="switchGame(game.id)"
+      >
+        <img v-if="game.icon" :src="game.icon" class="game-icon" alt="">
+        {{ game.name }}
+      </button>
+    </div>
+
+    <AnnouncementBar :game-id="selectedGameId" />
+
     <div v-if="hotMatches.length > 0" class="hot-section">
       <div class="hot-header">
         <h3 class="hot-title">热门赛事</h3>
@@ -49,6 +67,11 @@
           </div>
           <div class="hot-card-footer">
             <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+          </div>
+          <div class="hot-card-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
+            <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
+            <span class="odds-vs">/</span>
+            <span class="odds-item odds-item--b">{{ match.oddsB.toFixed(2) }}</span>
           </div>
         </div>
       </div>
@@ -158,6 +181,12 @@
                   <template v-else-if="match.result === 2">平局</template>
                 </span>
               </div>
+
+              <div class="match-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
+                <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
+                <span class="odds-vs">-</span>
+                <span class="odds-item odds-item--b">{{ match.oddsB.toFixed(2) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -165,7 +194,7 @@
     </div>
 
     <el-pagination
-      v-if="total > 0"
+      v-if="total > 0 && activeStatus !== 'all'"
       background
       layout="prev, pager, next"
       :total="total"
@@ -179,9 +208,13 @@
 <script>
 import request from '@/utils/request'
 import { isAdmin } from '@/utils/auth'
+import AnnouncementBar from '@/components/AnnouncementBar.vue'
 
 export default {
   name: 'MatchList',
+  components: {
+    AnnouncementBar
+  },
   data() {
     return {
       activeStatus: 'all',
@@ -193,7 +226,10 @@ export default {
       pageSize: 10,
       total: 0,
       pollTimer: null,
-      collapsedTournaments: []
+      collapsedTournaments: [],
+      games: [],
+      selectedGameId: null,
+      gamesLoading: false
     }
   },
   computed: {
@@ -241,6 +277,7 @@ export default {
     }
   },
   created() {
+    this.fetchGames()
     this.fetchMatches()
     this.fetchHotMatches()
     this.startPolling()
@@ -249,6 +286,29 @@ export default {
     this.stopPolling()
   },
   methods: {
+    fetchGames() {
+      this.gamesLoading = true
+      request.get('/game/list').then(function (res) {
+        var data = res.data || res
+        if (Array.isArray(data)) {
+          this.games = data
+        } else if (data.records) {
+          this.games = data.records
+        } else {
+          this.games = data.list || data.content || []
+        }
+      }.bind(this)).catch(function () {
+        this.games = []
+      }.bind(this)).finally(function () {
+        this.gamesLoading = false
+      }.bind(this))
+    },
+    switchGame(gameId) {
+      this.selectedGameId = gameId
+      this.currentPage = 1
+      this.fetchMatches()
+      this.fetchHotMatches()
+    },
     hasScore(match) {
       return (match.status === 1 || match.status === 2) &&
         match.scoreA !== null && match.scoreA !== undefined &&
@@ -289,6 +349,9 @@ export default {
       if (this.activeStatus !== 'all') {
         params.status = this.activeStatus
       }
+      if (this.selectedGameId) {
+        params.gameId = this.selectedGameId
+      }
       request.get('/match/list', { params }).then(function (res) {
         var data = res.data || res
         if (Array.isArray(data)) {
@@ -311,7 +374,11 @@ export default {
     },
     fetchHotMatches(silent) {
       if (!silent) this.hotLoading = true
-      request.get('/match/hot', { params: { limit: 6 } }).then(function (res) {
+      var params = { limit: 6 }
+      if (this.selectedGameId) {
+        params.gameId = this.selectedGameId
+      }
+      request.get('/match/hot', { params: params }).then(function (res) {
         var data = res.data || res
         if (Array.isArray(data)) {
           this.hotMatches = data
@@ -350,6 +417,65 @@ export default {
   font-family: var(--font-display);
   font-size: 32px;
   letter-spacing: 1px;
+}
+
+/* Game Tabs */
+.game-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.game-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.game-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--duration-fast) ease,
+              background var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
+  font-family: var(--font-body);
+  flex-shrink: 0;
+}
+
+.game-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-2);
+}
+
+.game-tab.active {
+  color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.08);
+  border-color: rgba(0, 229, 160, 0.20);
+  font-weight: 600;
+}
+
+.game-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .match-cards {
@@ -807,5 +933,47 @@ export default {
 .team-name-tbd {
   color: var(--text-tertiary) !important;
   font-style: italic;
+}
+
+/* Hot Card Odds */
+.hot-card-odds {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.odds-item {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.odds-item--a {
+  color: var(--text-secondary);
+}
+
+.odds-item--b {
+  color: var(--text-secondary);
+}
+
+.odds-vs {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* Match Card Odds */
+.match-odds {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
 }
 </style>

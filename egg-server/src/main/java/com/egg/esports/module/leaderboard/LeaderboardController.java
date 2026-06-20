@@ -19,12 +19,26 @@ import java.util.Map;
 public class LeaderboardController {
 
     private final EggUserMapper eggUserMapper;
+    private final LeaderboardMapper leaderboardMapper;
 
     @GetMapping("/points")
     public Result<Page<LeaderboardVO>> points(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long gameId) {
 
+        // 按游戏过滤：按「猜中次数」排名
+        if (gameId != null) {
+            int offset = (page - 1) * size;
+            List<LeaderboardVO> records = leaderboardMapper.selectGameLeaderboardLimit(gameId, offset, size);
+            int total = leaderboardMapper.countGameLeaderboard(gameId);
+            records.forEach(this::fillAccuracy);
+            Page<LeaderboardVO> voPage = new Page<>(page, size, total);
+            voPage.setRecords(records);
+            return Result.success(voPage);
+        }
+
+        // 默认：全局积分榜
         Page<EggUser> userPage = new Page<>(page, size);
         LambdaQueryWrapper<EggUser> wrapper = new LambdaQueryWrapper<EggUser>()
                 .select(EggUser::getId, EggUser::getNickname, EggUser::getAvatar,
@@ -40,11 +54,23 @@ public class LeaderboardController {
     }
 
     @GetMapping("/top/{n}")
-    public Result<List<LeaderboardVO>> top(@PathVariable int n) {
+    public Result<List<LeaderboardVO>> top(@PathVariable int n,
+                                           @RequestParam(required = false) Long gameId) {
         if (n < 1) {
             n = 10;
         }
+        if (n > 100) {
+            n = 100;
+        }
 
+        // 按游戏过滤：按「猜中次数」排名 Top N
+        if (gameId != null) {
+            List<LeaderboardVO> records = leaderboardMapper.selectGameLeaderboardTop(gameId, n);
+            records.forEach(this::fillAccuracy);
+            return Result.success(records);
+        }
+
+        // 默认：全局积分榜 Top N
         LambdaQueryWrapper<EggUser> wrapper = new LambdaQueryWrapper<EggUser>()
                 .select(EggUser::getId, EggUser::getNickname, EggUser::getAvatar,
                         EggUser::getPoints, EggUser::getCorrectBets, EggUser::getTotalBets,
@@ -60,10 +86,28 @@ public class LeaderboardController {
      * 我的排名
      */
     @GetMapping("/my-rank")
-    public Result<Map<String, Object>> myRank(HttpServletRequest request) {
+    public Result<Map<String, Object>> myRank(HttpServletRequest request,
+                                              @RequestParam(required = false) Long gameId) {
         Long userId = (Long) request.getAttribute("userId");
 
-        // 查询所有用户按积分降序
+        // 按游戏过滤：在游戏排行榜中定位
+        if (gameId != null) {
+            List<LeaderboardVO> all = leaderboardMapper.selectGameLeaderboardAll(gameId);
+            int rank = 0;
+            int total = all.size();
+            for (int i = 0; i < all.size(); i++) {
+                if (all.get(i).getUserId().equals(userId)) {
+                    rank = i + 1;
+                    break;
+                }
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("rank", rank);
+            result.put("total", total);
+            return Result.success(result);
+        }
+
+        // 默认：全局积分榜排名
         List<EggUser> allUsers = eggUserMapper.selectList(
                 new LambdaQueryWrapper<EggUser>()
                         .select(EggUser::getId, EggUser::getPoints)
@@ -95,11 +139,19 @@ public class LeaderboardController {
         vo.setTotalBets(user.getTotalBets());
         vo.setWinStreak(user.getWinStreak());
         vo.setMaxWinStreak(user.getMaxWinStreak());
-        if (user.getTotalBets() != null && user.getTotalBets() > 0 && user.getCorrectBets() != null) {
-            vo.setAccuracy(user.getCorrectBets() * 100.0 / user.getTotalBets());
+        fillAccuracy(vo);
+        return vo;
+    }
+
+    /**
+     * 填充猜中率（correctBets / totalBets * 100）
+     * 用于游戏排行榜 VO（SQL 未计算 accuracy 字段）
+     */
+    private void fillAccuracy(LeaderboardVO vo) {
+        if (vo.getTotalBets() != null && vo.getTotalBets() > 0 && vo.getCorrectBets() != null) {
+            vo.setAccuracy(Math.min(100.0, vo.getCorrectBets() * 100.0 / vo.getTotalBets()));
         } else {
             vo.setAccuracy(0.0);
         }
-        return vo;
     }
 }

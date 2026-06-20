@@ -77,7 +77,7 @@ export default {
   computed: {
     accuracy() {
       if (!this.user || !this.user.totalBets || this.user.totalBets === 0) return 0
-      return Math.round((this.user.correctBets / this.user.totalBets) * 100)
+      return Math.min(100, Math.round((this.user.correctBets / this.user.totalBets) * 100))
     }
   },
   created() {
@@ -247,5 +247,57 @@ export default {
   font-size: 18px;
   font-weight: 600;
   color: var(--text-secondary);
+}
+
+/* ── Tablet / small screens ── */
+@media (max-width: 767px) {
+  .user-info-card {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .user-avatar-section {
+    justify-content: center;
+  }
+
+  .user-nickname {
+    font-size: 18px;
+  }
+
+  .points-value {
+    font-size: 28px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Mobile ── */
+@media (max-width: 479px) {
+  .user-info-card {
+    padding: 20px;
+  }
+
+  .user-nickname {
+    font-size: 16px;
+  }
+
+  .points-value {
+    font-size: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat-card {
+    padding: 14px 10px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
 }
 </style>

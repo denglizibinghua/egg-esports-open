@@ -5,7 +5,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   servlet:
     multipart:
@@ -31,11 +31,45 @@ jwt:
 
 # 押注配置
 egg:
+  odds:
+    commission-rate: 0.00
+    min-odds: 1.01
+    max-odds: 10.00
   bet:
     init-points: 1000   # 新用户初始积分
-    win-multiplier: 2   # 猜中返还倍数
+    win-multiplier: 2   # 猜中返还倍数（旧注单回退用）
+  loan:
+    max-loan: 2000
+    relief-amount: 500
+    daily-stipend: 100
+    auto-repay-ratio: 0.5
   sync:
     enabled: true          # 是否启用定时同步
+    adapters:
+      riot-valorant:
+        enabled: true
+        game-id: 1
+        base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule
+        sport: val
+        league-ids: 111691194187846945,109940824119741550,107254585505459304,109974795266458277,106109559530232966,109974804058058602
+        league-names: VCT CN,Masters,Champions,VCT Americas,VCT EMEA,VCT Pacific
+      riot-lol:
+        enabled: true         # LoL esports API（无 service. 子域名，路径 /persisted/gw/）
+        game-id: 2
+        base-url: https://esports-api.lolesports.com/persisted/gw/getSchedule
+        sport: lol
+        league-ids: 98767991310872058,98767991314006698,98767991302996019,98767991299243165,98767991325878492
+        league-names: LCK,LPL,LEC,LCS,MSI
+      opendota:
+        enabled: true         # Dota2 已开启
+        game-id: 3
+  http:
+    # 开发环境：国内走 Clash 代理访问外网 API（Riot/OpenDota）
+    # 生产环境：部署海外服务器时注释掉这两行即可直连
+    proxy-host: 127.0.0.1
+    proxy-port: 7897
+  cors:
+    allowed-origins: "*"   # 生产环境改为具体域名，如 https://your-domain.com
   riot:
     api-key: ${RIOT_API_KEY}
     base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule

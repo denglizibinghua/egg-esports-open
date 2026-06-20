@@ -50,7 +50,8 @@ public class LoginInterceptor implements HandlerInterceptor {
                 || path.startsWith("/api/match/update")
                 || path.startsWith("/api/match/settle")
                 || path.startsWith("/api/match/batch-import")
-                || path.startsWith("/api/match/sync")) {
+                || path.startsWith("/api/match/sync")
+                || (path.startsWith("/api/announcement") && !path.equals("/api/announcement/active"))) {
             if (role == null || role != 1) {
                 response.setContentType("application/json;charset=UTF-8");
                 response.setStatus(403);
