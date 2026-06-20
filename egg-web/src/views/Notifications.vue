@@ -28,7 +28,16 @@
 
     <!-- Empty state -->
     <div v-else-if="notifications.length === 0" class="empty-state">
-      <div class="empty-icon">🔔</div>
+      <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M40 12 C28 12, 20 22, 20 34 L20 46 L16 52 L64 52 L60 46 L60 34 C60 22, 52 12, 40 12 Z" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.06)"/>
+        <path d="M34 52 C34 56, 36 60, 40 60 C44 60, 46 56, 46 52" stroke="#5b8cff" stroke-width="1.5" fill="none"/>
+        <circle cx="40" cy="10" r="3" fill="#5b8cff" opacity="0.4"/>
+        <line x1="40" y1="7" x2="40" y2="4" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+        <line x1="36" y1="8" x2="34" y2="6" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+        <line x1="44" y1="8" x2="46" y2="6" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+        <path d="M28 36 Q34 32, 40 36 Q46 40, 52 36" stroke="#6b6b7c" stroke-width="1" fill="none" opacity="0.2"/>
+        <path d="M28 42 Q34 38, 40 42 Q46 46, 52 42" stroke="#6b6b7c" stroke-width="1" fill="none" opacity="0.15"/>
+      </svg>
       <h3 class="empty-title">暂无通知</h3>
       <p class="empty-desc">比赛结算或开始前会收到通知</p>
     </div>
@@ -394,6 +403,21 @@ export default {
   justify-content: center;
   padding: 64px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-svg {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .empty-icon {
@@ -417,14 +441,20 @@ export default {
 
 /* Skeleton Loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .skeleton-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton-card {
@@ -450,9 +480,9 @@ export default {
 }
 
 .skeleton-card .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 

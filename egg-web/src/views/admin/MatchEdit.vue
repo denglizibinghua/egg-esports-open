@@ -70,6 +70,7 @@ export default {
       loading: false,
       submitLoading: false,
       form: null,
+      originalForm: null,
       games: [],
       rules: {
         title: [{ required: true, message: '请输入赛事标题', trigger: 'blur' }],
@@ -77,6 +78,26 @@ export default {
         teamB: [{ required: true, message: '请输入B队名称', trigger: 'blur' }],
         matchTime: [{ required: true, message: '请选择比赛时间', trigger: 'change' }]
       }
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    if (this.hasUnsavedChanges()) {
+      this.$confirm(
+        '当前赛事信息已修改但尚未保存，确定要离开吗？未保存的更改将丢失。',
+        '未保存的更改',
+        {
+          confirmButtonText: '离开',
+          cancelButtonText: '继续编辑',
+          type: 'warning',
+          customClass: 'admin-confirm-warning'
+        }
+      ).then(() => {
+        next()
+      }).catch(() => {
+        next(false)
+      })
+    } else {
+      next()
     }
   },
   created() {
@@ -110,6 +131,7 @@ export default {
           gameId: data.gameId || 1,
           status: data.status !== undefined ? data.status : 0
         }
+        this.originalForm = JSON.parse(JSON.stringify(this.form))
       }).catch(() => {
         this.$message.error('赛事不存在')
         this.$router.back()
@@ -117,11 +139,16 @@ export default {
         this.loading = false
       })
     },
+    hasUnsavedChanges() {
+      if (!this.form || !this.originalForm) return false
+      return JSON.stringify(this.form) !== JSON.stringify(this.originalForm)
+    },
     handleSubmit() {
       this.$refs.form.validate(valid => {
         if (!valid) return
         this.submitLoading = true
         request.put('/match/update', this.form).then(() => {
+          this.originalForm = JSON.parse(JSON.stringify(this.form))
           this.$message.success('修改成功')
           this.$router.push('/admin')
         }).catch(() => {}).finally(() => {

@@ -70,9 +70,14 @@
 
         <!-- Not Logged In Prompt -->
         <div v-else-if="!getToken()" class="bet-login-prompt">
-          <div class="prompt-icon">🔒</div>
+          <svg class="prompt-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="16" y="28" width="32" height="26" rx="4" stroke="#00e5a0" stroke-width="2" fill="rgba(0,229,160,0.06)"/>
+            <path d="M22 28 V20 C22 13, 27 8, 32 8 C37 8, 42 13, 42 20 V28" stroke="#00e5a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="32" cy="40" r="4" fill="#00e5a0" opacity="0.5"/>
+            <line x1="32" y1="44" x2="32" y2="48" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+          </svg>
           <p class="prompt-text">登录后即可参与竞猜</p>
-          <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
+          <el-button type="primary" class="prompt-btn" @click="$router.push({ path: '/login', query: { redirect: '/match/' + $route.params.id } })">去登录</el-button>
         </div>
 
         <template v-else>
@@ -102,7 +107,7 @@
                   @click="betForm.betSide = 0"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                     <span v-else class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span>
                   </div>
                   <div class="team-card-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
@@ -116,7 +121,7 @@
                   @click="betForm.betSide = 1"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                     <span v-else class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span>
                   </div>
                   <div class="team-card-name">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
@@ -180,9 +185,18 @@
 
         <!-- Not Logged In -->
         <div v-if="!getToken()" class="bet-login-prompt">
-          <div class="prompt-icon">🔒</div>
-          <p class="prompt-text">登录后参与评论</p>
-          <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
+          <svg class="prompt-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="14" width="44" height="32" rx="6" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.06)"/>
+            <path d="M10 46 L22 54 L22 46" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.08)" stroke-linejoin="round"/>
+            <circle cx="24" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
+            <circle cx="32" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
+            <circle cx="40" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
+            <rect x="36" y="38" width="14" height="14" rx="3" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.06)"/>
+            <path d="M40 38 V34 C40 31, 42 29, 43 29 C44 29, 46 31, 46 34 V38" stroke="#00e5a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <circle cx="43" cy="44" r="2" fill="#00e5a0" opacity="0.5"/>
+          </svg>
+          <p class="prompt-text">登录后参与讨论</p>
+          <el-button type="primary" class="prompt-btn" @click="$router.push({ path: '/login', query: { redirect: '/match/' + $route.params.id } })">去登录</el-button>
         </div>
 
         <template v-else>
@@ -309,7 +323,7 @@
               @click="modifyForm.betSide = 0"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamALogo" :src="match.teamALogo" alt="">
+                <img v-if="match && match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                 <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamA : '').charAt(0) }}</span>
               </div>
               <div class="team-card-name">{{ match && match.teamA === 'TBD' ? '待定' : (match ? match.teamA : '') }}</div>
@@ -323,7 +337,7 @@
               @click="modifyForm.betSide = 1"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamBLogo" :src="match.teamBLogo" alt="">
+                <img v-if="match && match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                 <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamB : '').charAt(0) }}</span>
               </div>
               <div class="team-card-name">{{ match && match.teamB === 'TBD' ? '待定' : (match ? match.teamB : '') }}</div>
@@ -1074,6 +1088,19 @@ export default {
   text-align: center;
 }
 
+.prompt-svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+  animation: prompt-float 3s ease-in-out infinite;
+}
+
+@keyframes prompt-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
 .prompt-icon {
   font-size: 36px;
   margin-bottom: 12px;
@@ -1094,6 +1121,13 @@ export default {
   font-weight: 600;
   border-radius: var(--radius-md) !important;
   padding: 10px 32px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.prompt-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
 }
 
 /* TBD Notice */

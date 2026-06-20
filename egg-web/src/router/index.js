@@ -22,61 +22,61 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/Home.vue')
+    component: () => import(/* webpackChunkName: "home" */ '@/views/Home.vue')
   },
   {
     path: '/matches',
     name: 'MatchList',
-    component: () => import('@/views/MatchList.vue')
+    component: () => import(/* webpackChunkName: "match-list" */ '@/views/MatchList.vue')
   },
   {
     path: '/match/:id',
     name: 'MatchDetail',
-    component: () => import('@/views/MatchDetail.vue')
+    component: () => import(/* webpackChunkName: "match-detail" */ '@/views/MatchDetail.vue')
   },
   {
     path: '/leaderboard',
     name: 'Leaderboard',
-    component: () => import('@/views/Leaderboard.vue')
+    component: () => import(/* webpackChunkName: "leaderboard" */ '@/views/Leaderboard.vue')
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue')
+    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue')
   },
   {
     path: '/bank',
     name: 'Bank',
-    component: () => import('@/views/Bank.vue'),
+    component: () => import(/* webpackChunkName: "bank" */ '@/views/Bank.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/user',
     name: 'UserCenter',
-    component: () => import('@/views/UserCenter.vue'),
+    component: () => import(/* webpackChunkName: "user-center" */ '@/views/UserCenter.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/notifications',
     name: 'Notifications',
-    component: () => import('@/views/Notifications.vue'),
+    component: () => import(/* webpackChunkName: "notifications" */ '@/views/Notifications.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/profile/:id',
     name: 'PublicProfile',
-    component: () => import('@/views/PublicProfile.vue')
+    component: () => import(/* webpackChunkName: "public-profile" */ '@/views/PublicProfile.vue')
   },
   {
     path: '/admin',
     name: 'AdminDashboard',
-    component: () => import('@/views/admin/AdminDashboard.vue'),
+    component: () => import(/* webpackChunkName: "admin-dashboard" */ '@/views/admin/AdminDashboard.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/admin/match/create',
     name: 'MatchCreate',
-    component: () => import('@/views/admin/MatchCreate.vue'),
+    component: () => import(/* webpackChunkName: "admin-match-create" */ '@/views/admin/MatchCreate.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
@@ -84,6 +84,11 @@ const routes = [
     name: 'MatchEdit',
     component: () => import('@/views/admin/MatchEdit.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue')
   }
 ]
 

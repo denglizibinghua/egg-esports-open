@@ -97,6 +97,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Empty/Error State -->
+    <div v-else class="empty-state">
+      <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="28" width="48" height="36" rx="4" stroke="#6b6b7c" stroke-width="2" fill="rgba(107,107,124,0.06)"/>
+        <path d="M16 28 L40 14 L64 28" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.06)" stroke-linejoin="round"/>
+        <rect x="28" y="40" width="8" height="16" rx="1" stroke="#6b6b7c" stroke-width="1" fill="rgba(107,107,124,0.08)"/>
+        <rect x="44" y="40" width="8" height="16" rx="1" stroke="#6b6b7c" stroke-width="1" fill="rgba(107,107,124,0.08)"/>
+        <line x1="12" y1="64" x2="68" y2="64" stroke="#6b6b7c" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+        <circle cx="40" cy="22" r="3" fill="none" stroke="#00e5a0" stroke-width="1" opacity="0.4"/>
+        <text x="38" y="24" font-size="6" fill="#00e5a0" opacity="0.5" font-weight="bold">$</text>
+      </svg>
+      <h3 class="empty-title">银行数据加载失败</h3>
+      <p class="empty-desc">请先登录后再查看银行中心</p>
+      <el-button type="primary" class="empty-cta" @click="$router.push('/login')">去登录</el-button>
+    </div>
   </div>
 </template>
 
@@ -206,14 +222,23 @@ export default {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.skeleton-card {
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
   margin: 0 auto 8px;
 }
@@ -376,5 +401,60 @@ export default {
     flex-direction: column;
     gap: 8px;
   }
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-svg {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  margin-bottom: 24px;
+  max-width: 300px;
+}
+
+.empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
 }
 </style>

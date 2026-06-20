@@ -105,13 +105,24 @@ export default {
     handleSubmit() {
       this.$refs.form.validate(valid => {
         if (!valid) return
-        this.submitLoading = true
-        request.post('/match/create', this.form).then(() => {
-          this.$message.success('赛事创建成功')
-          this.$router.push('/admin')
-        }).catch(() => {}).finally(() => {
-          this.submitLoading = false
-        })
+        this.$confirm(
+          '确认创建赛事「' + this.form.title + '」？创建后赛事将对所有用户可见。',
+          '确认创建',
+          {
+            confirmButtonText: '确认创建',
+            cancelButtonText: '取消',
+            type: 'info',
+            customClass: 'admin-confirm-warning'
+          }
+        ).then(() => {
+          this.submitLoading = true
+          request.post('/match/create', this.form).then(() => {
+            this.$message.success('赛事创建成功')
+            this.$router.push('/admin')
+          }).catch(() => {}).finally(() => {
+            this.submitLoading = false
+          })
+        }).catch(() => {})
       })
     }
   }

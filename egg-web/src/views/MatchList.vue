@@ -46,7 +46,7 @@
           <div class="hot-card-teams">
             <div class="hot-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
               </div>
               <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
@@ -59,7 +59,7 @@
             <div v-else class="vs-badge vs-badge--sm">VS</div>
             <div class="hot-team hot-team--reverse">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
               </div>
               <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
@@ -111,10 +111,24 @@
 
       <!-- Empty State -->
       <div v-else-if="matches.length === 0" class="empty-state">
-        <div class="empty-icon">🎮</div>
+        <svg class="empty-svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="18" width="80" height="45" rx="12" stroke="#6b6b7c" stroke-width="2" fill="rgba(107,107,124,0.06)"/>
+          <circle cx="42" cy="40" r="9" stroke="#5b8cff" stroke-width="1.5" fill="rgba(91,140,255,0.08)"/>
+          <circle cx="78" cy="40" r="9" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.08)"/>
+          <line x1="38" y1="40" x2="46" y2="40" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="42" y1="36" x2="42" y2="44" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="74" cy="36" r="2.5" fill="#00e5a0" opacity="0.7"/>
+          <circle cx="82" cy="36" r="2.5" fill="#00e5a0" opacity="0.7"/>
+          <circle cx="74" cy="44" r="2.5" fill="#00e5a0" opacity="0.7"/>
+          <circle cx="82" cy="44" r="2.5" fill="#00e5a0" opacity="0.7"/>
+          <rect x="52" y="28" width="16" height="4" rx="2" fill="rgba(107,107,124,0.15)"/>
+          <path d="M35 18 C35 10, 45 6, 60 6 C75 6, 85 10, 85 18" stroke="#6b6b7c" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.3"/>
+          <line x1="55" y1="50" x2="65" y2="50" stroke="#6b6b7c" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+        </svg>
         <h3 class="empty-title">{{ emptyTitle }}</h3>
         <p class="empty-desc">{{ emptyDesc }}</p>
         <el-button v-if="isAdminUser" type="primary" class="empty-action" @click="$router.push('/admin/match/create')">创建赛事</el-button>
+        <el-button v-else type="primary" class="empty-cta" @click="$router.push('/')">回首页看看</el-button>
       </div>
 
       <!-- Tournament Groups -->
@@ -144,7 +158,7 @@
               <div class="match-teams">
                 <div class="team team-a">
                   <div class="team-logo">
-                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                     <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
                   </div>
                   <span class="team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
@@ -159,7 +173,7 @@
 
                 <div class="team team-b">
                   <div class="team-logo">
-                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                     <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
                   </div>
                   <span class="team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
@@ -721,6 +735,21 @@ export default {
   justify-content: center;
   padding: 64px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-svg {
+  width: 100px;
+  height: 68px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .empty-icon {
@@ -751,20 +780,46 @@ export default {
   border-radius: var(--radius-md) !important;
 }
 
+.empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
+}
+
 /* Skeleton Loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-avatar-pulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.85; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .skeleton {
   pointer-events: none;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
@@ -780,7 +835,10 @@ export default {
 .skeleton-line--time { width: 60px; height: 14px; }
 .skeleton-line--name { width: 80px; height: 14px; }
 .skeleton-line--vs { width: 28px; height: 16px; border-radius: var(--radius-sm); }
-.skeleton-line--logo { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-line--logo {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
 .skeleton-line--status { width: 64px; height: 20px; border-radius: var(--radius-md); }
 
 .skeleton-teams {

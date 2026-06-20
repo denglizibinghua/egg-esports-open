@@ -56,10 +56,22 @@
 
     <!-- Empty State -->
     <div v-else-if="leaderboard.length === 0" class="empty-state">
-      <div class="empty-icon">🏆</div>
-      <h3 class="empty-title">排行榜暂无数据</h3>
-      <p class="empty-desc">还没有人参与竞猜，成为第一个上榜的人吧！</p>
-      <el-button type="primary" class="empty-action" @click="$router.push('/')">去押注</el-button>
+      <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M25 18 H55 L50 48 H30 Z" stroke="#d4a843" stroke-width="2" fill="rgba(212,168,67,0.06)"/>
+        <path d="M25 18 C14 18, 10 28, 17 35 L25 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <path d="M55 18 C66 18, 70 28, 63 35 L55 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+        <rect x="34" y="48" width="12" height="8" rx="1" fill="rgba(212,168,67,0.12)" stroke="#d4a843" stroke-width="1"/>
+        <rect x="28" y="56" width="24" height="6" rx="2" fill="rgba(212,168,67,0.08)" stroke="#d4a843" stroke-width="1"/>
+        <path d="M36 28 L40 22 L44 28 L40 26 Z" fill="#d4a843" opacity="0.5"/>
+        <circle cx="40" cy="12" r="4" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.4"/>
+        <line x1="40" y1="8" x2="40" y2="5" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+        <line x1="36" y1="10" x2="34" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+        <line x1="44" y1="10" x2="46" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+        <circle cx="40" cy="36" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+      </svg>
+      <h3 class="empty-title">还没有人上榜</h3>
+      <p class="empty-desc">成为第一个预言家！</p>
+      <el-button type="primary" class="empty-cta" @click="$router.push('/matches')">去赛事列表押注</el-button>
     </div>
 
     <!-- Content -->
@@ -368,6 +380,21 @@ export default {
   justify-content: center;
   padding: 64px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-svg {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .empty-icon {
@@ -398,27 +425,59 @@ export default {
   border-radius: var(--radius-md) !important;
 }
 
+.empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
+}
+
 /* Skeleton Loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-avatar-pulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.85; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .skeleton {
   pointer-events: none;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
 .skeleton-line--rank { width: 24px; height: 24px; margin: 0 auto 8px; }
 .skeleton-line--crown { width: 28px; height: 20px; margin: 0 auto 4px; }
-.skeleton-line--avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; }
-.skeleton-line--avatar-lg { width: 72px; height: 72px; }
+.skeleton-line--avatar {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
+.skeleton-line--avatar-lg {
+  width: 72px; height: 72px;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
 .skeleton-line--name { width: 80px; height: 14px; margin: 0 auto 6px; }
 .skeleton-line--points { width: 60px; height: 14px; margin: 0 auto; }
 
@@ -443,9 +502,9 @@ export default {
 }
 
 .skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 

@@ -648,17 +648,32 @@ export default {
         this.$message.warning('请选择比赛结果')
         return
       }
-      this.settleLoading = true
-      request.put('/match/settle', {
-        matchId: this.settleMatch.id,
-        result: this.settleResult
-      }).then(() => {
-        this.$message.success('结算成功')
-        this.settleDialogVisible = false
-        this.fetchMatches()
-      }).catch(() => {}).finally(() => {
-        this.settleLoading = false
-      })
+      var resultLabel = this.settleResult === 0 ? this.settleMatch.teamA + '胜' : this.settleResult === 1 ? this.settleMatch.teamB + '胜' : '平局'
+      var matchTitle = this.settleMatch.teamA + ' VS ' + this.settleMatch.teamB
+      this.$confirm(
+        '结算操作不可逆！结算后所有相关押注将被处理，积分将发放给猜中用户。确定要以【' + resultLabel + '】结算赛事「' + matchTitle + '」吗？',
+        '⚠️ 确认结算',
+        {
+          confirmButtonText: '确认结算，我知道此操作不可逆',
+          cancelButtonText: '取消',
+          type: 'warning',
+          customClass: 'admin-confirm-warning',
+          confirmButtonClass: 'el-button el-button--warning',
+          showClose: true
+        }
+      ).then(() => {
+        this.settleLoading = true
+        request.put('/match/settle', {
+          matchId: this.settleMatch.id,
+          result: this.settleResult
+        }).then(() => {
+          this.$message.success('结算成功')
+          this.settleDialogVisible = false
+          this.fetchMatches()
+        }).catch(() => {}).finally(() => {
+          this.settleLoading = false
+        })
+      }).catch(() => {})
     },
     formatDate(timeStr) {
       if (!timeStr) return '-'
@@ -720,21 +735,33 @@ export default {
     },
     submitBatchImport() {
       if (this.importParsedList.length === 0) return
-      this.importSubmitting = true
-      this.importResult = null
-      this.importErrorsExpanded = false
-      request.post('/match/batch-import', this.importParsedList).then(res => {
-        var data = res.data || res
-        this.importResult = data
-        if (data.success > 0) {
-          this.fetchMatches()
+      var count = this.importParsedList.length
+      this.$confirm(
+        '即将导入 ' + count + ' 条赛事数据，导入后数据将直接写入数据库。确认继续？',
+        '确认批量导入',
+        {
+          confirmButtonText: '确认导入 ' + count + ' 条',
+          cancelButtonText: '取消',
+          type: 'info',
+          customClass: 'admin-confirm-warning'
         }
-      }).catch(err => {
-        var msg = (err && err.response && err.response.data && err.response.data.message) || '导入请求失败'
-        this.importResult = { success: 0, fail: this.importParsedList.length, total: this.importParsedList.length, errors: [{ index: 0, title: '-', error: msg }] }
-      }).finally(() => {
-        this.importSubmitting = false
-      })
+      ).then(() => {
+        this.importSubmitting = true
+        this.importResult = null
+        this.importErrorsExpanded = false
+        request.post('/match/batch-import', this.importParsedList).then(res => {
+          var data = res.data || res
+          this.importResult = data
+          if (data.success > 0) {
+            this.fetchMatches()
+          }
+        }).catch(err => {
+          var msg = (err && err.response && err.response.data && err.response.data.message) || '导入请求失败'
+          this.importResult = { success: 0, fail: this.importParsedList.length, total: this.importParsedList.length, errors: [{ index: 0, title: '-', error: msg }] }
+        }).finally(() => {
+          this.importSubmitting = false
+        })
+      }).catch(() => {})
     },
     statusLabel(status) {
       if (status === 0) return '未开始'
@@ -874,11 +901,16 @@ export default {
       })
     },
     handleDeleteAnnouncement(row) {
-      this.$confirm('确定删除公告「' + row.title + '」？', '确认删除', {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
+      this.$confirm(
+        '确定要删除公告「' + row.title + '」吗？删除后该公告将不再对用户可见，此操作无法撤销。',
+        '确认删除公告',
+        {
+          confirmButtonText: '确认删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+          customClass: 'admin-confirm-warning'
+        }
+      ).then(() => {
         request.delete('/announcement/' + row.id).then(() => {
           this.$message.success('删除成功')
           this.fetchAnnouncements()
@@ -950,12 +982,17 @@ export default {
       })
     },
     handleDeleteGame(row) {
-      var tip = row.status === 1 ? '游戏当前为启用状态，' : ''
-      this.$confirm(tip + '确定删除游戏「' + row.name + '」？', '确认删除', {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
+      var tip = row.status === 1 ? '⚠️ 游戏当前为启用状态，删除后用户将无法在该游戏下查看赛事。\n\n' : ''
+      this.$confirm(
+        tip + '删除游戏将同时影响关联的赛事数据。确定要删除游戏「' + row.name + '」吗？此操作无法撤销。',
+        '确认删除游戏',
+        {
+          confirmButtonText: '确认删除',
+          cancelButtonText: '取消',
+          type: 'warning',
+          customClass: 'admin-confirm-warning'
+        }
+      ).then(() => {
         request.delete('/game/' + row.id).then(() => {
           this.$message.success('删除成功')
           this.fetchGames()
@@ -1053,8 +1090,13 @@ export default {
 
 /* Skeleton Loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .skeleton-table {
@@ -1062,6 +1104,7 @@ export default {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton-table-header {
@@ -1073,9 +1116,9 @@ export default {
 }
 
 .skeleton-table-header .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-3) 25%, var(--bg-surface-2) 50%, var(--bg-surface-3) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-3) 0%, var(--bg-surface-2) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-2) 65%, var(--bg-surface-3) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
   height: 14px;
 }
@@ -1093,9 +1136,9 @@ export default {
 }
 
 .skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
   height: 14px;
 }
@@ -1304,6 +1347,7 @@ export default {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 20px;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .sync-skeleton-grid {
@@ -1324,18 +1368,18 @@ export default {
 .skeleton-line--stat-label {
   width: 60%;
   height: 12px;
-  background: linear-gradient(90deg, var(--bg-surface-3) 25%, var(--bg-surface-2) 50%, var(--bg-surface-3) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-3) 0%, var(--bg-surface-2) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-2) 65%, var(--bg-surface-3) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
 .skeleton-line--stat-value {
   width: 40%;
   height: 24px;
-  background: linear-gradient(90deg, var(--bg-surface-3) 25%, var(--bg-surface-2) 50%, var(--bg-surface-3) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-3) 0%, var(--bg-surface-2) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-2) 65%, var(--bg-surface-3) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 

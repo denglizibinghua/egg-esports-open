@@ -596,6 +596,84 @@ a {
   border-color: var(--border-default) !important;
 }
 
+.el-message-box__title {
+  color: var(--text-primary) !important;
+}
+
+.el-message-box__message p {
+  color: var(--text-secondary) !important;
+}
+
+.el-message-box__btns .el-button--primary {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+
+.el-message-box__btns .el-button--default {
+  background: var(--bg-surface-3) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Admin Confirm Warning Dialog */
+.admin-confirm-warning {
+  background: var(--bg-surface-2) !important;
+  border: 1px solid var(--accent-warning) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,181,71,0.15) !important;
+  max-width: 460px !important;
+}
+
+.admin-confirm-warning .el-message-box__header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 12px;
+}
+
+.admin-confirm-warning .el-message-box__title {
+  color: var(--accent-warning) !important;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.admin-confirm-warning .el-message-box__content {
+  padding: 20px 24px;
+}
+
+.admin-confirm-warning .el-message-box__message p {
+  color: var(--text-primary) !important;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.admin-confirm-warning .el-message-box__status {
+  color: var(--accent-warning) !important;
+}
+
+.admin-confirm-warning .el-message-box__btns {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+}
+
+.admin-confirm-warning .el-message-box__btns .el-button--warning {
+  background: var(--accent-warning) !important;
+  border-color: var(--accent-warning) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+}
+
+.admin-confirm-warning .el-message-box__btns .el-button--warning:hover {
+  opacity: 0.9;
+}
+
+.admin-confirm-warning .el-message-box__btns .el-button--default {
+  background: var(--bg-surface-3) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-md) !important;
+}
+
 /* Element UI: Date Picker */
 .el-date-picker {
   background: var(--bg-surface-2) !important;

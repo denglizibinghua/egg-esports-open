@@ -48,8 +48,21 @@
         </div>
       </div>
       <div v-else class="hero-empty">
-        <div class="hero-empty-icon">🎮</div>
-        <div class="hero-empty-text">暂无赛事，管理员正在筹备中</div>
+        <svg class="hero-empty-svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="20" width="80" height="45" rx="12" stroke="#6b6b7c" stroke-width="2" fill="rgba(107,107,124,0.08)"/>
+          <circle cx="42" cy="42" r="8" stroke="#5b8cff" stroke-width="1.5" fill="rgba(91,140,255,0.1)"/>
+          <circle cx="78" cy="42" r="8" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.1)"/>
+          <line x1="38" y1="42" x2="46" y2="42" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="42" y1="38" x2="42" y2="46" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="74" cy="38" r="2" fill="#00e5a0"/>
+          <circle cx="82" cy="38" r="2" fill="#00e5a0"/>
+          <circle cx="74" cy="46" r="2" fill="#00e5a0"/>
+          <circle cx="82" cy="46" r="2" fill="#00e5a0"/>
+          <rect x="52" y="30" width="16" height="4" rx="2" fill="rgba(107,107,124,0.2)"/>
+          <path d="M35 20 C35 12, 45 8, 60 8 C75 8, 85 12, 85 20" stroke="#6b6b7c" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+        </svg>
+        <div class="hero-empty-title">暂无赛事</div>
+        <div class="hero-empty-text">管理员正在筹备中，稍后回来看看</div>
       </div>
     </div>
 
@@ -102,7 +115,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -115,7 +128,7 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -156,7 +169,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -169,7 +182,7 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -207,7 +220,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -215,7 +228,7 @@
             <div class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -254,9 +267,21 @@
         </div>
       </template>
       <div v-else-if="top3.length === 0 && leaderboard.length === 0" class="empty-state">
-        <div class="empty-icon">🏆</div>
+        <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M25 20 H55 L50 48 H30 Z" stroke="#d4a843" stroke-width="2" fill="rgba(212,168,67,0.08)"/>
+          <path d="M25 20 C15 20, 12 30, 18 36 L25 34" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <path d="M55 20 C65 20, 68 30, 62 36 L55 34" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <rect x="34" y="48" width="12" height="8" rx="1" fill="rgba(212,168,67,0.15)" stroke="#d4a843" stroke-width="1"/>
+          <rect x="28" y="56" width="24" height="6" rx="2" fill="rgba(212,168,67,0.1)" stroke="#d4a843" stroke-width="1"/>
+          <path d="M36 30 L40 24 L44 30 L40 28 Z" fill="#d4a843" opacity="0.6"/>
+          <circle cx="40" cy="14" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.4"/>
+          <line x1="40" y1="11" x2="40" y2="8" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+          <line x1="37" y1="12" x2="35" y2="10" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+          <line x1="43" y1="12" x2="45" y2="10" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+        </svg>
         <h3 class="empty-title">排行榜暂无数据</h3>
         <p class="empty-desc">还没有人参与竞猜，成为第一个上榜的人吧</p>
+        <el-button type="primary" class="empty-cta" @click="$router.push('/matches')">去押注</el-button>
       </div>
       <template v-else>
         <div v-if="top3.length > 0" class="podium">
@@ -729,12 +754,30 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--text-tertiary);
 }
 
-.hero-empty-icon { font-size: 36px; opacity: 0.5; }
-.hero-empty-text { font-size: 14px; }
+.hero-empty-svg {
+  width: 100px;
+  height: 68px;
+  margin-bottom: 4px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.hero-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.hero-empty-text { font-size: 13px; color: var(--text-tertiary); }
 
 /* ===== 游戏筛选栏 ===== */
 .game-tabs {
@@ -1041,28 +1084,69 @@ export default {
   justify-content: center;
   padding: 48px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.empty-svg {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
 }
 .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
 .empty-title { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-.empty-desc { font-size: 14px; color: var(--text-tertiary); max-width: 300px; }
+.empty-desc { font-size: 14px; color: var(--text-tertiary); max-width: 300px; margin-bottom: 20px; }
+.empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px !important;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+.empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
+}
 
 /* ===== Skeleton 加载 ===== */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
 }
-.skeleton { pointer-events: none; }
+@keyframes skeleton-avatar-pulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.85; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.skeleton {
+  pointer-events: none;
+  animation: skeleton-fade-in 0.3s ease both;
+}
 .skeleton .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 .skeleton-line--lg { width: 80%; height: 32px; margin-bottom: 12px; }
 .skeleton-line--md { width: 60%; height: 20px; margin-bottom: 8px; }
 .skeleton-line--sm { width: 40%; height: 14px; }
-.skeleton-line--avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; }
-.skeleton-line--avatar-lg { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 8px; }
+.skeleton-line--avatar {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
+.skeleton-line--avatar-lg {
+  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 8px;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
 .skeleton-line--name { width: 80px; height: 14px; margin: 0 auto; }
 
 .loading-full {

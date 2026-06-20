@@ -393,10 +393,20 @@
 
             <!-- Bet History Empty State -->
             <div v-if="!betsLoading && bets.length === 0" class="empty-state">
-              <div class="empty-icon">📋</div>
-              <h3 class="empty-title">暂无投注记录</h3>
-              <p class="empty-desc">去赛事列表选一场比赛，试试你的判断力！</p>
-              <el-button type="primary" class="empty-action" @click="$router.push('/')">去看看</el-button>
+              <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="18" y="10" width="44" height="56" rx="6" stroke="#6b6b7c" stroke-width="2" fill="rgba(107,107,124,0.06)"/>
+                <rect x="30" y="6" width="20" height="10" rx="3" stroke="#5b8cff" stroke-width="1.5" fill="rgba(91,140,255,0.08)"/>
+                <line x1="28" y1="28" x2="52" y2="28" stroke="#6b6b7c" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+                <line x1="28" y1="36" x2="48" y2="36" stroke="#6b6b7c" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+                <line x1="28" y1="44" x2="44" y2="44" stroke="#6b6b7c" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+                <line x1="28" y1="52" x2="40" y2="52" stroke="#6b6b7c" stroke-width="1.5" stroke-linecap="round" opacity="0.15"/>
+                <circle cx="56" cy="56" r="12" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.06)"/>
+                <line x1="52" y1="56" x2="60" y2="56" stroke="#00e5a0" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="56" y1="52" x2="56" y2="60" stroke="#00e5a0" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <h3 class="empty-title">还没有押注记录</h3>
+              <p class="empty-desc">去赛事列表看看，选一场比赛试试你的判断力</p>
+              <el-button type="primary" class="empty-cta" @click="$router.push('/matches')">去赛事列表</el-button>
             </div>
 
             <template v-else>
@@ -1791,6 +1801,21 @@ export default {
   justify-content: center;
   padding: 64px 24px;
   text-align: center;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-svg {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .empty-icon {
@@ -1821,6 +1846,22 @@ export default {
   border-radius: var(--radius-md) !important;
 }
 
+.empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
+}
+
 /* Dialog Footer */
 .dialog-footer .el-button--primary {
   background: var(--accent-primary) !important;
@@ -1831,23 +1872,36 @@ export default {
 
 /* Skeleton Loading */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% { background-position: -200% 0; transform: scaleY(1); }
+  50% { transform: scaleY(1.012); }
+  100% { background-position: 200% 0; transform: scaleY(1); }
+}
+@keyframes skeleton-avatar-pulse {
+  0%, 100% { transform: scale(0.98); opacity: 0.85; }
+  50% { transform: scale(1.02); opacity: 1; }
+}
+@keyframes skeleton-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .skeleton {
   pointer-events: none;
+  animation: skeleton-fade-in 0.3s ease both;
 }
 
 .skeleton .skeleton-line,
 .skeleton > .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
-.skeleton-line--avatar { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-line--avatar {
+  width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
+}
 .skeleton-line--nickname { width: 120px; height: 20px; margin-bottom: 6px; }
 .skeleton-line--date { width: 100px; height: 13px; }
 .skeleton-line--points { width: 64px; height: 32px; margin: 0 auto 4px; }
@@ -1873,9 +1927,9 @@ export default {
 }
 
 .skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 2s ease-in-out infinite;
   border-radius: var(--radius-sm);
   height: 14px;
 }
