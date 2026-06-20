@@ -685,6 +685,203 @@ a {
   margin-top: 20px;
 }
 
+/* ── Button: default (白底 → 暗底) ── */
+.el-button {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+.el-button:hover,
+.el-button:focus {
+  background: var(--bg-surface-3) !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+}
+.el-button:active {
+  background: var(--bg-surface-1) !important;
+}
+.el-button--primary {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+}
+.el-button--primary:hover {
+  opacity: 0.88;
+}
+.el-button--info {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-tertiary) !important;
+}
+.el-button--info.is-disabled,
+.el-button--info:disabled {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-tertiary) !important;
+}
+.el-button--text {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--text-secondary) !important;
+}
+.el-button--text:hover {
+  color: var(--accent-primary) !important;
+}
+/* ── Button-Group ── */
+.el-button-group > .el-button {
+  border-color: var(--border-default) !important;
+}
+.el-button-group > .el-button:not(:last-child) {
+  border-right-color: var(--bg-page) !important;
+}
+
+/* ── Radio ── */
+.el-radio__label {
+  color: var(--text-secondary) !important;
+}
+.el-radio__inner {
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+}
+.el-radio__input.is-checked .el-radio__inner {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+.el-radio__input.is-checked + .el-radio__label {
+  color: var(--text-primary) !important;
+}
+.el-radio:focus:not(.is-focus):not(:active) .el-radio__inner {
+  box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
+}
+
+/* ── Radio Button ── */
+.el-radio-button__inner {
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+.el-radio-button__inner:hover {
+  color: var(--accent-primary) !important;
+}
+.el-radio-button__orig-radio:checked + .el-radio-button__inner {
+  background: rgba(0,229,160,0.08) !important;
+  border-color: var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  box-shadow: -1px 0 0 0 var(--accent-primary) !important;
+}
+
+/* ── Switch ── */
+.el-switch__core {
+  background: var(--bg-surface-3) !important;
+  border-color: var(--border-default) !important;
+}
+.el-switch.is-checked .el-switch__core {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+/* ── Tag ── */
+.el-tag {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.el-tag .el-tag__close {
+  color: var(--text-tertiary) !important;
+}
+.el-tag .el-tag__close:hover {
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* ── Input Number ── */
+.el-input-number__increase,
+.el-input-number__decrease {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-default) !important;
+}
+.el-input-number__increase:hover,
+.el-input-number__decrease:hover {
+  color: var(--accent-primary) !important;
+}
+.el-input-number.is-disabled .el-input-number__increase,
+.el-input-number.is-disabled .el-input-number__decrease {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* ── Slider ── */
+.el-slider__runway {
+  background: var(--bg-surface-3) !important;
+}
+.el-slider__bar {
+  background: var(--accent-primary) !important;
+}
+.el-slider__button {
+  border-color: var(--accent-primary) !important;
+  background: var(--bg-surface-1) !important;
+}
+
+/* ── Alert ── */
+.el-alert {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+}
+.el-alert__title {
+  color: var(--text-primary) !important;
+}
+.el-alert--info {
+  border-left: 3px solid var(--accent-secondary) !important;
+}
+.el-alert--success {
+  border-left: 3px solid var(--accent-primary) !important;
+}
+.el-alert--warning {
+  border-left: 3px solid var(--accent-warning) !important;
+}
+.el-alert--error {
+  border-left: 3px solid var(--accent-danger) !important;
+}
+
+/* ── Image ── */
+.el-image__placeholder,
+.el-image__error {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* ── Loading ── */
+.el-loading-mask {
+  background: rgba(10,10,15,0.75) !important;
+}
+.el-loading-spinner .el-icon-loading {
+  color: var(--accent-primary) !important;
+}
+.el-loading-spinner .el-loading-text {
+  color: var(--text-secondary) !important;
+}
+
+/* ── Pagination 暗色 ── */
+.el-pagination .btn-prev,
+.el-pagination .btn-next,
+.el-pagination .el-pager li {
+  background: var(--bg-surface-1) !important;
+  color: var(--text-secondary) !important;
+}
+.el-pagination .el-pager li.active {
+  background: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+.el-pagination .btn-prev:disabled,
+.el-pagination .btn-next:disabled {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-tertiary) !important;
+}
+
 /* Badge System */
 .badge-live {
   color: var(--accent-primary);
