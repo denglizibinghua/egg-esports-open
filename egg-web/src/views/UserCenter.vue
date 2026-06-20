@@ -254,8 +254,8 @@
             <!-- Profit Curve -->
             <div class="dashboard-card dashboard-card--wide">
               <div class="dashboard-card-header">
-                <h4 class="dashboard-card-title">收益曲线</h4>
-                <span class="dashboard-card-subtitle">累计积分变化 · {{ profitData.length }} 个数据点</span>
+              <h4 class="dashboard-card-title">收益曲线</h4>
+              <span class="dashboard-card-subtitle">净盈亏累计</span>
               </div>
               <div class="chart-container" v-if="profitData && profitData.length > 0" v-loading="profitLoading">
                 <svg viewBox="0 0 800 220" class="profit-chart" preserveAspectRatio="xMidYMid meet">
@@ -769,7 +769,6 @@ export default {
     },
     fetchProfitData() {
       this.profitLoading = true
-      var currentPoints = this.user ? (this.user.points || 1000) : 1000
       request.get('/bet/settled-since').then(function (res) {
         var data = res.data || res
         var list = Array.isArray(data) ? data : (data.records || data.list || [])
@@ -781,8 +780,9 @@ export default {
         list.sort(function (a, b) {
           return new Date(a.createTime) - new Date(b.createTime)
         })
-        // Sum all netChange to back-calculate starting point
-        var totalNet = 0
+        // Cumulative netChange starting from 0
+        var cumulative = 0
+        var result = []
         for (var i = 0; i < list.length; i++) {
           var net = list[i].netChange
           if (net === null || net === undefined) {
@@ -790,20 +790,8 @@ export default {
             else if (list[i].status === 2) net = -list[i].betAmount
             else net = 0
           }
-          totalNet += net
-        }
-        // Work backwards from current points
-        var cumulative = currentPoints - totalNet
-        var result = []
-        for (var j = 0; j < list.length; j++) {
-          var n = list[j].netChange
-          if (n === null || n === undefined) {
-            if (list[j].status === 1) n = list[j].betAmount
-            else if (list[j].status === 2) n = -list[j].betAmount
-            else n = 0
-          }
-          cumulative += n
-          var d = new Date(list[j].createTime)
+          cumulative += net
+          var d = new Date(list[i].createTime)
           var m = d.getMonth() + 1
           var day = d.getDate()
           var h = d.getHours().toString().padStart(2, '0')
