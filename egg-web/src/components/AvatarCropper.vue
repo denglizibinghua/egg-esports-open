@@ -245,6 +245,35 @@ export default {
   width: 10px;
   height: 10px;
 }
+
+/* ── 按钮暗色主题 ── */
+.cropper-controls >>> .el-button,
+.cropper-controls >>> .el-button-group .el-button {
+  background: var(--bg-surface-2);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) ease;
+}
+.cropper-controls >>> .el-button:hover {
+  background: var(--bg-surface-3);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.cropper-controls >>> .el-button:active {
+  background: var(--bg-surface-1);
+}
+
+/* ── 底部按钮 ── */
+.cropper-dialog .el-dialog__footer .el-button--default {
+  background: var(--bg-surface-2);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+.cropper-dialog .el-dialog__footer .el-button--default:hover {
+  background: var(--bg-surface-3);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
 </style>
 
 <!-- 全局样式：让 el-dialog 内部适应暗色 -->
