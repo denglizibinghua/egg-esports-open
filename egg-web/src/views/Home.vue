@@ -287,20 +287,20 @@
         <div v-if="top3.length > 0" class="podium">
           <div v-if="top3[1]" class="podium-item silver">
             <div class="podium-rank">2</div>
-            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :src="top3[1].avatar" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
             <div class="podium-points">{{ top3[1].points }} 积分</div>
           </div>
           <div v-if="top3[0]" class="podium-item gold">
             <div class="podium-crown">👑</div>
             <div class="podium-rank">1</div>
-            <div class="podium-avatar"><el-avatar :size="72" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="72" :src="top3[0].avatar" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
             <div class="podium-points">{{ top3[0].points }} 积分</div>
           </div>
           <div v-if="top3[2]" class="podium-item bronze">
             <div class="podium-rank">3</div>
-            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :src="top3[2].avatar" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
             <div class="podium-points">{{ top3[2].points }} 积分</div>
           </div>

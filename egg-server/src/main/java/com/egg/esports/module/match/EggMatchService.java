@@ -183,6 +183,8 @@ public class EggMatchService {
     public List<EggMatch> getHotMatches(int limit, Long gameId) {
         LambdaQueryWrapper<EggMatch> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(EggMatch::getStatus, 0, 1, 2);
+        wrapper.ne(EggMatch::getTeamA, "TBD");
+        wrapper.ne(EggMatch::getTeamB, "TBD");
         if (gameId != null) {
             wrapper.eq(EggMatch::getGameId, gameId);
         }

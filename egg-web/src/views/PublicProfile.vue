@@ -11,7 +11,7 @@
     <div v-else-if="user" class="profile-content">
       <div class="user-info-card">
         <div class="user-avatar-section">
-          <el-avatar :size="80" icon="el-icon-user-solid" />
+          <el-avatar :size="80" :src="user.avatar" icon="el-icon-user-solid" />
           <div class="user-meta">
             <div class="user-nickname">{{ user.nickname }}</div>
             <div class="user-stats-brief">

@@ -47,7 +47,7 @@
           <!-- User Info Card -->
           <div class="user-info-card">
             <div class="user-avatar-section">
-              <el-avatar :size="80" icon="el-icon-user-solid" />
+              <el-avatar :size="80" :src="user.avatar" icon="el-icon-user-solid" />
               <div class="user-meta">
                 <div class="user-nickname-row">
                   <span class="user-nickname">{{ user.nickname || user.username }}</span>
@@ -484,12 +484,9 @@
             <el-avatar :size="64" :src="avatarPreview" icon="el-icon-user-solid" />
             <el-upload
               class="avatar-uploader"
-              action="/api/user/avatar"
-              :headers="uploadHeaders"
+              :http-request="uploadAvatar"
               :show-file-list="false"
               :before-upload="beforeAvatarUpload"
-              :on-success="handleAvatarSuccess"
-              :on-error="handleAvatarError"
             >
               <el-button size="small" type="text">更换头像</el-button>
             </el-upload>
@@ -914,6 +911,18 @@ export default {
         return false
       }
       return true
+    },
+    uploadAvatar(options) {
+      var formData = new FormData()
+      formData.append('file', options.file)
+      var self = this
+      request.post('/user/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      }).then(function (res) {
+        self.handleAvatarSuccess(res)
+      }).catch(function () {
+        self.handleAvatarError()
+      })
     },
     handleAvatarSuccess(res) {
       var data = res.data || res

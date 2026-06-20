@@ -31,6 +31,8 @@ jwt:
 
 # 押注配置
 egg:
+  upload:
+    path: D:/egg-esports/uploads   # 头像等文件上传目录（绝对路径，避免工作目录漂移）
   odds:
     commission-rate: 0.00
     min-odds: 1.01
