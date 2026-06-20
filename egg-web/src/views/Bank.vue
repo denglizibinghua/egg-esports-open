@@ -2,6 +2,7 @@
   <div class="bank-page">
     <div class="page-header">
       <h2 class="page-title">银行中心</h2>
+      <p class="page-desc">资产耗尽时的安全网——积分归零后可申请贷款周转，每日还有低保兜底。更多玩法即将上线。</p>
     </div>
 
     <!-- Loading -->
@@ -204,6 +205,14 @@ export default {
   font-family: var(--font-display);
   font-size: 32px;
   letter-spacing: 1px;
+}
+
+.page-desc {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  margin-top: 8px;
+  line-height: 1.6;
+  max-width: 520px;
 }
 
 /* Loading */
