@@ -482,14 +482,7 @@
         <el-form-item label="头像">
           <div class="avatar-upload">
             <el-avatar :size="64" :src="avatarPreview" icon="el-icon-user-solid" />
-            <el-upload
-              class="avatar-uploader"
-              :http-request="uploadAvatar"
-              :show-file-list="false"
-              :before-upload="beforeAvatarUpload"
-            >
-              <el-button size="small" type="text">更换头像</el-button>
-            </el-upload>
+            <el-button size="small" type="text" @click="showCropper = true">更换头像</el-button>
           </div>
         </el-form-item>
         <el-form-item label="昵称" prop="nickname">
@@ -525,17 +518,22 @@
         <el-button type="primary" @click="submitPassword" :loading="passwordSaving">确认修改</el-button>
       </span>
     </el-dialog>
+
+    <!-- Avatar Cropper -->
+    <avatar-cropper v-model="showCropper" @cropped="onAvatarCropped" />
   </div>
 </template>
 
 <script>
 import request from '@/utils/request'
 import { getToken, setUser } from '@/utils/auth'
+import AvatarCropper from '@/components/AvatarCropper.vue'
 
 var LAST_VISIT_KEY = 'egg_lastVisitTime'
 
 export default {
   name: 'UserCenter',
+  components: { AvatarCropper },
   data() {
     return {
       loading: false,
@@ -550,6 +548,7 @@ export default {
       myRank: null,
       recentBets: [],
       editDialogVisible: false,
+      showCropper: false,
       editSaving: false,
       editForm: {
         nickname: ''
@@ -633,9 +632,6 @@ export default {
     teamBPercent() {
       if (this.recentBets.length === 0) return 50
       return Math.round((this.teamBCount / this.recentBets.length) * 100)
-    },
-    uploadHeaders() {
-      return { Authorization: 'Bearer ' + getToken() }
     },
     profitChartPoints() {
       var data = this.profitData
@@ -900,41 +896,10 @@ export default {
         }
       }.bind(this))
     },
-    beforeAvatarUpload(file) {
-      var validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-      if (!validTypes.includes(file.type)) {
-        this.$message.error('仅支持 jpg/png/gif/webp 格式')
-        return false
-      }
-      if (file.size > 2 * 1024 * 1024) {
-        this.$message.error('文件大小不能超过 2MB')
-        return false
-      }
-      return true
-    },
-    uploadAvatar(options) {
-      var formData = new FormData()
-      formData.append('file', options.file)
-      var self = this
-      request.post('/user/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }).then(function (res) {
-        self.handleAvatarSuccess(res)
-      }).catch(function () {
-        self.handleAvatarError()
-      })
-    },
-    handleAvatarSuccess(res) {
-      var data = res.data || res
-      if (data.avatar) {
-        this.avatarPreview = data.avatar
-        this.user.avatar = data.avatar
-        setUser(this.user)
-        this.$message.success('头像更新成功')
-      }
-    },
-    handleAvatarError() {
-      this.$message.error('头像上传失败')
+    onAvatarCropped(url) {
+      this.avatarPreview = url
+      this.user.avatar = url
+      setUser(this.user)
     },
     saveProfile() {
       this.$refs.editForm.validate(function (valid) {
