@@ -769,16 +769,20 @@ export default {
     },
     fetchProfitData() {
       this.profitLoading = true
+      var currentPoints = this.user ? (this.user.points || 1000) : 1000
       request.get('/bet/settled-since').then(function (res) {
         var data = res.data || res
         var list = Array.isArray(data) ? data : (data.records || data.list || [])
-        // Sort by createTime ascending
+        if (list.length === 0) {
+          this.profitData = []
+          return
+        }
+        // Sort by createTime ASC (oldest→newest)
         list.sort(function (a, b) {
           return new Date(a.createTime) - new Date(b.createTime)
         })
-        // Build cumulative points starting from 1000
-        var cumulative = 1000
-        var result = []
+        // Sum all netChange to back-calculate starting point
+        var totalNet = 0
         for (var i = 0; i < list.length; i++) {
           var net = list[i].netChange
           if (net === null || net === undefined) {
@@ -786,8 +790,20 @@ export default {
             else if (list[i].status === 2) net = -list[i].betAmount
             else net = 0
           }
-          cumulative += net
-          var d = new Date(list[i].createTime)
+          totalNet += net
+        }
+        // Work backwards from current points
+        var cumulative = currentPoints - totalNet
+        var result = []
+        for (var j = 0; j < list.length; j++) {
+          var n = list[j].netChange
+          if (n === null || n === undefined) {
+            if (list[j].status === 1) n = list[j].betAmount
+            else if (list[j].status === 2) n = -list[j].betAmount
+            else n = 0
+          }
+          cumulative += n
+          var d = new Date(list[j].createTime)
           var m = d.getMonth() + 1
           var day = d.getDate()
           var h = d.getHours().toString().padStart(2, '0')
