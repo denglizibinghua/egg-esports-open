@@ -542,6 +542,21 @@ a {
   color: var(--text-tertiary) !important;
 }
 
+/* Element UI: Input word count */
+.el-input__count {
+  color: var(--text-tertiary) !important;
+  background: transparent !important;
+}
+.el-input__count-inner {
+  background: transparent !important;
+}
+
+/* Element UI: Textarea word count */
+.el-textarea .el-input__count {
+  color: var(--text-tertiary) !important;
+  background: transparent !important;
+}
+
 /* Element UI: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
