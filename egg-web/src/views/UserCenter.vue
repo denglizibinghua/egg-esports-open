@@ -268,9 +268,14 @@
                   <!-- Grid lines -->
                   <line x1="50" y1="15" x2="50" y2="195" class="chart-axis-line" />
                   <line x1="50" y1="195" x2="790" y2="195" class="chart-axis-line" />
-                  <line x1="50" y1="105" x2="790" y2="105" class="chart-grid-line" />
-                  <line x1="50" y1="60" x2="790" y2="60" class="chart-grid-line" />
-                  <line x1="50" y1="150" x2="790" y2="150" class="chart-grid-line" />
+                  <!-- Zero line -->
+                  <line
+                    x1="50"
+                    :y1="profitZeroY"
+                    x2="790"
+                    :y2="profitZeroY"
+                    class="chart-zero-line"
+                  />
                   <!-- Fill area -->
                   <polygon :points="profitChartFill" fill="url(#profitGradient)" class="chart-fill" />
                   <!-- Line -->
@@ -589,6 +594,21 @@ export default {
     streakPercent() {
       if (!this.user || !this.user.maxWinStreak || this.user.maxWinStreak === 0) return 0
       return Math.min(100, Math.round(((this.user.winStreak || 0) / this.user.maxWinStreak) * 100))
+    },
+    profitZeroY() {
+      var data = this.profitData
+      if (!data || data.length === 0) return 105
+      var padT = 15, padB = 25
+      var h = 220 - padT - padB
+      var vals = data.map(function (d) { return d.points })
+      var minP = Math.min.apply(null, vals)
+      var maxP = Math.max.apply(null, vals)
+      var range = maxP - minP || 1
+      var pad = range * 0.1
+      minP = minP - pad
+      maxP = maxP + pad
+      range = maxP - minP
+      return padT + h - ((0 - minP) / range) * h
     },
     profitChartPoints() {
       var data = this.profitData
@@ -1870,6 +1890,13 @@ export default {
   stroke-width: 0.5;
   stroke-dasharray: 4 4;
   opacity: 0.5;
+}
+
+.chart-zero-line {
+  stroke: var(--text-tertiary);
+  stroke-width: 1;
+  stroke-dasharray: 6 3;
+  opacity: 0.6;
 }
 
 .chart-fill {
