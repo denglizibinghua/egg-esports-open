@@ -228,8 +228,7 @@ export default {
     },
     claimLoan() {
       this.claimingLoan = true
-      request.post('/loan/relief').then(function (res) {
-        var data = res.data || res
+      request.post('/loan/relief').then(function () {
         this.$message.success('借款成功! +500 积分，记得赢了还贷哦')
         this.fetchData()
       }.bind(this)).catch(function (err) {
