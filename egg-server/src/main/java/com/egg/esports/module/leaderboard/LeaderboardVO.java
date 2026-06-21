@@ -14,4 +14,6 @@ public class LeaderboardVO {
     private Integer winStreak;
     private Integer maxWinStreak;
     private Double accuracy;
+    /** 净收益：赢分 - 输分 */
+    private Integer netProfit;
 }

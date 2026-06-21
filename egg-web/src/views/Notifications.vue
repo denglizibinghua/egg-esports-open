@@ -167,6 +167,9 @@ export default {
         } else {
           this.$router.push('/matches')
         }
+      } else if (item.type === 5) {
+        // 公告通知：跳转到主页
+        this.$router.push('/')
       }
     },
     markAllRead() {
@@ -199,7 +202,8 @@ export default {
         1: 'el-icon-bell',
         2: 'el-icon-s-check',
         3: 'el-icon-chat-dot-square',
-        4: 'el-icon-attract'
+        4: 'el-icon-attract',
+        5: 'el-icon-message'
       }
       return icons[type] || 'el-icon-info'
     },
@@ -208,7 +212,8 @@ export default {
         1: '系统通知',
         2: '结算通知',
         3: '评论回复',
-        4: '@提及'
+        4: '@提及',
+        5: '公告通知'
       }
       return labels[type] || '通知'
     },

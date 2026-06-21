@@ -58,6 +58,10 @@ public class EggMatch {
      */
     private Integer result;
 
+    /** 结算时间，NULL表示未结算 */
+    @TableField("settled_at")
+    private LocalDateTime settledAt;
+
     private LocalDateTime createTime;
 
     /** A队奖池 */

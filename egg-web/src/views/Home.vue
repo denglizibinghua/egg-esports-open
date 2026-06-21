@@ -49,20 +49,43 @@
       </div>
       <div v-else class="hero-empty">
         <svg class="hero-empty-svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="20" width="80" height="45" rx="12" stroke="#6b6b7c" stroke-width="2" fill="rgba(107,107,124,0.08)"/>
-          <circle cx="42" cy="42" r="8" stroke="#5b8cff" stroke-width="1.5" fill="rgba(91,140,255,0.1)"/>
-          <circle cx="78" cy="42" r="8" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.1)"/>
-          <line x1="38" y1="42" x2="46" y2="42" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="42" y1="38" x2="42" y2="46" stroke="#5b8cff" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="74" cy="38" r="2" fill="#00e5a0"/>
-          <circle cx="82" cy="38" r="2" fill="#00e5a0"/>
-          <circle cx="74" cy="46" r="2" fill="#00e5a0"/>
-          <circle cx="82" cy="46" r="2" fill="#00e5a0"/>
-          <rect x="52" y="30" width="16" height="4" rx="2" fill="rgba(107,107,124,0.2)"/>
-          <path d="M35 20 C35 12, 45 8, 60 8 C75 8, 85 12, 85 20" stroke="#6b6b7c" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+          <path d="M25 20 H55 L50 48 H30 Z" stroke="#d4a843" stroke-width="2" fill="rgba(212,168,67,0.06)"/>
+          <path d="M25 20 C14 20, 10 28, 17 35 L25 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <path d="M55 20 C66 20, 70 28, 63 35 L55 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
+          <rect x="34" y="48" width="12" height="8" rx="1" fill="rgba(212,168,67,0.12)" stroke="#d4a843" stroke-width="1"/>
+          <rect x="28" y="56" width="24" height="6" rx="2" fill="rgba(212,168,67,0.08)" stroke="#d4a843" stroke-width="1"/>
+          <path d="M36 28 L40 22 L44 28 L40 26 Z" fill="#d4a843" opacity="0.5"/>
+          <circle cx="40" cy="12" r="4" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.4"/>
+          <line x1="40" y1="8" x2="40" y2="5" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+          <line x1="36" y1="10" x2="34" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
+          <line x1="44" y1="10" x2="46" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
         </svg>
-        <div class="hero-empty-title">暂无赛事</div>
-        <div class="hero-empty-text">管理员正在筹备中，稍后回来看看</div>
+        <div class="hero-empty-title">👋 欢迎来到 Egg 赛事竞猜</div>
+        <div class="hero-empty-text">三步上手，开启你的预言家之旅</div>
+        <div class="beginner-steps">
+          <div class="beginner-step">
+            <span class="beginner-step-num">1</span>
+            <div class="beginner-step-body">
+              <strong>浏览赛事</strong>
+              <p>在赛事列表中挑选你熟悉的比赛</p>
+            </div>
+          </div>
+          <div class="beginner-step">
+            <span class="beginner-step-num">2</span>
+            <div class="beginner-step-body">
+              <strong>押注预测</strong>
+              <p>用积分押注你支持的队伍，每场只能押一次</p>
+            </div>
+          </div>
+          <div class="beginner-step">
+            <span class="beginner-step-num">3</span>
+            <div class="beginner-step-body">
+              <strong>赢取积分</strong>
+              <p>猜中按奖池比例分账，0% 抽水全归你</p>
+            </div>
+          </div>
+        </div>
+        <el-button type="primary" class="hero-empty-cta" @click="$router.push('/matches')">去赛事列表看看</el-button>
       </div>
     </div>
 
@@ -779,6 +802,72 @@ export default {
 
 .hero-empty-text { font-size: 13px; color: var(--text-tertiary); }
 
+.beginner-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0 24px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.beginner-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.beginner-step-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--accent-primary);
+  color: #0a0a0f;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+}
+
+.beginner-step-body strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.beginner-step-body p {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.hero-empty-cta {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+  font-weight: 600;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 28px;
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+  transition: all 0.2s var(--ease-out);
+}
+
+.hero-empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
+}
+
 /* ===== 游戏筛选栏 ===== */
 .game-tabs {
   display: flex;
@@ -1198,6 +1287,8 @@ export default {
   .podium { gap: 10px; }
   .podium-item { min-width: 100px; padding: 14px 12px; }
   .podium-item.gold { min-width: 120px; }
+  .beginner-steps { max-width: 100%; }
+  .beginner-step { padding: 10px 12px; }
 }
 @media (max-width: 480px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }

@@ -11,11 +11,22 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.egg.esports.module.notification.EggNotificationService;
+import com.egg.esports.module.user.EggUser;
+import com.egg.esports.module.user.EggUserMapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+
 @Service
 public class EggAnnouncementService {
 
     @Autowired
     private EggAnnouncementMapper announcementMapper;
+
+    @Autowired
+    private EggNotificationService notificationService;
+
+    @Autowired
+    private EggUserMapper userMapper;
 
     /**
      * 获取当前生效的公告列表（公开接口）
@@ -56,6 +67,12 @@ public class EggAnnouncementService {
         sanitizeAnnouncement(announcement);
         announcement.setCreateTime(LocalDateTime.now());
         announcementMapper.insert(announcement);
+
+        // 仅启用的公告发送通知
+        if (announcement.getStatus() != null && announcement.getStatus() == 1) {
+            sendAnnouncementNotification(announcement);
+        }
+
         return announcement;
     }
 
@@ -85,5 +102,19 @@ public class EggAnnouncementService {
      */
     public boolean delete(Long id) {
         return announcementMapper.deleteById(id) > 0;
+    }
+
+    /**
+     * 公告发布后，给所有用户发送通知（type=5）
+     */
+    private void sendAnnouncementNotification(EggAnnouncement announcement) {
+        List<EggUser> users = userMapper.selectList(new LambdaQueryWrapper<>());
+        String content = announcement.getContent();
+        if (content != null && content.length() > 50) {
+            content = content.substring(0, 50) + "...";
+        }
+        for (EggUser user : users) {
+            notificationService.create(user.getId(), 5, announcement.getTitle(), content, announcement.getId());
+        }
     }
 }

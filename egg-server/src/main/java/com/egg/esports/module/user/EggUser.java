@@ -46,6 +46,10 @@ public class EggUser {
     @TableField("loan_limit")
     private Integer loanLimit;
 
+    /** 净收益：累计赢分 - 累计输分（不含初始 1000 积分） */
+    @TableField("net_profit")
+    private Integer netProfit;
+
     @TableField("last_stipend_date")
     private LocalDate lastStipendDate;
 

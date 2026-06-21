@@ -53,11 +53,30 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
+                        // 认证相关
                         "/api/user/login",
                         "/api/user/register",
-                        "/api/announcement/active",
+                        // 游戏 & 公告（浏览）
                         "/api/game/list",
-                        "/api/game/{id}"
+                        "/api/game/{id}",
+                        "/api/announcement/active",
+                        // ===== v19: 未登录可浏览 =====
+                        "/api/match/list",
+                        "/api/match/hot",
+                        "/api/match/upcoming",
+                        "/api/match/live",
+                        "/api/match/finished",
+                        "/api/match/{id}",        // GET 赛事详情
+                        "/api/leaderboard/points",
+                        "/api/leaderboard/accuracy",
+                        "/api/leaderboard/worst-profit",
+                        "/api/leaderboard/top/{n}",
+                        "/api/leaderboard/accuracy/top/{n}",
+                        "/api/leaderboard/worst-profit/top/{n}",
+                        "/api/leaderboard/user-rank/{userId}",  // 公开排名查询
+                        "/api/comment/list",
+                        "/api/comment/replies",
+                        "/api/bet/count/{id}"     // 押注人数统计
                 );
 
         // 限流拦截（扫描所有 /api/**，方法上有 @RateLimit 注解才生效）

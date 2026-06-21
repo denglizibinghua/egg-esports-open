@@ -2,22 +2,38 @@
   <div class="leaderboard">
     <div class="page-header">
       <h2 class="page-title">排行榜</h2>
-      <div class="game-filter">
-        <el-select
-          v-model="selectedGameId"
-          placeholder="全部游戏"
-          clearable
-          size="small"
-          @change="handleGameChange"
-        >
-          <el-option :value="null" label="全部游戏" />
-          <el-option
-            v-for="game in games"
-            :key="game.id"
-            :label="game.name"
-            :value="game.id"
-          />
-        </el-select>
+      <div class="page-header-right">
+        <div class="leaderboard-tabs">
+          <span
+            :class="['leaderboard-tab', { active: leaderboardTab === 'points' }]"
+            @click="switchTab('points')"
+          >🏆 积分榜</span>
+          <span
+            :class="['leaderboard-tab', { active: leaderboardTab === 'accuracy' }]"
+            @click="switchTab('accuracy')"
+          >🎯 胜率榜</span>
+          <span
+            :class="['leaderboard-tab', { active: leaderboardTab === 'worst-profit' }]"
+            @click="switchTab('worst-profit')"
+          >😈 亏损榜</span>
+        </div>
+        <div class="game-filter">
+          <el-select
+            v-model="selectedGameId"
+            placeholder="全部游戏"
+            clearable
+            size="small"
+            @change="handleGameChange"
+          >
+            <el-option :value="null" label="全部游戏" />
+            <el-option
+              v-for="game in games"
+              :key="game.id"
+              :label="game.name"
+              :value="game.id"
+            />
+          </el-select>
+        </div>
       </div>
     </div>
 
@@ -69,8 +85,8 @@
         <line x1="44" y1="10" x2="46" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
         <circle cx="40" cy="36" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
       </svg>
-      <h3 class="empty-title">还没有人上榜</h3>
-      <p class="empty-desc">成为第一个预言家！</p>
+      <h3 class="empty-title">{{ emptyTitle }}</h3>
+      <p class="empty-desc">{{ emptyDesc }}</p>
       <el-button type="primary" class="empty-cta" @click="$router.push('/matches')">去赛事列表押注</el-button>
     </div>
 
@@ -84,7 +100,12 @@
               <el-avatar :size="56" :src="top3[1].avatar" icon="el-icon-user-solid" />
             </div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
-          <div class="podium-points">{{ selectedGameId != null ? (top3[1].correctBets || 0) + ' 猜中' : top3[1].points + ' 积分' }}</div>
+          <div class="podium-points">
+            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[1].points }} 积分</template>
+            <template v-else-if="leaderboardTab === 'points'">{{ top3[1].correctBets || 0 }} 猜中</template>
+            <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[1]) }}%</template>
+            <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[1].netProfit || 0 }}</template>
+          </div>
         </div>
 
         <div v-if="top3[0]" class="podium-item gold">
@@ -94,7 +115,12 @@
               <el-avatar :size="72" :src="top3[0].avatar" icon="el-icon-user-solid" />
             </div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
-          <div class="podium-points">{{ selectedGameId != null ? (top3[0].correctBets || 0) + ' 猜中' : top3[0].points + ' 积分' }}</div>
+          <div class="podium-points">
+            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[0].points }} 积分</template>
+            <template v-else-if="leaderboardTab === 'points'">{{ top3[0].correctBets || 0 }} 猜中</template>
+            <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[0]) }}%</template>
+            <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[0].netProfit || 0 }}</template>
+          </div>
         </div>
 
         <div v-if="top3[2]" class="podium-item bronze">
@@ -103,7 +129,12 @@
               <el-avatar :size="56" :src="top3[2].avatar" icon="el-icon-user-solid" />
             </div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
-          <div class="podium-points">{{ selectedGameId != null ? (top3[2].correctBets || 0) + ' 猜中' : top3[2].points + ' 积分' }}</div>
+          <div class="podium-points">
+            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[2].points }} 积分</template>
+            <template v-else-if="leaderboardTab === 'points'">{{ top3[2].correctBets || 0 }} 猜中</template>
+            <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[2]) }}%</template>
+            <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[2].netProfit || 0 }}</template>
+          </div>
         </div>
       </div>
 
@@ -122,13 +153,44 @@
               <span>{{ scope.row.nickname || scope.row.username }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="积分" width="100" align="center" prop="points" />
-          <el-table-column label="胜率" width="100" align="center">
-            <template slot-scope="scope">
-              {{ getAccuracy(scope.row) }}%
-            </template>
-          </el-table-column>
-          <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
+          <!-- Points tab: 积分 + 胜率 + 连胜 -->
+          <template v-if="leaderboardTab === 'points'">
+            <el-table-column label="积分" width="100" align="center" prop="points" />
+            <el-table-column label="胜率" width="100" align="center">
+              <template slot-scope="scope">
+                {{ getAccuracy(scope.row) }}%
+              </template>
+            </el-table-column>
+            <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
+          </template>
+          <!-- Accuracy tab: 胜率 + 猜中/总场 + 连胜 -->
+          <template v-if="leaderboardTab === 'accuracy'">
+            <el-table-column label="胜率" width="100" align="center">
+              <template slot-scope="scope">
+                {{ getAccuracy(scope.row) }}%
+              </template>
+            </el-table-column>
+            <el-table-column label="猜中/总场" width="120" align="center">
+              <template slot-scope="scope">{{ scope.row.correctBets }}/{{ scope.row.totalBets }}</template>
+            </el-table-column>
+            <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
+          </template>
+          <!-- Worst-profit tab: 净收益 + 积分 + 胜率 -->
+          <template v-if="leaderboardTab === 'worst-profit'">
+            <el-table-column label="净收益" width="110" align="center">
+              <template slot-scope="scope">
+                <span :style="{ color: scope.row.netProfit >= 0 ? '#00e5a0' : '#ff4d4f' }">
+                  {{ scope.row.netProfit != null ? (scope.row.netProfit >= 0 ? '+' : '') + scope.row.netProfit : 0 }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="积分" width="100" align="center" prop="points" />
+            <el-table-column label="胜率" width="100" align="center">
+              <template slot-scope="scope">
+                {{ getAccuracy(scope.row) }}%
+              </template>
+            </el-table-column>
+          </template>
         </el-table>
       </div>
     </template>
@@ -159,13 +221,26 @@ export default {
       pageSize: 20,
       total: 0,
       games: [],
-      selectedGameId: null
+      selectedGameId: null,
+      leaderboardTab: 'points'
     }
   },
   created() {
     this.fetchGames()
     this.fetchTop3()
     this.fetchLeaderboard()
+  },
+  computed: {
+    emptyTitle() {
+      if (this.leaderboardTab === 'accuracy') return '暂无上榜玩家'
+      if (this.leaderboardTab === 'worst-profit') return '暂无亏损数据'
+      return '还没有人上榜'
+    },
+    emptyDesc() {
+      if (this.leaderboardTab === 'accuracy') return '参与 10 场以上才能进入胜率榜'
+      if (this.leaderboardTab === 'worst-profit') return '暂无投注记录，快去押注吧！'
+      return '成为第一个预言家！'
+    }
   },
   methods: {
     fetchGames() {
@@ -185,12 +260,25 @@ export default {
       this.fetchTop3()
       this.fetchLeaderboard()
     },
+    switchTab(tab) {
+      if (this.leaderboardTab === tab) return
+      this.leaderboardTab = tab
+      this.currentPage = 1
+      this.fetchTop3()
+      this.fetchLeaderboard()
+    },
     fetchTop3() {
       const params = {}
       if (this.selectedGameId != null) {
         params.gameId = this.selectedGameId
       }
-      request.get('/leaderboard/top/3', { params }).then(res => {
+      const endpoints = {
+        'points': '/leaderboard/top/3',
+        'accuracy': '/leaderboard/accuracy/top/3',
+        'worst-profit': '/leaderboard/worst-profit/top/3'
+      }
+      const url = endpoints[this.leaderboardTab] || '/leaderboard/top/3'
+      request.get(url, { params }).then(res => {
         const data = res.data || res
         this.top3 = Array.isArray(data) ? data : []
       }).catch(() => {})
@@ -204,7 +292,13 @@ export default {
       if (this.selectedGameId != null) {
         params.gameId = this.selectedGameId
       }
-      request.get('/leaderboard/points', { params }).then(res => {
+      const endpoints = {
+        'points': '/leaderboard/points',
+        'accuracy': '/leaderboard/accuracy',
+        'worst-profit': '/leaderboard/worst-profit'
+      }
+      const url = endpoints[this.leaderboardTab] || '/leaderboard/points'
+      request.get(url, { params }).then(res => {
         const data = res.data || res
         if (Array.isArray(data)) {
           this.leaderboard = data
@@ -254,6 +348,45 @@ export default {
 .game-filter {
   display: flex;
   align-items: center;
+}
+
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-surface-1);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  border: 1px solid var(--border-subtle);
+}
+
+.leaderboard-tab {
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.leaderboard-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-2);
+}
+
+.leaderboard-tab.active {
+  color: #0a0a0f;
+  background: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 12px rgba(0, 229, 160, 0.2);
 }
 
 .game-filter >>> .el-input__inner {
@@ -524,6 +657,16 @@ export default {
 @media (max-width: 767px) {
   .page-header {
     gap: 8px;
+  }
+
+  .page-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .leaderboard-tab {
+    padding: 4px 10px;
+    font-size: 12px;
   }
 
   .page-title {

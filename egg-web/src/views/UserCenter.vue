@@ -52,20 +52,23 @@
                 <div class="user-nickname-row">
                   <span class="user-nickname">{{ user.nickname || user.username }}</span>
                   <!-- Rank Badge -->
-                  <span v-if="myRank && myRank.rank === 1" class="rank-badge rank-badge--gold">
-                    <span class="rank-crown">👑</span> #1
-                  </span>
-                  <span v-else-if="myRank && myRank.rank === 2" class="rank-badge rank-badge--silver">
-                    🥈 #2
-                  </span>
-                  <span v-else-if="myRank && myRank.rank === 3" class="rank-badge rank-badge--bronze">
-                    🥉 #3
-                  </span>
-                  <span v-else-if="myRank && myRank.rank > 0" class="rank-badge rank-badge--normal">
+                  <span v-if="myRank && myRank.rank > 0"
+                        :class="['rank-badge', rankBadgeClass]"
+                        @click="cycleRankDimension"
+                        style="cursor: pointer"
+                        :title="'点击切换排行维度: ' + rankDimensionLabel">
+                    <span v-if="myRank.rank === 1 && rankDimension === 'points'" class="rank-crown">👑</span>
+                    <span v-else-if="myRank.rank === 1">🥇</span>
+                    <span v-else-if="myRank.rank === 2">🥈</span>
+                    <span v-else-if="myRank.rank === 3">🥉</span>
                     #{{ myRank.rank }}<span class="rank-total"> / {{ myRank.total }}</span>
+                    <span class="rank-dim-label">{{ rankDimensionLabel }}</span>
                   </span>
-                  <span v-else-if="myRank && myRank.rank === 0" class="rank-badge rank-badge--none">
-                    暂无排名
+                  <span v-else class="rank-badge rank-badge--none"
+                        @click="cycleRankDimension"
+                        style="cursor: pointer"
+                        :title="'点击切换排行维度'">
+                    {{ rankDimensionLabel }}暂无
                   </span>
                 </div>
                 <div class="user-join-date">加入于 {{ formatDate(user.createTime) }}</div>
@@ -522,6 +525,7 @@ export default {
       betTotal: 0,
       activeTab: 'profile',
       myRank: null,
+      rankDimension: 'points',
       recentBets: [],
       editDialogVisible: false,
       showCropper: false,
@@ -581,6 +585,17 @@ export default {
     accuracy() {
       if (!this.user || !this.user.totalBets || this.user.totalBets === 0) return 0
       return Math.min(100, Math.round((this.user.correctBets / this.user.totalBets) * 100))
+    },
+    rankDimensionLabel() {
+      var labels = { 'points': '积分', 'accuracy': '胜率', 'worst-profit': '亏损' }
+      return labels[this.rankDimension] || '积分'
+    },
+    rankBadgeClass() {
+      if (!this.myRank || this.myRank.rank <= 0) return 'rank-badge--none'
+      if (this.myRank.rank === 1) return 'rank-badge--gold'
+      if (this.myRank.rank === 2) return 'rank-badge--silver'
+      if (this.myRank.rank === 3) return 'rank-badge--bronze'
+      return 'rank-badge--normal'
     },
     profileUrl() {
       if (!this.user || !this.user.id) return ''
@@ -748,11 +763,18 @@ export default {
       }.bind(this))
     },
     fetchMyRank() {
-      request.get('/leaderboard/my-rank').then(function (res) {
+      var params = { dimension: this.rankDimension }
+      request.get('/leaderboard/my-rank', { params }).then(function (res) {
         this.myRank = res.data || res
       }.bind(this)).catch(function () {
         this.myRank = { rank: 0, total: 0 }
       }.bind(this))
+    },
+    cycleRankDimension() {
+      var dims = ['points', 'accuracy', 'worst-profit']
+      var idx = dims.indexOf(this.rankDimension)
+      this.rankDimension = dims[(idx + 1) % dims.length]
+      this.fetchMyRank()
     },
     fetchRecentBets() {
       request.get('/bet/recent').then(function (res) {
@@ -1208,6 +1230,12 @@ export default {
 
 .rank-total {
   color: var(--text-tertiary);
+}
+
+.rank-dim-label {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 4px;
   font-weight: 400;
 }
 

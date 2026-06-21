@@ -50,6 +50,46 @@
         </div>
       </div>
 
+      <div class="rank-section" v-if="getToken()">
+        <h4 class="rank-section-title">🏆 排行榜排名</h4>
+        <div class="rank-items">
+          <div class="rank-item" @click="cycleRankDimension('points')" :class="{ active: rankDimension === 'points' }">
+            <div class="rank-item-label">积分榜</div>
+            <div class="rank-item-value" v-if="ranks.points && ranks.points.rank > 0">
+              #{{ ranks.points.rank }}<span class="rank-item-total">/{{ ranks.points.total }}</span>
+            </div>
+            <div class="rank-item-value rank-item-none" v-else>未上榜</div>
+          </div>
+          <div class="rank-item" @click="cycleRankDimension('accuracy')" :class="{ active: rankDimension === 'accuracy' }">
+            <div class="rank-item-label">胜率榜</div>
+            <div class="rank-item-value" v-if="ranks.accuracy && ranks.accuracy.rank > 0">
+              #{{ ranks.accuracy.rank }}<span class="rank-item-total">/{{ ranks.accuracy.total }}</span>
+            </div>
+            <div class="rank-item-value rank-item-none" v-else>未上榜</div>
+          </div>
+          <div class="rank-item" @click="cycleRankDimension('worst-profit')" :class="{ active: rankDimension === 'worst-profit' }">
+            <div class="rank-item-label">亏损榜</div>
+            <div class="rank-item-value" v-if="ranks['worst-profit'] && ranks['worst-profit'].rank > 0">
+              #{{ ranks['worst-profit'].rank }}<span class="rank-item-total">/{{ ranks['worst-profit'].total }}</span>
+            </div>
+            <div class="rank-item-value rank-item-none" v-else>未上榜</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rank-section" v-else>
+        <h4 class="rank-section-title">🏆 排行榜排名</h4>
+        <div class="rank-login-prompt">
+          <svg class="rank-lock-svg" viewBox="0 0 48 48" fill="none">
+            <rect x="12" y="20" width="24" height="20" rx="3" stroke="#5b8cff" stroke-width="1.5" fill="rgba(91,140,255,0.06)"/>
+            <path d="M17 20 V14 C17 9, 20 6, 24 6 C28 6, 31 9, 31 14 V20" stroke="#5b8cff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            <circle cx="24" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
+          </svg>
+          <p>登录后查看排名</p>
+          <el-button type="primary" size="small" @click="$router.push('/login')">去登录</el-button>
+        </div>
+      </div>
+
       <div class="login-hint">
         <p><i class="el-icon-info"></i> 登录后可查看详细投注记录</p>
         <el-button type="primary" size="small" @click="$router.push('/login')">去登录</el-button>
@@ -65,13 +105,20 @@
 
 <script>
 import request from '@/utils/request'
+import { getToken } from '@/utils/auth'
 
 export default {
   name: 'PublicProfile',
   data() {
     return {
       loading: false,
-      user: null
+      user: null,
+      ranks: {
+        points: null,
+        accuracy: null,
+        'worst-profit': null
+      },
+      rankDimension: 'points'
     }
   },
   computed: {
@@ -82,6 +129,7 @@ export default {
   },
   created() {
     this.fetchUser()
+    this.fetchRanks()
   },
   methods: {
     fetchUser() {
@@ -94,6 +142,24 @@ export default {
       }).finally(() => {
         this.loading = false
       })
+    },
+    fetchRanks() {
+      if (!getToken()) return
+      const userId = this.$route.params.id
+      const dimensions = ['points', 'accuracy', 'worst-profit']
+      dimensions.forEach(dim => {
+        request.get('/leaderboard/user-rank/' + userId, { params: { dimension: dim } }).then(res => {
+          this.ranks[dim] = res.data || res
+        }).catch(() => {
+          this.ranks[dim] = { rank: 0, total: 0 }
+        })
+      })
+    },
+    cycleRankDimension(dim) {
+      this.rankDimension = dim
+    },
+    getToken() {
+      return getToken()
     }
   }
 }
@@ -210,6 +276,93 @@ export default {
   letter-spacing: 0.05em;
 }
 
+/* ── Rank Section ── */
+.rank-section {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.rank-section-title {
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.rank-items {
+  display: flex;
+  gap: 8px;
+}
+
+.rank-item {
+  flex: 1;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  border: 1px solid transparent;
+}
+
+.rank-item:hover {
+  border-color: var(--border-default);
+}
+
+.rank-item.active {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0, 229, 160, 0.15);
+}
+
+.rank-item-label {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rank-item-value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-item-total {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.rank-item-none {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Login prompt within rank section */
+.rank-login-prompt {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.rank-login-prompt p {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  margin: 12px 0;
+}
+
+.rank-lock-svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.6;
+}
+
 .login-hint {
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
@@ -271,6 +424,14 @@ export default {
 
   .stats-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .rank-items {
+    flex-direction: column;
+  }
+
+  .rank-item {
+    padding: 10px 12px;
   }
 }
 

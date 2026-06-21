@@ -1,8 +1,9 @@
 <template>
+  <div>
   <div class="announcement-bar" v-if="announcements.length > 0 && !dismissed">
     <div class="announcement-accent"></div>
     <i class="el-icon-bell announcement-icon"></i>
-    <div class="announcement-body">
+    <div class="announcement-body" @click="showDetail(announcements.length === 1 ? announcements[0] : announcements[currentIndex])" style="cursor: pointer">
       <template v-if="announcements.length === 1">
         <span class="announcement-title">{{ announcements[0].title }}</span>
         <span class="announcement-separator">&middot;</span>
@@ -31,6 +32,34 @@
       <i class="el-icon-close"></i>
     </button>
   </div>
+
+  <!-- Announcement Detail Dialog -->
+  <el-dialog
+    :title="detailAnnouncement ? detailAnnouncement.title : '公告详情'"
+    :visible.sync="detailVisible"
+    width="480px"
+    custom-class="announcement-detail-dialog"
+    :append-to-body="true"
+  >
+    <div v-if="detailAnnouncement" class="detail-body">
+      <div class="detail-meta">
+        <span v-if="detailAnnouncement.gameId" class="detail-game-tag">
+          <i class="el-icon-trophy"></i> 游戏专属
+        </span>
+        <span v-else class="detail-game-tag detail-game-tag--global">
+          <i class="el-icon-bell"></i> 全站公告
+        </span>
+        <span class="detail-time" v-if="detailAnnouncement.createTime">
+          {{ detailAnnouncement.createTime }}
+        </span>
+      </div>
+      <div class="detail-content">{{ detailAnnouncement.content }}</div>
+    </div>
+    <span slot="footer">
+      <el-button @click="detailVisible = false">关闭</el-button>
+    </span>
+  </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -49,7 +78,9 @@ export default {
       announcements: [],
       dismissed: false,
       currentIndex: 0,
-      rotateTimer: null
+      rotateTimer: null,
+      detailVisible: false,
+      detailAnnouncement: null
     }
   },
   watch: {
@@ -98,6 +129,11 @@ export default {
         clearInterval(this.rotateTimer)
         this.rotateTimer = null
       }
+    },
+    showDetail(announcement) {
+      if (!announcement) return
+      this.detailAnnouncement = announcement
+      this.detailVisible = true
     }
   }
 }
@@ -153,6 +189,11 @@ export default {
   align-items: center;
   gap: 8px;
   overflow: hidden;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.announcement-body:hover {
+  opacity: 0.85;
 }
 
 .announcement-slide {
@@ -257,6 +298,139 @@ export default {
   .announcement-content {
     white-space: normal;
     line-height: 1.4;
+  }
+}
+
+/* ===== Detail Dialog ===== */
+>>> .announcement-detail-dialog {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+>>> .announcement-detail-dialog .el-dialog__header {
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+>>> .announcement-detail-dialog .el-dialog__title {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+>>> .announcement-detail-dialog .el-dialog__headerbtn {
+  top: 20px;
+  right: 24px;
+}
+
+>>> .announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: var(--text-tertiary);
+  font-size: 18px;
+}
+
+>>> .announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close:hover {
+  color: var(--accent-primary);
+}
+
+>>> .announcement-detail-dialog .el-dialog__body {
+  padding: 20px 24px;
+  color: var(--text-secondary);
+}
+
+>>> .announcement-detail-dialog .el-dialog__footer {
+  padding: 12px 24px 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+>>> .announcement-detail-dialog .el-button {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  padding: 8px 24px;
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+>>> .announcement-detail-dialog .el-button:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.06);
+}
+
+.detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.detail-game-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 229, 160, 0.1);
+  color: var(--accent-primary);
+  border: 1px solid rgba(0, 229, 160, 0.2);
+}
+
+.detail-game-tag--global {
+  background: rgba(91, 140, 255, 0.1);
+  color: #5b8cff;
+  border-color: rgba(91, 140, 255, 0.2);
+}
+
+.detail-game-tag i {
+  font-size: 11px;
+}
+
+.detail-time {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-content {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 16px;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Mobile dialog */
+@media (max-width: 540px) {
+  >>> .announcement-detail-dialog {
+    width: 92% !important;
+    margin: 0 auto;
+  }
+
+  >>> .announcement-detail-dialog .el-dialog__header {
+    padding: 16px 16px 12px;
+  }
+
+  >>> .announcement-detail-dialog .el-dialog__body {
+    padding: 16px;
+  }
+
+  >>> .announcement-detail-dialog .el-dialog__footer {
+    padding: 12px 16px 16px;
   }
 }
 </style>

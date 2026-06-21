@@ -10,6 +10,7 @@
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
           <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
           <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
@@ -99,6 +100,7 @@
                   <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/'); mobileMenuOpen = false">主页</button>
                   <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches'); mobileMenuOpen = false">赛程</button>
                   <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard'); mobileMenuOpen = false">排行榜</button>
+                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about'); mobileMenuOpen = false">关于</button>
                   <button v-if="isAdmin" class="nav-btn drawer-nav-item admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin'); mobileMenuOpen = false">管理</button>
                 </div>
                 <div class="drawer-divider"></div>
@@ -126,7 +128,7 @@
 </template>
 
 <script>
-import { getToken, getUser, removeToken } from '@/utils/auth'
+import { getToken, getUser, removeToken, removeUser } from '@/utils/auth'
 import request from '@/utils/request'
 import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
 
@@ -138,14 +140,12 @@ export default {
       notificationPopoverVisible: false,
       recentNotifications: [],
       notificationPollTimer: null,
+      isLoggedIn: !!getToken(),
       currentUser: null,
       mobileMenuOpen: false
     }
   },
   computed: {
-    isLoggedIn() {
-      return !!getToken()
-    },
     user() {
       return this.currentUser || {}
     },
@@ -153,7 +153,7 @@ export default {
       return this.user.nickname || this.user.username || '用户'
     },
     isAdmin() {
-      return this.user && this.user.role === 1
+      return this.isLoggedIn && this.currentUser && this.currentUser.role === 1
     }
   },
   created() {
@@ -190,6 +190,7 @@ export default {
   methods: {
     refreshUser() {
       this.currentUser = getUser()
+      this.isLoggedIn = !!getToken()
     },
     toggleMobileMenu() {
       this.mobileMenuOpen = !this.mobileMenuOpen
@@ -199,7 +200,10 @@ export default {
         this.$router.push('/user')
       } else if (command === 'logout') {
         removeToken()
+        removeUser()
         this.currentUser = null
+        this.isLoggedIn = false
+        this.unreadCount = 0
         this.$router.push('/login')
       }
     },
@@ -608,6 +612,23 @@ a {
   color: var(--text-secondary) !important;
 }
 
+/* Element UI: Dialog Close Button */
+.el-dialog__close {
+  color: var(--text-tertiary) !important;
+  font-size: 18px !important;
+}
+.el-dialog__close:hover {
+  color: var(--text-primary) !important;
+}
+.el-dialog__close .el-icon-close,
+.el-dialog__close::before {
+  color: var(--text-tertiary) !important;
+}
+.el-dialog__close:hover .el-icon-close,
+.el-dialog__close:hover::before {
+  color: var(--text-primary) !important;
+}
+
 .el-overlay {
   background: rgba(5,5,8,0.75) !important;
   backdrop-filter: blur(4px);
@@ -657,6 +678,22 @@ a {
   background: var(--bg-surface-3) !important;
   border-color: var(--border-default) !important;
   color: var(--text-secondary) !important;
+}
+
+/* Element UI: Message Box Close Button */
+.el-message-box__close {
+  color: var(--text-tertiary) !important;
+}
+.el-message-box__close:hover {
+  color: var(--text-primary) !important;
+}
+.el-message-box__close .el-icon-close,
+.el-message-box__close::before {
+  color: var(--text-tertiary) !important;
+}
+.el-message-box__close:hover .el-icon-close,
+.el-message-box__close:hover::before {
+  color: var(--text-primary) !important;
 }
 
 /* Admin Confirm Warning Dialog */
@@ -717,9 +754,80 @@ a {
   border-radius: var(--radius-md) !important;
 }
 
-/* Element UI: Date Picker */
+/* Element UI: Date Picker (full dark) */
 .el-date-picker {
   background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+}
+.el-date-picker__header-label {
+  color: var(--text-secondary) !important;
+}
+.el-date-picker__header-label:hover {
+  color: var(--accent-primary) !important;
+}
+.el-picker-panel__icon-btn {
+  color: var(--text-tertiary) !important;
+}
+.el-picker-panel__icon-btn:hover {
+  color: var(--accent-primary) !important;
+}
+/* Date table cells */
+.el-date-table th {
+  color: var(--text-tertiary) !important;
+  border-bottom-color: var(--border-subtle) !important;
+}
+.el-date-table td {
+  color: var(--text-secondary) !important;
+}
+.el-date-table td.available:hover {
+  color: var(--accent-primary) !important;
+  background: rgba(0,229,160,0.08) !important;
+}
+.el-date-table td.current:not(.disabled) span {
+  background: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+.el-date-table td.today span {
+  color: var(--accent-primary) !important;
+  font-weight: 600;
+}
+.el-date-table td.next-month,
+.el-date-table td.prev-month {
+  color: var(--text-tertiary) !important;
+  opacity: 0.4;
+}
+.el-date-table td.disabled {
+  color: var(--text-tertiary) !important;
+  opacity: 0.25;
+}
+/* Month/year picker */
+.el-month-table td,
+.el-year-table td {
+  color: var(--text-secondary) !important;
+}
+.el-month-table td.current:not(.disabled) .cell,
+.el-year-table td.current:not(.disabled) .cell {
+  background: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+.el-month-table td .cell:hover,
+.el-year-table td .cell:hover {
+  color: var(--accent-primary) !important;
+  background: rgba(0,229,160,0.08) !important;
+}
+/* Time picker panel (if date picker includes time) */
+.el-time-panel {
+  background: var(--bg-surface-2) !important;
+  border-left-color: var(--border-default) !important;
+}
+.el-time-panel__footer {
+  border-top-color: var(--border-subtle) !important;
+}
+.el-time-spinner__item {
+  color: var(--text-secondary) !important;
+}
+.el-time-spinner__item.active:not(.disabled) {
+  color: var(--accent-primary) !important;
 }
 
 /* Element UI: Pagination */
@@ -922,6 +1030,16 @@ a {
 .el-pagination .btn-prev:disabled,
 .el-pagination .btn-next:disabled {
   background: var(--bg-surface-2) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Pagination total/jumper text */
+.el-pagination__total {
+  color: var(--text-tertiary) !important;
+  font-size: 13px;
+  margin-right: 12px;
+}
+.el-pagination__jumper {
   color: var(--text-tertiary) !important;
 }
 

@@ -219,7 +219,9 @@ public class EggBetService {
                         new LambdaUpdateWrapper<EggUser>()
                                 .eq(EggUser::getId, bet.getUserId())
                                 .setSql("points = points + " + bet.getBetAmount())
+                                .setSql("win_streak = 0")
                 );
+                // net_profit: 平局不赚不亏，净收益变化为 0，无需更新
                 notificationService.create(bet.getUserId(), 2, "押注结算",
                         matchTitle + "：平局，积分已退还", matchId);
             } else if (bet.getBetSide().equals(matchResult)) {
@@ -260,6 +262,13 @@ public class EggBetService {
                 }
                 notificationService.create(bet.getUserId(), 2, "押注结算",
                         matchTitle + "：恭喜猜中！获得 " + netPoints + " 积分", matchId);
+                // net_profit: 赢分 - 本金 = 净赚
+                int netProfitDelta = winAmount - bet.getBetAmount();
+                eggUserMapper.update(null,
+                        new LambdaUpdateWrapper<EggUser>()
+                                .eq(EggUser::getId, bet.getUserId())
+                                .setSql("net_profit = net_profit + " + netProfitDelta)
+                );
             } else {
                 // 未中
                 bet.setStatus(2);
@@ -273,10 +282,23 @@ public class EggBetService {
                                 .eq(EggUser::getId, bet.getUserId())
                                 .set(EggUser::getWinStreak, 0)
                 );
+                // net_profit: 输掉本金，净收益减少
+                eggUserMapper.update(null,
+                        new LambdaUpdateWrapper<EggUser>()
+                                .eq(EggUser::getId, bet.getUserId())
+                                .setSql("net_profit = net_profit - " + bet.getBetAmount())
+                );
                 notificationService.create(bet.getUserId(), 2, "押注结算",
                         matchTitle + "：很遗憾未猜中", matchId);
             }
         }
+
+        // 标记赛事已结算，防止重复结算
+        eggMatchMapper.update(null,
+                new LambdaUpdateWrapper<EggMatch>()
+                        .eq(EggMatch::getId, matchId)
+                        .set(EggMatch::getSettledAt, LocalDateTime.now())
+        );
     }
 
     /**

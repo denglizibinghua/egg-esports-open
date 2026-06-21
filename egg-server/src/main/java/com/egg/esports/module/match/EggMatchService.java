@@ -1,6 +1,7 @@
 package com.egg.esports.module.match;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.egg.esports.common.BusinessException;
@@ -397,6 +398,13 @@ public class EggMatchService {
 
         // 联动结算所有押注
         betService.settleBet(matchId, result);
+
+        // 确保 settled_at 被设置（即使无待结算押注）
+        matchMapper.update(null,
+                new LambdaUpdateWrapper<EggMatch>()
+                        .eq(EggMatch::getId, matchId)
+                        .set(EggMatch::getSettledAt, LocalDateTime.now())
+        );
 
         return match;
     }
