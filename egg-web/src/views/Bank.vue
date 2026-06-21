@@ -44,6 +44,58 @@
         </div>
       </div>
 
+      <!-- Relief Loan -->
+      <div class="bank-section" v-if="status.canClaimLoan">
+        <h4 class="section-title">🆘 申请救济贷款</h4>
+        <div class="stipend-section">
+          <p class="stipend-desc">积分不足时，可申请 <em style="color:var(--accent-primary);font-weight:700">500</em> 救济贷款。贷款会记为债务，赢注后自动还贷。</p>
+          <el-button
+            type="primary"
+            :loading="claimingLoan"
+            @click="claimLoan"
+            class="repay-btn"
+          >申请 500 贷款</el-button>
+        </div>
+      </div>
+
+      <!-- Rules -->
+      <div class="bank-section">
+        <h4 class="section-title">📋 银行规则</h4>
+        <div class="rules-list">
+          <div class="rule-item">
+            <span class="rule-icon">🆘</span>
+            <div class="rule-body">
+              <strong>救济贷款</strong>
+              <p>下注时积分不够？自动借 <em>500</em> 分给你。贷款上限 <em>2000</em> 分，到达上限后不可再借。</p>
+            </div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">💸</span>
+            <div class="rule-body">
+              <strong>自动还贷</strong>
+              <p>押注猜中后，利润的 <em>50%</em> 自动抵扣贷款，无需手动操作。还清为止。</p>
+            </div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">🎁</span>
+            <div class="rule-body">
+              <strong>每日低保</strong>
+              <p>积分归零 + 贷款已满额时，每天可领 <em>100</em> 分（白送，不是贷款）。每天 00:01 重置。</p>
+            </div>
+          </div>
+          <div class="rule-item">
+            <span class="rule-icon">💰</span>
+            <div class="rule-body">
+              <strong>手动还款</strong>
+              <p>有闲余积分时可主动还贷，降低负债惩罚。还款实时生效。</p>
+            </div>
+          </div>
+        </div>
+        <div class="rule-note">
+          ⚠️ 贷款余额为负数即债务。债务会降低你的<b>排名分</b>（排行榜积分，不影响净收益榜）。净收益榜只看押注输赢，贷款和低保均不计入，<b>充分体现你的真实实力</b>。
+        </div>
+      </div>
+
       <!-- Manual Repay -->
       <div class="bank-section" v-if="status.loanAmount < 0">
         <h4 class="section-title">主动还款</h4>
@@ -90,7 +142,7 @@
           <div v-else class="stipend-unavailable">
             <p class="stipend-desc">
               <template v-if="userPoints > 0">你还有可用积分，无需领取低保。</template>
-              <template v-else-if="status.loanAmount >= 0 && Math.abs(status.loanAmount) < status.loanLimit">贷款额度未用完，还可以申请救济贷款。</template>
+              <template v-else-if="status.loanAmount >= 0 && Math.abs(status.loanAmount) < status.loanLimit">贷款额度未用完，下注时积分不够会自动借给你。</template>
               <template v-else>今日已领取或条件不满足。</template>
             </p>
             <el-button type="info" disabled>明天 00:01 重置</el-button>
@@ -130,6 +182,7 @@ export default {
       repayAmount: 100,
       repaying: false,
       claimingStipend: false,
+      claimingLoan: false,
       stipendAmount: 100
     }
   },
@@ -171,6 +224,19 @@ export default {
         this.$message.error(msg)
       }.bind(this)).finally(function () {
         this.repaying = false
+      }.bind(this))
+    },
+    claimLoan() {
+      this.claimingLoan = true
+      request.post('/loan/relief').then(function (res) {
+        var data = res.data || res
+        this.$message.success('借款成功! +500 积分，记得赢了还贷哦')
+        this.fetchData()
+      }.bind(this)).catch(function (err) {
+        var msg = (err && err.response && err.response.data && err.response.data.message) || '借款失败'
+        this.$message.error(msg)
+      }.bind(this)).finally(function () {
+        this.claimingLoan = false
       }.bind(this))
     },
     claimStipend() {
@@ -340,6 +406,66 @@ export default {
   margin: 0 0 20px 0;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-subtle);
+}
+
+/* ── Rules ── */
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.rule-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.rule-body strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.rule-body p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.rule-body em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+}
+
+.rule-note {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.7;
+  padding: 10px 14px;
+  background: rgba(91, 140, 255, 0.06);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #5b8cff;
+}
+
+.rule-note b {
+  color: #5b8cff;
 }
 
 /* Repay Form */

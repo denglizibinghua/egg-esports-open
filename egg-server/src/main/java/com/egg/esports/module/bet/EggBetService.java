@@ -101,7 +101,7 @@ public class EggBetService {
         // 3.7 如果用户积分不足，尝试发放救济贷款
         EggUser user = eggUserMapper.selectById(userId);
         if (user.getPoints() < betAmount) {
-            boolean gotLoan = loanService.tryReliefLoan(user);
+            boolean gotLoan = loanService.tryReliefLoan(user, betAmount);
             if (gotLoan) {
                 // 重新读取用户积分
                 user = eggUserMapper.selectById(userId);
