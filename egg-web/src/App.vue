@@ -535,6 +535,17 @@ a {
   color: var(--text-tertiary) !important;
 }
 
+/* Element Plus: 输入框字数统计 */
+.el-input__count {
+  color: var(--text-tertiary) !important;
+  background: transparent !important;
+}
+
+.el-input__count-inner {
+  color: var(--text-tertiary) !important;
+  background: transparent !important;
+}
+
 /* Element Plus: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
