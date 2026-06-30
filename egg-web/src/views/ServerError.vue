@@ -20,7 +20,8 @@
       <p class="error-desc">服务器暂时无法处理你的请求，请稍后重试</p>
       <router-link to="/">
         <el-button type="primary" class="error-btn" round>
-          <i class="el-icon-back"></i>
+          <!-- Element Plus：字体图标改为 SVG 组件 -->
+          <el-icon><Back /></el-icon>
           返回首页
         </el-button>
       </router-link>
@@ -29,8 +30,12 @@
 </template>
 
 <script>
+// Element Plus 图标按需引入（用于模板中的 <Back /> 标签）
+import { Back } from '@element-plus/icons-vue'
+
 export default {
-  name: 'ServerError'
+  name: 'ServerError',
+  components: { Back }
 }
 </script>
 

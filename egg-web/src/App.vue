@@ -7,16 +7,16 @@
           <router-link to="/" class="logo">EGG ESPORTS</router-link>
         </div>
         <div class="header-right">
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
+          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
+          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
           <!-- 银行按钮（仅登录后显示，带债务小红点） -->
           <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
-            <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
           </el-badge>
           <!-- 关于按钮（公开） -->
-          <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
-          <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
+          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
+          <el-button v-if="isAdmin" link class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
           <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
             <!-- Notification Bell -->
@@ -25,12 +25,12 @@
                 placement="bottom"
                 width="360"
                 trigger="click"
-                v-model="notificationPopoverVisible"
+                v-model:visible="notificationPopoverVisible"
               >
                 <div class="notification-preview">
                   <div class="notification-preview-header">
                     <span class="notification-preview-title">通知</span>
-                    <el-button type="text" size="small" @click="markAllRead">全部已读</el-button>
+                    <el-button link size="small" @click="markAllRead">全部已读</el-button>
                   </div>
                   <div v-if="recentNotifications.length === 0" class="notification-empty">
                     暂无通知
@@ -44,7 +44,8 @@
                       @click="handleNotificationClick(item)"
                     >
                       <div class="notification-item-icon">
-                        <i :class="getNotificationIcon(item.type)"></i>
+                        <!-- Element Plus：图标改为组件方式 -->
+                        <el-icon><component :is="getNotificationIcon(item.type)" /></el-icon>
                       </div>
                       <div class="notification-item-content">
                         <div class="notification-item-title">{{ item.title }}</div>
@@ -54,29 +55,35 @@
                     </div>
                   </div>
                   <div class="notification-preview-footer">
-                    <router-link to="/notifications" @click.native="notificationPopoverVisible = false">
+                    <router-link to="/notifications" @click="notificationPopoverVisible = false">
                       查看全部通知
                     </router-link>
                   </div>
                 </div>
-                <el-button slot="reference" class="nav-btn nav-bell-btn" :class="{ 'has-notification': unreadCount > 0 }">
-                  <i class="el-icon-bell"></i>
-                </el-button>
+                <!-- Element Plus：slot="reference" → #reference -->
+                <template #reference>
+                  <el-button class="nav-btn nav-bell-btn" :class="{ 'has-notification': unreadCount > 0 }">
+                    <el-icon><Bell /></el-icon>
+                  </el-button>
+                </template>
               </el-popover>
             </el-badge>
             <el-dropdown trigger="hover" @command="handleUserCommand">
               <span class="user-dropdown-trigger">
                 {{ userNickname }}
-                <i class="el-icon-arrow-down el-icon--right"></i>
+                <el-icon class="el-icon--right"><ArrowDown /></el-icon>
               </span>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="profile" icon="el-icon-user">个人中心</el-dropdown-item>
-                <el-dropdown-item command="logout" icon="el-icon-switch-button" divided>退出登录</el-dropdown-item>
-              </el-dropdown-menu>
+              <!-- Element Plus：slot="dropdown" → #dropdown；icon 属性改为组件 -->
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="profile" :icon="User">个人中心</el-dropdown-item>
+                  <el-dropdown-item command="logout" :icon="SwitchButton" divided>退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
+            <el-button link class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
         </div>
       </el-header>
@@ -90,6 +97,9 @@
 </template>
 
 <script>
+// Element Plus 图标按需引入（用于 :icon 属性绑定与动态 component）
+import { markRaw } from 'vue'
+import { Bell, ArrowDown, User, SwitchButton, CircleCheck, ChatDotSquare, MagicStick, InfoFilled } from '@element-plus/icons-vue'
 import { getToken, getUser, removeToken } from '@/utils/auth'
 import request from '@/utils/request'
 import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
@@ -108,7 +118,12 @@ export default {
       notificationPollTimer: null,
       currentUser: null,
       loanDebt: 0,
-      appToken: getToken()
+      appToken: getToken(),
+      // 暴露给模板的图标组件引用（用于 :icon 属性，用 markRaw 避免响应化触发 Vue 警告）
+      Bell: markRaw(Bell),
+      ArrowDown: markRaw(ArrowDown),
+      User: markRaw(User),
+      SwitchButton: markRaw(SwitchButton)
     }
   },
   computed: {
@@ -150,7 +165,8 @@ export default {
       }
     }
   },
-  beforeDestroy() {
+  // Vue 3：beforeDestroy → beforeUnmount
+  beforeUnmount() {
     if (this.notificationPollTimer) {
       clearInterval(this.notificationPollTimer)
       this.notificationPollTimer = null
@@ -227,14 +243,15 @@ export default {
       }
       this.notificationPopoverVisible = false
     },
+    // Element Plus：返回图标组件引用而非类名字符串
     getNotificationIcon(type) {
       var icons = {
-        1: 'el-icon-bell',
-        2: 'el-icon-s-check',
-        3: 'el-icon-chat-dot-square',
-        4: 'el-icon-attract'
+        1: Bell,
+        2: CircleCheck,
+        3: ChatDotSquare,
+        4: MagicStick
       }
-      return icons[type] || 'el-icon-info'
+      return icons[type] || InfoFilled
     },
     formatNotificationTime(time) {
       if (!time) return ''
@@ -428,7 +445,7 @@ a {
   text-decoration: none;
 }
 
-/* Element UI: Card */
+/* Element Plus: Card */
 .el-card {
   background: var(--bg-surface-1) !important;
   border: 1px solid var(--border-subtle) !important;
@@ -441,7 +458,7 @@ a {
   border-bottom-color: var(--border-subtle) !important;
 }
 
-/* Element UI: Table */
+/* Element Plus: Table */
 .el-table {
   background: transparent !important;
   color: var(--text-primary) !important;
@@ -476,7 +493,7 @@ a {
   background: var(--bg-surface-2) !important;
 }
 
-/* Element UI: Tabs */
+/* Element Plus: Tabs */
 .el-tabs__item {
   color: var(--text-secondary) !important;
   font-weight: 500;
@@ -491,30 +508,34 @@ a {
   background-color: var(--accent-primary) !important;
 }
 
-/* Element UI: Input */
-.el-input__inner {
+/* Element Plus: Input — 注意 EP 把边框移到了 .el-input__wrapper */
+.el-input__wrapper {
   background: var(--bg-surface-1) !important;
   border-color: var(--border-default) !important;
-  color: var(--text-primary) !important;
   border-radius: var(--radius-md) !important;
+  box-shadow: 0 0 0 1px var(--border-default) inset !important;
+  transition: box-shadow var(--duration-fast) ease !important;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-input__wrapper:focus-within {
+  box-shadow: 0 0 0 1px var(--accent-primary) inset, 0 0 0 3px rgba(0,229,160,0.15) !important;
+}
+
+.el-input__inner {
+  color: var(--text-primary) !important;
   font-family: var(--font-body) !important;
-  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
-}
-
-.el-input__inner:hover {
-  border-color: var(--border-strong) !important;
-}
-
-.el-input__inner:focus {
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
 }
 
 .el-input__inner::placeholder {
   color: var(--text-tertiary) !important;
 }
 
-/* Element UI: Dialog */
+/* Element Plus: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
   border: 1px solid var(--border-default) !important;
@@ -542,7 +563,7 @@ a {
   backdrop-filter: blur(4px);
 }
 
-/* Element UI: Select Dropdown */
+/* Element Plus: Select Dropdown */
 .el-select-dropdown {
   background: var(--bg-surface-2) !important;
   border-color: var(--border-default) !important;
@@ -557,23 +578,23 @@ a {
   background: var(--bg-surface-3) !important;
 }
 
-/* Element UI: Form */
+/* Element Plus: Form */
 .el-form-item__label {
   color: var(--text-secondary) !important;
 }
 
-/* Element UI: Message Box */
+/* Element Plus: Message Box */
 .el-message-box {
   background: var(--bg-surface-2) !important;
   border-color: var(--border-default) !important;
 }
 
-/* Element UI: Date Picker */
+/* Element Plus: Date Picker */
 .el-date-picker {
   background: var(--bg-surface-2) !important;
 }
 
-/* Element UI: Pagination */
+/* Element Plus: Pagination */
 .el-pagination {
   text-align: center;
   margin-top: 20px;
@@ -837,6 +858,9 @@ a {
   width: 24px;
   text-align: center;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notification-item-content {

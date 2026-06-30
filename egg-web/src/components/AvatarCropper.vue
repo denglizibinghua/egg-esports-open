@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     title="裁剪头像"
-    :visible.sync="dialogVisible"
+    v-model="dialogVisible"
     width="520px"
     :close-on-click-modal="false"
     custom-class="cropper-dialog"
@@ -49,12 +49,12 @@
       <div class="cropper-controls">
         <div class="cropper-controls-left">
           <el-button-group size="small">
-            <el-button icon="el-icon-zoom-out" @click="zoom(-0.15)"></el-button>
-            <el-button icon="el-icon-zoom-in" @click="zoom(0.15)"></el-button>
+            <el-button :icon="ZoomOut" @click="zoom(-0.15)"></el-button>
+            <el-button :icon="ZoomIn" @click="zoom(0.15)"></el-button>
           </el-button-group>
           <el-button-group size="small" style="margin-left:6px">
-            <el-button icon="el-icon-refresh-left" @click="rotateL"></el-button>
-            <el-button icon="el-icon-refresh-right" @click="rotateR"></el-button>
+            <el-button :icon="RefreshLeft" @click="rotateL"></el-button>
+            <el-button :icon="RefreshRight" @click="rotateR"></el-button>
           </el-button-group>
           <el-button-group size="small" style="margin-left:6px">
             <el-button @click="reset">重置</el-button>
@@ -63,35 +63,45 @@
       </div>
     </div>
 
-    <span slot="footer">
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="uploading" :disabled="!imgSrc" @click="confirm">
-        保存头像
-      </el-button>
-    </span>
+    <template #footer>
+      <span>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="uploading" :disabled="!imgSrc" @click="confirm">
+          保存头像
+        </el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
 
 <script>
 import { VueCropper } from 'vue-cropper'
+import 'vue-cropper/dist/index.css'
+import { markRaw } from 'vue'
+import { ZoomIn, ZoomOut, RefreshLeft, RefreshRight } from '@element-plus/icons-vue'
 import request from '@/utils/request'
 
 export default {
   name: 'AvatarCropper',
-  components: { VueCropper },
+  components: { VueCropper, ZoomIn, ZoomOut, RefreshLeft, RefreshRight },
   props: {
-    value: { type: Boolean, default: false }
+    modelValue: { type: Boolean, default: false }
   },
   data() {
     return {
       imgSrc: '',
-      uploading: false
+      uploading: false,
+      // 用 markRaw 包装避免图标组件被响应化触发 Vue 警告
+      ZoomIn: markRaw(ZoomIn),
+      ZoomOut: markRaw(ZoomOut),
+      RefreshLeft: markRaw(RefreshLeft),
+      RefreshRight: markRaw(RefreshRight)
     }
   },
   computed: {
     dialogVisible: {
-      get() { return this.value },
-      set(v) { this.$emit('input', v) }
+      get() { return this.modelValue },
+      set(v) { this.$emit('update:modelValue', v) }
     }
   },
   methods: {
@@ -226,20 +236,20 @@ export default {
 }
 
 /* ── vue-cropper 内部暗色覆盖 ── */
-.cropper-box >>> .vue-cropper .cropper-modal {
+.cropper-box :deep(.vue-cropper .cropper-modal) {
   background: rgba(0, 0, 0, 0.65) !important;
 }
-.cropper-box >>> .vue-cropper .cropper-view-box {
+.cropper-box :deep(.vue-cropper .cropper-view-box) {
   outline: 1px solid rgba(255, 255, 255, 0.25);
   outline-offset: -1px;
 }
-.cropper-box >>> .vue-cropper .cropper-face {
+.cropper-box :deep(.vue-cropper .cropper-face) {
   background: transparent !important;
 }
-.cropper-box >>> .vue-cropper .cropper-line {
+.cropper-box :deep(.vue-cropper .cropper-line) {
   background: transparent !important;
 }
-.cropper-box >>> .vue-cropper .cropper-point {
+.cropper-box :deep(.vue-cropper .cropper-point) {
   background: var(--accent-primary);
   border: 2px solid var(--bg-surface-1);
   width: 10px;

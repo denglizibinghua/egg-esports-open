@@ -8,12 +8,12 @@
       <el-tab-pane label="赛事管理" name="match">
         <div class="tab-header">
           <el-radio-group v-model="matchStatus" size="small" @change="fetchMatches">
-            <el-radio-button label="all">全部</el-radio-button>
-            <el-radio-button label="0">未开始</el-radio-button>
-            <el-radio-button label="1">进行中</el-radio-button>
-            <el-radio-button label="2">已结束</el-radio-button>
+            <el-radio-button value="all">全部</el-radio-button>
+            <el-radio-button value="0">未开始</el-radio-button>
+            <el-radio-button value="1">进行中</el-radio-button>
+            <el-radio-button value="2">已结束</el-radio-button>
           </el-radio-group>
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="$router.push('/admin/match/create')">添加赛事</el-button>
+          <el-button type="primary" size="small" :icon="Plus" @click="$router.push('/admin/match/create')">添加赛事</el-button>
         </div>
 
         <!-- Loading Skeleton -->
@@ -57,12 +57,12 @@
             <el-table-column label="B队" width="120" prop="teamB" />
             <el-table-column label="联赛" width="120" prop="tournament" />
             <el-table-column label="时间" width="160">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ formatDate(scope.row.matchTime) }}
               </template>
             </el-table-column>
             <el-table-column label="状态" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span v-if="scope.row.status === 0" class="status-badge status-badge--upcoming">
                   <span class="status-dot"></span>未开始
                 </span>
@@ -73,7 +73,7 @@
               </template>
             </el-table-column>
             <el-table-column label="结果" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <template v-if="scope.row.status === 2">
                   <template v-if="scope.row.result === 0">A胜</template>
                   <template v-else-if="scope.row.result === 1">B胜</template>
@@ -84,11 +84,11 @@
               </template>
             </el-table-column>
             <el-table-column label="操作" width="180" align="center">
-              <template slot-scope="scope">
-                <el-button type="text" size="small" @click="$router.push('/admin/match/' + scope.row.id)">编辑</el-button>
+              <template #default="scope">
+                <el-button link size="small" @click="$router.push('/admin/match/' + scope.row.id)">编辑</el-button>
                 <el-button
                   v-if="scope.row.status === 2 && (scope.row.result === null || scope.row.result === undefined)"
-                  type="text"
+                  link
                   size="small"
                   class="settle-btn"
                   @click="openSettleDialog(scope.row)"
@@ -106,7 +106,7 @@
           layout="prev, pager, next"
           :total="total"
           :page-size="pageSize"
-          :current-page.sync="currentPage"
+          v-model:current-page="currentPage"
           @current-change="fetchMatches"
         />
       </el-tab-pane>
@@ -142,19 +142,19 @@
 
             <el-table :data="importParsedList" style="width: 100%" max-height="360" size="small">
               <el-table-column label="序号" width="60" align="center">
-                <template slot-scope="scope">{{ scope.$index + 1 }}</template>
+                <template #default="scope">{{ scope.$index + 1 }}</template>
               </el-table-column>
               <el-table-column label="标题" min-width="150" prop="title" />
               <el-table-column label="A队" width="120" prop="teamA" />
               <el-table-column label="B队" width="120" prop="teamB" />
               <el-table-column label="联赛" width="120" prop="tournament">
-                <template slot-scope="scope">{{ scope.row.tournament || '-' }}</template>
+                <template #default="scope">{{ scope.row.tournament || '-' }}</template>
               </el-table-column>
               <el-table-column label="比赛时间" width="160">
-                <template slot-scope="scope">{{ formatDate(scope.row.matchTime) }}</template>
+                <template #default="scope">{{ formatDate(scope.row.matchTime) }}</template>
               </el-table-column>
               <el-table-column label="状态" width="100" align="center">
-                <template slot-scope="scope">
+                <template #default="scope">
                   <span :class="['status-badge', statusBadgeClass(scope.row.status)]">
                     <span class="status-dot"></span>{{ statusLabel(scope.row.status) }}
                   </span>
@@ -176,7 +176,7 @@
             />
             <div v-if="importResult.errors && importResult.errors.length > 0" class="import-errors">
               <div class="import-errors-toggle" @click="importErrorsExpanded = !importErrorsExpanded">
-                <i :class="importErrorsExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"></i>
+                <el-icon><component :is="importErrorsExpanded ? 'ArrowDown' : 'ArrowRight'" /></el-icon>
                 <span>查看失败详情 ({{ importResult.errors.length }} 条)</span>
               </div>
               <div v-if="importErrorsExpanded" class="import-errors-list">
@@ -198,7 +198,7 @@
               type="primary"
               :loading="syncLoading"
               :disabled="syncLoading"
-              icon="el-icon-refresh"
+              :icon="Refresh"
               @click="triggerSync"
             >
               {{ syncLoading ? '正在同步...' : '从 Riot API 同步赛事数据' }}
@@ -263,7 +263,7 @@
       <el-tab-pane label="公告管理" name="announcement">
         <div class="tab-header">
           <span class="announcement-tab-title">公告列表</span>
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="openAnnouncementDialog()">发布公告</el-button>
+          <el-button type="primary" size="small" :icon="Plus" @click="openAnnouncementDialog()">发布公告</el-button>
         </div>
 
         <div v-if="announcementLoading" class="skeleton-table">
@@ -294,12 +294,12 @@
           <el-table :data="announcements" style="width: 100%">
             <el-table-column label="标题" min-width="150" prop="title" />
             <el-table-column label="关联游戏" width="120">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ getGameName(scope.row.gameId) || '全部' }}
               </template>
             </el-table-column>
             <el-table-column label="状态" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span v-if="scope.row.status === 1" class="status-badge status-badge--live">
                   <span class="status-dot status-dot--pulse"></span>活跃
                 </span>
@@ -309,19 +309,19 @@
               </template>
             </el-table-column>
             <el-table-column label="时间范围" width="220">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span class="ann-time-range">{{ formatDate(scope.row.startTime) }} ~ {{ formatDate(scope.row.endTime) }}</span>
               </template>
             </el-table-column>
             <el-table-column label="创建时间" width="160">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ formatDate(scope.row.createTime) }}
               </template>
             </el-table-column>
             <el-table-column label="操作" width="140" align="center">
-              <template slot-scope="scope">
-                <el-button type="text" size="small" @click="openAnnouncementDialog(scope.row)">编辑</el-button>
-                <el-button type="text" size="small" class="delete-btn" @click="handleDeleteAnnouncement(scope.row)">删除</el-button>
+              <template #default="scope">
+                <el-button link size="small" @click="openAnnouncementDialog(scope.row)">编辑</el-button>
+                <el-button link size="small" class="delete-btn" @click="handleDeleteAnnouncement(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -333,7 +333,7 @@
           layout="prev, pager, next"
           :total="announcementTotal"
           :page-size="announcementPageSize"
-          :current-page.sync="announcementPage"
+          v-model:current-page="announcementPage"
           @current-change="fetchAnnouncements"
         />
       </el-tab-pane>
@@ -341,7 +341,7 @@
       <el-tab-pane label="游戏管理" name="game">
         <div class="tab-header">
           <span class="announcement-tab-title">游戏列表</span>
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="openGameDialog()">添加游戏</el-button>
+          <el-button type="primary" size="small" :icon="Plus" @click="openGameDialog()">添加游戏</el-button>
         </div>
 
         <!-- Loading Skeleton -->
@@ -378,7 +378,7 @@
             <el-table-column label="ID" width="70" prop="id" />
             <el-table-column label="游戏名称" min-width="150" prop="name" />
             <el-table-column label="图标" width="120" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <el-image
                   v-if="scope.row.icon"
                   :src="scope.row.icon"
@@ -390,7 +390,7 @@
             </el-table-column>
             <el-table-column label="排序" width="80" align="center" prop="sortOrder" />
             <el-table-column label="状态" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span v-if="scope.row.status === 1" class="status-badge status-badge--live">
                   <span class="status-dot status-dot--pulse"></span>启用
                 </span>
@@ -400,9 +400,9 @@
               </template>
             </el-table-column>
             <el-table-column label="操作" width="140" align="center">
-              <template slot-scope="scope">
-                <el-button type="text" size="small" @click="openGameDialog(scope.row)">编辑</el-button>
-                <el-button type="text" size="small" class="delete-btn" @click="handleDeleteGame(scope.row)">删除</el-button>
+              <template #default="scope">
+                <el-button link size="small" @click="openGameDialog(scope.row)">编辑</el-button>
+                <el-button link size="small" class="delete-btn" @click="handleDeleteGame(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -411,26 +411,26 @@
     </el-tabs>
 
     <!-- Settle Dialog -->
-    <el-dialog title="赛事结算" :visible.sync="settleDialogVisible" width="400px" custom-class="settle-dialog">
+    <el-dialog title="赛事结算" v-model="settleDialogVisible" width="400px" custom-class="settle-dialog">
       <div class="settle-content">
         <p class="settle-match-name">{{ settleMatch ? settleMatch.teamA + ' VS ' + settleMatch.teamB : '' }}</p>
         <p class="settle-label">选择比赛结果：</p>
         <el-radio-group v-model="settleResult">
-          <el-radio :label="0">{{ settleMatch ? settleMatch.teamA : 'A队' }} 获胜</el-radio>
-          <el-radio :label="1">{{ settleMatch ? settleMatch.teamB : 'B队' }} 获胜</el-radio>
-          <el-radio :label="2">平局</el-radio>
+          <el-radio :value="0">{{ settleMatch ? settleMatch.teamA : 'A队' }} 获胜</el-radio>
+          <el-radio :value="1">{{ settleMatch ? settleMatch.teamB : 'B队' }} 获胜</el-radio>
+          <el-radio :value="2">平局</el-radio>
         </el-radio-group>
       </div>
-      <span slot="footer">
+      <template #footer>
         <el-button @click="settleDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="settleLoading" @click="handleSettle">确认结算</el-button>
-      </span>
+      </template>
     </el-dialog>
 
     <!-- Announcement Dialog -->
     <el-dialog
       :title="announcementForm.id ? '编辑公告' : '发布公告'"
-      :visible.sync="announcementDialogVisible"
+      v-model="announcementDialogVisible"
       width="520px"
     >
       <el-form :model="announcementForm" label-width="80px" class="announcement-form">
@@ -488,18 +488,18 @@
           <el-input-number v-model="announcementForm.sortOrder" :min="0" :max="999" />
         </el-form-item>
       </el-form>
-      <span slot="footer">
+      <template #footer>
         <el-button @click="announcementDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="announcementSubmitting" @click="handleSaveAnnouncement">
           {{ announcementForm.id ? '保存修改' : '发布' }}
         </el-button>
-      </span>
+      </template>
     </el-dialog>
 
     <!-- Game Dialog -->
     <el-dialog
       :title="gameForm.id ? '编辑游戏' : '添加游戏'"
-      :visible.sync="gameDialogVisible"
+      v-model="gameDialogVisible"
       width="480px"
     >
       <el-form :model="gameForm" label-width="80px" class="announcement-form">
@@ -522,23 +522,29 @@
           />
         </el-form-item>
       </el-form>
-      <span slot="footer">
+      <template #footer>
         <el-button @click="gameDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="gameSubmitting" @click="handleSaveGame">
           {{ gameForm.id ? '保存修改' : '添加' }}
         </el-button>
-      </span>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
+import { Plus, Refresh } from '@element-plus/icons-vue'
 
 export default {
   name: 'AdminDashboard',
+  components: { Plus, Refresh },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      Plus: markRaw(Plus),
+      Refresh: markRaw(Refresh),
       activeTab: 'match',
       matches: [],
       loading: false,
@@ -1127,7 +1133,7 @@ export default {
   margin-bottom: 12px;
 }
 
-.import-textarea >>> .el-textarea__inner {
+.import-textarea :deep(.el-textarea__inner) {
   background: var(--bg-surface-1);
   border-color: var(--border-subtle);
   color: var(--text-primary);
@@ -1137,11 +1143,11 @@ export default {
   resize: vertical;
 }
 
-.import-textarea >>> .el-textarea__inner:focus {
+.import-textarea :deep(.el-textarea__inner:focus) {
   border-color: var(--accent-primary);
 }
 
-.import-textarea >>> .el-textarea__inner::placeholder {
+.import-textarea :deep(.el-textarea__inner::placeholder) {
   color: var(--text-tertiary);
   opacity: 0.6;
 }

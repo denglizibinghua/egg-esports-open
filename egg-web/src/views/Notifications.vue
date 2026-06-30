@@ -2,7 +2,7 @@
   <div class="notifications-page">
     <div class="page-header">
       <h1 class="page-title">通知</h1>
-      <el-button v-if="unreadCount > 0" type="text" class="mark-all-btn" @click="markAllRead">
+      <el-button v-if="unreadCount > 0" link class="mark-all-btn" @click="markAllRead">
         全部标为已读 ({{ unreadCount }})
       </el-button>
     </div>
@@ -52,7 +52,7 @@
         @click="handleClick(item)"
       >
         <div class="notification-card-icon">
-          <i :class="getIcon(item.type)"></i>
+          <el-icon><component :is="getIcon(item.type)" /></el-icon>
         </div>
         <div class="notification-card-body">
           <div class="notification-card-header">
@@ -75,7 +75,7 @@
       layout="total, prev, pager, next"
       :total="total"
       :page-size="pageSize"
-      :current-page.sync="currentPage"
+      v-model:current-page="currentPage"
       @current-change="fetchNotifications"
     />
   </div>
@@ -84,9 +84,11 @@
 <script>
 import request from '@/utils/request'
 import { getToken } from '@/utils/auth'
+import { Bell, CircleCheck, ChatDotSquare, MagicStick, Message, InfoFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'NotificationList',
+  components: { Bell, CircleCheck, ChatDotSquare, MagicStick, Message, InfoFilled },
   data() {
     return {
       loading: true,
@@ -108,7 +110,7 @@ export default {
     this.fetchUnreadCount()
     this.startPolling()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopPolling()
   },
   methods: {
@@ -199,13 +201,13 @@ export default {
     },
     getIcon(type) {
       var icons = {
-        1: 'el-icon-bell',
-        2: 'el-icon-s-check',
-        3: 'el-icon-chat-dot-square',
-        4: 'el-icon-attract',
-        5: 'el-icon-message'
+        1: Bell,
+        2: CircleCheck,
+        3: ChatDotSquare,
+        4: MagicStick,
+        5: Message
       }
-      return icons[type] || 'el-icon-info'
+      return icons[type] || InfoFilled
     },
     getTypeLabel(type) {
       var labels = {

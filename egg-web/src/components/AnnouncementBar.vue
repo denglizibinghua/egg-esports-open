@@ -2,7 +2,7 @@
   <div>
   <div class="announcement-bar" v-if="announcements.length > 0 && !dismissed">
     <div class="announcement-accent"></div>
-    <i class="el-icon-bell announcement-icon"></i>
+    <el-icon class="announcement-icon"><Bell /></el-icon>
     <div class="announcement-body" @click="showDetail(announcements.length === 1 ? announcements[0] : announcements[currentIndex])" style="cursor: pointer">
       <template v-if="announcements.length === 1">
         <span class="announcement-title">{{ announcements[0].title }}</span>
@@ -29,14 +29,14 @@
       </template>
     </div>
     <button class="announcement-dismiss" @click="dismissed = true">
-      <i class="el-icon-close"></i>
+      <el-icon><Close /></el-icon>
     </button>
   </div>
 
   <!-- Announcement Detail Dialog -->
   <el-dialog
     :title="detailAnnouncement ? detailAnnouncement.title : '公告详情'"
-    :visible.sync="detailVisible"
+    v-model="detailVisible"
     width="480px"
     custom-class="announcement-detail-dialog"
     :append-to-body="true"
@@ -44,10 +44,10 @@
     <div v-if="detailAnnouncement" class="detail-body">
       <div class="detail-meta">
         <span v-if="detailAnnouncement.gameId" class="detail-game-tag">
-          <i class="el-icon-trophy"></i> 游戏专属
+          <el-icon><Trophy /></el-icon> 游戏专属
         </span>
         <span v-else class="detail-game-tag detail-game-tag--global">
-          <i class="el-icon-bell"></i> 全站公告
+          <el-icon><Bell /></el-icon> 全站公告
         </span>
         <span class="detail-time" v-if="detailAnnouncement.createTime">
           {{ detailAnnouncement.createTime }}
@@ -55,18 +55,22 @@
       </div>
       <div class="detail-content">{{ detailAnnouncement.content }}</div>
     </div>
-    <span slot="footer">
-      <el-button @click="detailVisible = false">关闭</el-button>
-    </span>
+    <template #footer>
+      <span>
+        <el-button @click="detailVisible = false">关闭</el-button>
+      </span>
+    </template>
   </el-dialog>
   </div>
 </template>
 
 <script>
 import request from '@/utils/request'
+import { Bell, Close, Trophy } from '@element-plus/icons-vue'
 
 export default {
   name: 'AnnouncementBar',
+  components: { Bell, Close, Trophy },
   props: {
     gameId: {
       type: [Number, String],
@@ -91,7 +95,7 @@ export default {
   created() {
     this.fetchAnnouncements()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopRotate()
   },
   methods: {
@@ -298,50 +302,50 @@ export default {
 }
 
 /* ===== Detail Dialog ===== */
->>> .announcement-detail-dialog {
+:deep(.announcement-detail-dialog) {
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
->>> .announcement-detail-dialog .el-dialog__header {
+:deep(.announcement-detail-dialog .el-dialog__header) {
   padding: 20px 24px 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
->>> .announcement-detail-dialog .el-dialog__title {
+:deep(.announcement-detail-dialog .el-dialog__title) {
   color: var(--text-primary);
   font-size: 18px;
   font-weight: 700;
   font-family: var(--font-display);
 }
 
->>> .announcement-detail-dialog .el-dialog__headerbtn {
+:deep(.announcement-detail-dialog .el-dialog__headerbtn) {
   top: 20px;
   right: 24px;
 }
 
->>> .announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close {
+:deep(.announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close) {
   color: var(--text-tertiary);
   font-size: 18px;
 }
 
->>> .announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close:hover {
+:deep(.announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close:hover) {
   color: var(--accent-primary);
 }
 
->>> .announcement-detail-dialog .el-dialog__body {
+:deep(.announcement-detail-dialog .el-dialog__body) {
   padding: 20px 24px;
   color: var(--text-secondary);
 }
 
->>> .announcement-detail-dialog .el-dialog__footer {
+:deep(.announcement-detail-dialog .el-dialog__footer) {
   padding: 12px 24px 20px;
   border-top: 1px solid var(--border-subtle);
 }
 
->>> .announcement-detail-dialog .el-button {
+:deep(.announcement-detail-dialog .el-button) {
   background: var(--bg-surface-2);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
@@ -351,7 +355,7 @@ export default {
   transition: all var(--duration-fast) var(--ease-out);
 }
 
->>> .announcement-detail-dialog .el-button:hover {
+:deep(.announcement-detail-dialog .el-button:hover) {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
   background: rgba(0, 229, 160, 0.06);
@@ -412,20 +416,20 @@ export default {
 
 /* Mobile dialog */
 @media (max-width: 540px) {
-  >>> .announcement-detail-dialog {
+  :deep(.announcement-detail-dialog) {
     width: 92% !important;
     margin: 0 auto;
   }
 
-  >>> .announcement-detail-dialog .el-dialog__header {
+  :deep(.announcement-detail-dialog .el-dialog__header) {
     padding: 16px 16px 12px;
   }
 
-  >>> .announcement-detail-dialog .el-dialog__body {
+  :deep(.announcement-detail-dialog .el-dialog__body) {
     padding: 16px;
   }
 
-  >>> .announcement-detail-dialog .el-dialog__footer {
+  :deep(.announcement-detail-dialog .el-dialog__footer) {
     padding: 12px 16px 16px;
   }
 }

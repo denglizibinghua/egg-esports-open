@@ -32,7 +32,7 @@
           </div>
 
           <div class="broke-tip">
-            <i class="el-icon-info"></i>
+            <el-icon><InfoFilled /></el-icon>
             申请 <strong>500</strong> 救济贷款可立即恢复下注。贷款记为债务，赢注后自动还款。
           </div>
         </div>
@@ -53,7 +53,7 @@
             <el-tag type="danger" size="medium">贷款已达上限</el-tag>
             <p class="broke-maxed-tip">
               请等待每日补贴（每天自动发放），或前往
-              <router-link to="/bank" class="broke-link" @click.native="$emit('close')">银行中心</router-link>
+              <router-link to="/bank" class="broke-link" @click="$emit('close')">银行中心</router-link>
               查看详情
             </p>
             <el-button size="small" class="broke-btn--secondary" @click="$emit('close')">
@@ -68,9 +68,11 @@
 
 <script>
 import request from '@/utils/request'
+import { InfoFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'BrokeModal',
+  components: { InfoFilled },
   props: {
     visible: { type: Boolean, default: false }
   },

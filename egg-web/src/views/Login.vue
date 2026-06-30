@@ -8,10 +8,10 @@
         <el-tab-pane label="登录" name="login">
           <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form">
             <el-form-item prop="username">
-              <el-input v-model="loginForm.username" placeholder="用户名" prefix-icon="el-icon-user" />
+              <el-input v-model="loginForm.username" placeholder="用户名" :prefix-icon="User" />
             </el-form-item>
             <el-form-item prop="password">
-              <el-input v-model="loginForm.password" type="password" placeholder="密码" prefix-icon="el-icon-lock" show-password @keyup.enter.native="handleLogin" />
+              <el-input v-model="loginForm.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password @keyup.enter="handleLogin" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" class="submit-btn" :loading="loginLoading" @click="handleLogin">登 录</el-button>
@@ -22,19 +22,19 @@
         <el-tab-pane label="注册" name="register">
           <el-form ref="registerForm" :model="registerForm" :rules="registerRules" class="login-form">
             <el-form-item prop="username">
-              <el-input v-model="registerForm.username" placeholder="用户名" prefix-icon="el-icon-user" />
+              <el-input v-model="registerForm.username" placeholder="用户名" :prefix-icon="User" />
             </el-form-item>
             <el-form-item prop="nickname">
-              <el-input v-model="registerForm.nickname" placeholder="昵称（选填）" prefix-icon="el-icon-s-custom" />
+              <el-input v-model="registerForm.nickname" placeholder="昵称（选填）" :prefix-icon="UserFilled" />
             </el-form-item>
             <el-form-item prop="password">
-              <el-input v-model="registerForm.password" type="password" placeholder="密码" prefix-icon="el-icon-lock" show-password />
+              <el-input v-model="registerForm.password" type="password" placeholder="密码" :prefix-icon="Lock" show-password />
             </el-form-item>
             <el-form-item prop="confirmPassword">
-              <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" prefix-icon="el-icon-lock" show-password @keyup.enter.native="handleRegister" />
+              <el-input v-model="registerForm.confirmPassword" type="password" placeholder="确认密码" :prefix-icon="Lock" show-password @keyup.enter="handleRegister" />
             </el-form-item>
             <el-form-item prop="email">
-              <el-input v-model="registerForm.email" placeholder="邮箱（选填，用于找回密码）" prefix-icon="el-icon-message" />
+              <el-input v-model="registerForm.email" placeholder="邮箱（选填，用于找回密码）" :prefix-icon="Message" />
             </el-form-item>
             <el-form-item>
               <el-button type="primary" class="submit-btn" :loading="registerLoading" @click="handleRegister">注 册</el-button>
@@ -47,8 +47,11 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
 import { setToken, setUser } from '@/utils/auth'
+// Element Plus 图标按需引入（用于 :prefix-icon 属性绑定）
+import { User, Lock, UserFilled, Message } from '@element-plus/icons-vue'
 
 export default {
   name: 'LoginPage',
@@ -61,6 +64,11 @@ export default {
       }
     }
     return {
+      // 暴露图标组件引用给模板的 :prefix-icon 属性使用（markRaw 避免被响应式化）
+      User: markRaw(User),
+      Lock: markRaw(Lock),
+      UserFilled: markRaw(UserFilled),
+      Message: markRaw(Message),
       activeTab: 'login',
       loginForm: {
         username: '',

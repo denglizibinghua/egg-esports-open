@@ -2,42 +2,50 @@
   "name": "egg-web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .vue,.js --fix"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.6.8",
     "dompurify": "^3.0.0",
-    "element-ui": "^2.15.14",
+    "element-plus": "^2.7.0",
     "sockjs-client": "^1.6.1",
     "stompjs": "^2.3.3",
-    "vue": "^2.6.14",
-    "vue-router": "^3.5.4"
+    "vue": "^3.4.21",
+    "vue-cropper": "^1.1.4",
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.8",
-    "@vue/cli-plugin-eslint": "~5.0.8",
-    "@vue/cli-service": "~5.0.8",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.7.1",
-    "vue-template-compiler": "^2.6.14"
+    "@vitejs/plugin-vue": "^5.0.4",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.24.0",
+    "vite": "^5.2.8"
   },
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "browser": true,
+      "es2022": true
     },
     "extends": [
-      "plugin:vue/essential",
+      "plugin:vue/vue3-essential",
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "ecmaVersion": 2022,
+      "sourceType": "module"
     },
-    "rules": {}
+    "rules": {
+      "vue/multi-word-component-names": "off",
+      "vue/no-unused-vars": "warn",
+      "no-unused-vars": "warn"
+    }
   },
   "browserslist": [
     "> 1%",

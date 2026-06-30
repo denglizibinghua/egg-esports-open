@@ -1,7 +1,7 @@
 <template>
   <div class="match-create">
     <div class="page-header">
-      <el-button type="text" icon="el-icon-arrow-left" class="back-btn" @click="$router.back()">返回</el-button>
+      <el-button link :icon="ArrowLeft" class="back-btn" @click="$router.back()">返回</el-button>
       <h2 class="page-title">创建赛事</h2>
     </div>
 
@@ -54,12 +54,17 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
+import { ArrowLeft } from '@element-plus/icons-vue'
 
 export default {
   name: 'MatchCreate',
+  components: { ArrowLeft },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      ArrowLeft: markRaw(ArrowLeft),
       form: {
         title: '',
         teamA: '',

@@ -1,16 +1,6 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+// Vue Router 4 入口：createRouter + createWebHistory
+import { createRouter, createWebHistory } from 'vue-router'
 import { getToken, getUser } from '@/utils/auth'
-
-Vue.use(VueRouter)
-
-// 修复 Vue Router v3 重复导航报错
-const originalPush = VueRouter.prototype.push
-VueRouter.prototype.push = function push(location) {
-  return originalPush.call(this, location).catch(function (err) {
-    if (err.name !== 'NavigationDuplicated') throw err
-  })
-}
 
 const routes = [
   {
@@ -85,17 +75,23 @@ const routes = [
     component: () => import('@/views/About.vue')
   },
   {
-    path: '*',
+    // Vue Router 4 中 404 通配符使用动态参数语法
+    path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue')
   }
 ]
 
-const router = new VueRouter({
-  mode: 'history',
-  routes
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+  // 切换路由时滚动到顶部
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
+// 全局前置守卫：登录与权限校验
 router.beforeEach((to, from, next) => {
   const token = getToken()
   if (to.meta.requiresAuth && !token) {

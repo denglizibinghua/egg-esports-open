@@ -25,7 +25,7 @@
             size="small"
             @change="handleGameChange"
           >
-            <el-option :value="null" label="全部游戏" />
+            <el-option :value="''" label="全部游戏" />
             <el-option
               v-for="game in games"
               :key="game.id"
@@ -97,11 +97,11 @@
         <div v-if="top3[1]" class="podium-item silver">
           <div class="podium-rank">2</div>
             <div class="podium-avatar">
-              <el-avatar :size="56" :src="top3[1].avatar" icon="el-icon-user-solid" />
+              <el-avatar :size="56" :src="top3[1].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[1].points }} 积分</template>
+            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[1].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'points'">{{ top3[1].correctBets || 0 }} 猜中</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[1]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[1].netProfit || 0 }}</template>
@@ -112,11 +112,11 @@
           <div class="podium-crown">👑</div>
           <div class="podium-rank">1</div>
             <div class="podium-avatar">
-              <el-avatar :size="72" :src="top3[0].avatar" icon="el-icon-user-solid" />
+              <el-avatar :size="72" :src="top3[0].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[0].points }} 积分</template>
+            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[0].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'points'">{{ top3[0].correctBets || 0 }} 猜中</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[0]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[0].netProfit || 0 }}</template>
@@ -126,11 +126,11 @@
         <div v-if="top3[2]" class="podium-item bronze">
           <div class="podium-rank">3</div>
             <div class="podium-avatar">
-              <el-avatar :size="56" :src="top3[2].avatar" icon="el-icon-user-solid" />
+              <el-avatar :size="56" :src="top3[2].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == null">{{ top3[2].points }} 积分</template>
+            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[2].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'points'">{{ top3[2].correctBets || 0 }} 猜中</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[2]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[2].netProfit || 0 }}</template>
@@ -147,14 +147,14 @@
       <div class="table-scroll">
         <el-table :data="leaderboard" style="width: 100%" class="leaderboard-table">
           <el-table-column label="排名" width="80" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <span :class="getRankClass(scope.$index + 1 + (currentPage - 1) * pageSize)">
                 {{ scope.$index + 1 + (currentPage - 1) * pageSize }}
               </span>
             </template>
           </el-table-column>
           <el-table-column label="昵称" min-width="150">
-            <template slot-scope="scope">
+            <template #default="scope">
               <span>{{ scope.row.nickname || scope.row.username }}</span>
             </template>
           </el-table-column>
@@ -162,7 +162,7 @@
           <template v-if="leaderboardTab === 'points'">
             <el-table-column label="积分" width="100" align="center" prop="points" />
             <el-table-column label="胜率" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ getAccuracy(scope.row) }}%
               </template>
             </el-table-column>
@@ -171,19 +171,19 @@
           <!-- Accuracy tab: 胜率 + 猜中/总场 + 连胜 -->
           <template v-if="leaderboardTab === 'accuracy'">
             <el-table-column label="胜率" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ getAccuracy(scope.row) }}%
               </template>
             </el-table-column>
             <el-table-column label="猜中/总场" width="120" align="center">
-              <template slot-scope="scope">{{ scope.row.correctBets }}/{{ scope.row.totalBets }}</template>
+              <template #default="scope">{{ scope.row.correctBets }}/{{ scope.row.totalBets }}</template>
             </el-table-column>
             <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
           </template>
           <!-- Worst-profit tab: 净收益 + 积分 + 胜率 -->
           <template v-if="leaderboardTab === 'worst-profit'">
             <el-table-column label="净收益" width="110" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <span :style="{ color: scope.row.netProfit >= 0 ? '#00e5a0' : '#ff4d4f' }">
                   {{ scope.row.netProfit != null ? (scope.row.netProfit >= 0 ? '+' : '') + scope.row.netProfit : 0 }}
                 </span>
@@ -191,7 +191,7 @@
             </el-table-column>
             <el-table-column label="积分" width="100" align="center" prop="points" />
             <el-table-column label="胜率" width="100" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 {{ getAccuracy(scope.row) }}%
               </template>
             </el-table-column>
@@ -206,19 +206,24 @@
       layout="prev, pager, next"
       :total="total"
       :page-size="pageSize"
-      :current-page.sync="currentPage"
+      v-model:current-page="currentPage"
       @current-change="fetchLeaderboard"
     />
   </div>
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
+import { UserFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'LeaderboardPage',
+  components: { UserFilled },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      UserFilled: markRaw(UserFilled),
       leaderboard: [],
       top3: [],
       loading: false,
@@ -226,7 +231,7 @@ export default {
       pageSize: 20,
       total: 0,
       games: [],
-      selectedGameId: null,
+      selectedGameId: '',
       leaderboardTab: 'points'
     }
   },
@@ -274,7 +279,7 @@ export default {
     },
     fetchTop3() {
       const params = {}
-      if (this.selectedGameId != null) {
+      if (this.selectedGameId != '') {
         params.gameId = this.selectedGameId
       }
       const endpoints = {
@@ -294,7 +299,7 @@ export default {
         page: this.currentPage,
         size: this.pageSize
       }
-      if (this.selectedGameId != null) {
+      if (this.selectedGameId != '') {
         params.gameId = this.selectedGameId
       }
       const endpoints = {
@@ -394,7 +399,7 @@ export default {
   box-shadow: 0 0 12px rgba(0, 229, 160, 0.2);
 }
 
-.game-filter >>> .el-input__inner {
+.game-filter :deep(.el-input__inner) {
   background: var(--bg-surface-1);
   border-color: var(--border-default);
   color: var(--text-primary);
@@ -402,7 +407,7 @@ export default {
   min-width: 160px;
 }
 
-.game-filter >>> .el-input__inner:focus {
+.game-filter :deep(.el-input__inner:focus) {
   border-color: var(--accent-primary);
 }
 
@@ -712,25 +717,25 @@ export default {
     font-size: 12px;
   }
 
-  .podium-avatar >>> .el-avatar {
+  .podium-avatar :deep(.el-avatar) {
     width: 44px !important;
     height: 44px !important;
     line-height: 44px !important;
   }
 
-  .gold .podium-avatar >>> .el-avatar {
+  .gold .podium-avatar :deep(.el-avatar) {
     width: 52px !important;
     height: 52px !important;
     line-height: 52px !important;
   }
 
-  .leaderboard-table >>> .el-table__header th:first-child,
-  .leaderboard-table >>> .el-table__body td:first-child {
+  .leaderboard-table :deep(.el-table__header th:first-child),
+  .leaderboard-table :deep(.el-table__body td:first-child) {
     width: 50px !important;
     min-width: 50px !important;
   }
 
-  .leaderboard >>> .el-pagination {
+  .leaderboard :deep(.el-pagination) {
     padding: 12px 0;
   }
 }
@@ -773,19 +778,19 @@ export default {
     font-size: 11px;
   }
 
-  .podium-avatar >>> .el-avatar {
+  .podium-avatar :deep(.el-avatar) {
     width: 36px !important;
     height: 36px !important;
     line-height: 36px !important;
   }
 
-  .gold .podium-avatar >>> .el-avatar {
+  .gold .podium-avatar :deep(.el-avatar) {
     width: 42px !important;
     height: 42px !important;
     line-height: 42px !important;
   }
 
-  .leaderboard-table >>> .el-table__body-wrapper {
+  .leaderboard-table :deep(.el-table__body-wrapper) {
     overflow-x: auto;
   }
 }

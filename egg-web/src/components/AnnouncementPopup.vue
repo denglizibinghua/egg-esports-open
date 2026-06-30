@@ -1,23 +1,25 @@
 <template>
   <el-dialog
-    :visible.sync="dialogVisible"
+    v-model="dialogVisible"
     width="480px"
     custom-class="popup-announcement-dialog"
     :append-to-body="true"
     :close-on-click-modal="false"
     @close="onClose"
   >
-    <span slot="title" class="popup-title-slot">
-      <span class="popup-title-icon">🔔</span>
-      {{ currentAnnouncement ? currentAnnouncement.title : '公告' }}
-    </span>
+    <template #header>
+      <span class="popup-title-slot">
+        <span class="popup-title-icon">🔔</span>
+        {{ currentAnnouncement ? currentAnnouncement.title : '公告' }}
+      </span>
+    </template>
     <div v-if="currentAnnouncement" class="popup-detail-body">
       <div class="popup-detail-meta">
         <span v-if="currentAnnouncement.gameId" class="popup-detail-game-tag">
-          <i class="el-icon-trophy"></i> 游戏专属
+          <el-icon><Trophy /></el-icon> 游戏专属
         </span>
         <span v-else class="popup-detail-game-tag popup-detail-game-tag--global">
-          <i class="el-icon-bell"></i> 全站公告
+          <el-icon><Bell /></el-icon> 全站公告
         </span>
         <span class="popup-detail-time" v-if="currentAnnouncement.createTime">
           {{ currentAnnouncement.createTime }}
@@ -25,21 +27,25 @@
       </div>
       <div class="popup-detail-content">{{ currentAnnouncement.content }}</div>
     </div>
-    <span slot="footer" class="popup-dialog-footer">
-      <label class="popup-dismiss-today">
-        <input type="checkbox" v-model="dismissToday" />
-        <span>今日不再提醒</span>
-      </label>
-      <el-button class="popup-close-btn" @click="closeAndNext">关闭</el-button>
-    </span>
+    <template #footer>
+      <span class="popup-dialog-footer">
+        <label class="popup-dismiss-today">
+          <input type="checkbox" v-model="dismissToday" />
+          <span>今日不再提醒</span>
+        </label>
+        <el-button class="popup-close-btn" @click="closeAndNext">关闭</el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
 
 <script>
 import request from '@/utils/request'
+import { Bell, Trophy } from '@element-plus/icons-vue'
 
 export default {
   name: 'AnnouncementPopup',
+  components: { Bell, Trophy },
   data() {
     return {
       queue: [],
@@ -138,7 +144,7 @@ export default {
 
 <style scoped>
 /* ===== Popup Announcement Dialog ===== */
->>> .popup-announcement-dialog {
+:deep(.popup-announcement-dialog) {
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
   border-top: 3px solid var(--accent-primary);
@@ -146,39 +152,39 @@ export default {
   box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
->>> .popup-announcement-dialog .el-dialog__header {
+:deep(.popup-announcement-dialog .el-dialog__header) {
   padding: 20px 24px 8px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
->>> .popup-announcement-dialog .el-dialog__title {
+:deep(.popup-announcement-dialog .el-dialog__title) {
   color: var(--text-primary);
   font-size: 20px;
   font-weight: 700;
   font-family: var(--font-display);
 }
 
->>> .popup-announcement-dialog .el-dialog__headerbtn {
+:deep(.popup-announcement-dialog .el-dialog__headerbtn) {
   top: 20px;
   right: 24px;
 }
 
->>> .popup-announcement-dialog .el-dialog__headerbtn .el-dialog__close {
+:deep(.popup-announcement-dialog .el-dialog__headerbtn .el-dialog__close) {
   color: var(--text-tertiary);
   font-size: 18px;
 }
 
->>> .popup-announcement-dialog .el-dialog__headerbtn .el-dialog__close:hover {
+:deep(.popup-announcement-dialog .el-dialog__headerbtn .el-dialog__close:hover) {
   color: var(--accent-primary);
 }
 
->>> .popup-announcement-dialog .el-dialog__body {
+:deep(.popup-announcement-dialog .el-dialog__body) {
   padding: 20px 24px;
   color: var(--text-secondary);
 }
 
->>> .popup-announcement-dialog .el-dialog__footer {
+:deep(.popup-announcement-dialog .el-dialog__footer) {
   padding: 16px 24px 20px;
   margin-top: 8px;
   border-top: 1px solid var(--border-subtle);
@@ -279,7 +285,7 @@ export default {
   color: var(--text-secondary);
 }
 
->>> .popup-close-btn {
+:deep(.popup-close-btn) {
   background: var(--bg-surface-2) !important;
   border: 1px solid var(--border-default) !important;
   color: var(--text-secondary) !important;
@@ -289,7 +295,7 @@ export default {
   transition: all var(--duration-fast) var(--ease-out);
 }
 
->>> .popup-close-btn:hover {
+:deep(.popup-close-btn:hover) {
   border-color: var(--accent-primary) !important;
   color: var(--accent-primary) !important;
   background: rgba(0, 229, 160, 0.06) !important;
@@ -297,20 +303,20 @@ export default {
 
 /* Mobile */
 @media (max-width: 540px) {
-  >>> .popup-announcement-dialog {
+  :deep(.popup-announcement-dialog) {
     width: 92% !important;
     margin: 0 auto;
   }
 
-  >>> .popup-announcement-dialog .el-dialog__header {
+  :deep(.popup-announcement-dialog .el-dialog__header) {
     padding: 16px 16px 12px;
   }
 
-  >>> .popup-announcement-dialog .el-dialog__body {
+  :deep(.popup-announcement-dialog .el-dialog__body) {
     padding: 16px;
   }
 
-  >>> .popup-announcement-dialog .el-dialog__footer {
+  :deep(.popup-announcement-dialog .el-dialog__footer) {
     padding: 12px 16px 16px;
   }
 

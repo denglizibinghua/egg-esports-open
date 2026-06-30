@@ -74,7 +74,8 @@
         </p>
         <div class="contact-list">
           <div class="contact-item">
-            <i class="el-icon-message"></i>
+            <!-- Element Plus：字体图标改为 SVG 组件 -->
+            <el-icon><Message /></el-icon>
             <span>邮箱：contact@example.com</span>
           </div>
         </div>
@@ -84,7 +85,7 @@
         <h3 class="about-section-title">☕ 请作者喝杯咖啡</h3>
         <p class="about-text">如果你喜欢这个平台，欢迎支持独立开发（纯自愿，不影响任何功能）</p>
         <div class="donate-qr">
-          <img src="/uploads/donate-qr.png" alt="打赏二维码" class="donate-qr-img" />
+          <img :src="'/uploads/donate-qr.png'" alt="打赏二维码" class="donate-qr-img" />
           <span class="donate-qr-label">微信扫码打赏</span>
         </div>
       </div>
@@ -93,8 +94,12 @@
 </template>
 
 <script>
+// Element Plus 图标按需引入（用于模板中的 <Message /> 标签）
+import { Message } from '@element-plus/icons-vue'
+
 export default {
-  name: 'AboutPage'
+  name: 'AboutPage',
+  components: { Message }
 }
 </script>
 

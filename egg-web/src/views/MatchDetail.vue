@@ -2,7 +2,7 @@
   <div class="match-detail" v-loading="loading">
     <div v-if="match" class="detail-content">
       <div class="detail-header">
-        <el-button type="text" icon="el-icon-arrow-left" class="back-btn" @click="$router.back()">返回</el-button>
+        <el-button link :icon="ArrowLeft" class="back-btn" @click="$router.back()">返回</el-button>
         <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
           <span class="status-dot"></span>未开始
         </span>
@@ -109,7 +109,7 @@
                   <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
                     {{ match.oddsA.toFixed(2) }}
                     <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                      <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                      <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                     </el-tooltip>
                   </div>
                   <div v-if="betForm.betSide === 0" class="team-card-check">&#10003;</div>
@@ -128,7 +128,7 @@
                   <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
                     {{ match.oddsB.toFixed(2) }}
                     <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                      <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                      <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                     </el-tooltip>
                   </div>
                   <div v-if="betForm.betSide === 1" class="team-card-check">&#10003;</div>
@@ -144,7 +144,7 @@
               <el-slider
                 v-model="betForm.betAmount"
                 :min="1"
-                :max="userPoints"
+                :max="Math.max(1, userPoints)"
                 :step="1"
                 show-input
                 :show-input-controls="false"
@@ -168,7 +168,7 @@
           </div>
 
           <!-- 押注确认弹窗 -->
-          <el-dialog title="确认押注" :visible.sync="showBetConfirmDialog" width="400px" custom-class="bet-confirm-dialog" :append-to-body="true">
+          <el-dialog title="确认押注" v-model="showBetConfirmDialog" width="400px" custom-class="bet-confirm-dialog" :append-to-body="true">
             <div class="confirm-body">
               <p class="confirm-team">押注队伍：<strong>{{ betForm.betSide === 0 ? match.teamA : match.teamB }}</strong></p>
               <p class="confirm-amount">押注积分：<strong>{{ betForm.betAmount }}</strong></p>
@@ -176,10 +176,10 @@
               <p class="confirm-est">猜中预估回报：<strong style="color:var(--accent-primary)">{{ estimatedReturn }} 积分</strong></p>
               <p class="confirm-lose">猜错将失去：<strong style="color:var(--accent-danger)">{{ betForm.betAmount }} 积分</strong></p>
             </div>
-            <span slot="footer">
+            <template #footer><span>
               <el-button @click="showBetConfirmDialog = false">取消</el-button>
               <el-button type="primary" @click="confirmPlaceBet">确认押注</el-button>
-            </span>
+            </span></template>
           </el-dialog>
         </template>
 
@@ -205,7 +205,7 @@
       <!-- Comments Panel -->
       <div class="comments-panel">
         <h3 class="panel-title">
-          <i class="el-icon-chat-dot-square"></i>
+          <el-icon><ChatDotSquare /></el-icon>
           <span>评论</span>
           <span class="comment-count">{{ commentTotal }}</span>
         </h3>
@@ -222,7 +222,7 @@
           <div class="comment-input-wrap">
             <div v-if="replyTarget" class="reply-hint">
               <span>回复 @{{ replyTarget.userNickname }}</span>
-              <el-button type="text" size="mini" @click="cancelReply">取消</el-button>
+              <el-button link size="mini" @click="cancelReply">取消</el-button>
             </div>
             <el-input
               v-model="commentInput"
@@ -261,10 +261,10 @@
                 </div>
                 <div class="comment-content" v-html="renderContent(comment.content)"></div>
                 <div class="comment-actions">
-                  <el-button type="text" size="mini" @click="startReply(comment)">回复</el-button>
+                  <el-button link size="mini" @click="startReply(comment)">回复</el-button>
                   <el-button
                     v-if="user && comment.userId === user.id"
-                    type="text"
+                    link
                     size="mini"
                     class="delete-btn"
                     @click="deleteComment(comment)"
@@ -286,10 +286,10 @@
                       </div>
                       <div class="comment-content" v-html="renderContent(reply.content)"></div>
                       <div class="comment-actions">
-                        <el-button type="text" size="mini" @click="startReply(reply, comment)">回复</el-button>
+                        <el-button link size="mini" @click="startReply(reply, comment)">回复</el-button>
                         <el-button
                           v-if="user && reply.userId === user.id"
-                          type="text"
+                          link
                           size="mini"
                           class="delete-btn"
                           @click="deleteComment(reply)"
@@ -299,7 +299,7 @@
                   </div>
                   <el-button
                     v-if="comment.replies.length < comment.replyTotal"
-                    type="text"
+                    link
                     size="mini"
                     class="load-more-replies"
                     @click="loadMoreReplies(comment)"
@@ -315,7 +315,7 @@
             layout="prev, pager, next"
             :total="commentTotal"
             :page-size="commentPageSize"
-            :current-page.sync="commentPage"
+            v-model:current-page="commentPage"
             @current-change="fetchComments"
             class="comment-pagination"
           />
@@ -326,7 +326,7 @@
     <!-- Modify Bet Dialog -->
     <el-dialog
       title="修改押注"
-      :visible.sync="showModifyBetDialog"
+      v-model="showModifyBetDialog"
       width="400px"
       :close-on-click-modal="false"
       custom-class="dark-dialog"
@@ -348,7 +348,7 @@
               <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
                 {{ match.oddsA.toFixed(2) }}
                 <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                  <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                  <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                 </el-tooltip>
               </div>
               <div v-if="modifyForm.betSide === 0" class="team-card-check">&#10003;</div>
@@ -367,7 +367,7 @@
               <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
                 {{ match.oddsB.toFixed(2) }}
                 <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                  <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                  <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                 </el-tooltip>
               </div>
               <div v-if="modifyForm.betSide === 1" class="team-card-check">&#10003;</div>
@@ -383,7 +383,7 @@
           <el-slider
             v-model="modifyForm.betAmount"
             :min="1"
-            :max="modifyMaxAmount"
+            :max="Math.max(1, modifyMaxAmount)"
             :step="1"
             show-input
             :show-input-controls="false"
@@ -396,10 +396,10 @@
         </div>
       </div>
 
-      <span slot="footer">
+      <template #footer><span>
         <el-button @click="showModifyBetDialog = false">取消</el-button>
         <el-button type="primary" :loading="modifying" @click="submitModifyBet">确认修改</el-button>
-      </span>
+      </span></template>
     </el-dialog>
 
     <el-empty v-if="!loading && !match" description="赛事不存在" />
@@ -407,19 +407,27 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
 import { getToken, getUser } from '@/utils/auth'
 import { subscribe as wsSubscribe, unsubscribe as wsUnsubscribe } from '@/utils/websocket'
 import DOMPurify from 'dompurify'
 import BrokeModal from '@/components/BrokeModal.vue'
+// Element Plus SVG 图标（迁移自 Element UI 字体图标）
+import { ArrowLeft, QuestionFilled, ChatDotSquare } from '@element-plus/icons-vue'
 
 export default {
   name: 'MatchDetail',
   components: {
-    BrokeModal
+    BrokeModal,
+    ArrowLeft,
+    QuestionFilled,
+    ChatDotSquare
   },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      ArrowLeft: markRaw(ArrowLeft),
       loading: false,
       match: null,
       myBet: null,
@@ -489,7 +497,7 @@ export default {
     this.fetchComments()
     this.startPolling()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopPolling()
     if (this.match) {
       wsUnsubscribe('/topic/match/' + this.match.id)
@@ -1232,33 +1240,33 @@ export default {
 }
 
 /* Dark Dialog */
-::v-deep .dark-dialog {
+:deep(.dark-dialog) {
   background: #12121a;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
 }
 
-::v-deep .dark-dialog .el-dialog__header {
+:deep(.dark-dialog .el-dialog__header) {
   border-bottom: 1px solid var(--border-subtle);
   padding: 16px 20px;
 }
 
-::v-deep .dark-dialog .el-dialog__title {
+:deep(.dark-dialog .el-dialog__title) {
   color: var(--text-primary);
   font-weight: 600;
   font-size: 16px;
 }
 
-::v-deep .dark-dialog .el-dialog__headerbtn .el-dialog__close {
+:deep(.dark-dialog .el-dialog__headerbtn .el-dialog__close) {
   color: var(--text-tertiary);
 }
 
-::v-deep .dark-dialog .el-dialog__body {
+:deep(.dark-dialog .el-dialog__body) {
   padding: 20px;
 }
 
-::v-deep .dark-dialog .el-dialog__footer {
+:deep(.dark-dialog .el-dialog__footer) {
   border-top: 1px solid var(--border-subtle);
   padding: 12px 20px;
 }
@@ -1450,7 +1458,7 @@ export default {
   word-break: break-word;
 }
 
-.comment-content >>> .at-mention {
+.comment-content :deep(.at-mention) {
   color: var(--accent-primary);
   font-weight: 500;
 }

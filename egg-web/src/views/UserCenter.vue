@@ -47,7 +47,7 @@
           <!-- User Info Card -->
           <div class="user-info-card">
             <div class="user-avatar-section">
-              <el-avatar :size="80" :src="user.avatar" icon="el-icon-user-solid" />
+              <el-avatar :size="80" :src="user.avatar" :icon="UserFilled" />
               <div class="user-meta">
                 <div class="user-nickname-row">
                   <span class="user-nickname">{{ user.nickname || user.username }}</span>
@@ -83,10 +83,10 @@
                 </div>
               </div>
               <el-button class="edit-profile-btn" size="small" @click="openEditDialog">
-                <i class="el-icon-edit"></i> 编辑资料
+                <el-icon><Edit /></el-icon> 编辑资料
               </el-button>
               <el-button class="edit-profile-btn" size="small" @click="passwordDialogVisible = true" style="margin-left: 8px;">
-                <i class="el-icon-lock"></i> 修改密码
+                <el-icon><Lock /></el-icon> 修改密码
               </el-button>
             </div>
           </div>
@@ -121,17 +121,17 @@
 
           <!-- Public Profile Link -->
           <div class="public-profile-hint" v-if="user.id">
-            <i class="el-icon-link"></i>
+            <el-icon><Link /></el-icon>
             <span>公开主页链接：</span>
             <code class="profile-url">{{ profileUrl }}</code>
-            <el-button type="text" class="copy-url-btn" @click="copyProfileUrl">复制</el-button>
+            <el-button link class="copy-url-btn" @click="copyProfileUrl">复制</el-button>
           </div>
 
           <!-- Bank Quick Link -->
           <div class="bank-link-card" v-if="loanStatus">
             <router-link to="/bank" class="bank-link">
               <div class="bank-link-left">
-                <i class="el-icon-bank-card"></i>
+                <el-icon><Wallet /></el-icon>
                 <span>银行中心</span>
               </div>
               <div class="bank-link-right">
@@ -139,7 +139,7 @@
                   贷款 {{ formatLoanAmount(loanStatus.loanAmount) }}
                 </span>
                 <span class="bank-link-clean" v-else>无贷款</span>
-                <i class="el-icon-arrow-right"></i>
+                <el-icon><ArrowRight /></el-icon>
               </div>
             </router-link>
           </div>
@@ -354,19 +354,19 @@
         </el-tab-pane>
 
         <el-tab-pane name="history">
-          <span slot="label">
+          <template #label><span>
             投注记录
             <span v-if="settlementCount > 0" class="settlement-badge">{{ settlementCount }}</span>
-          </span>
+          </span></template>
           <!-- Bet History -->
           <div class="bet-history">
             <div class="section-header">
               <h3 class="section-title">押注记录</h3>
               <el-radio-group v-model="betStatus" size="small" @change="fetchBets">
-                <el-radio-button label="all">全部</el-radio-button>
-                <el-radio-button label="0">待结算</el-radio-button>
-                <el-radio-button label="1">猜中</el-radio-button>
-                <el-radio-button label="2">未中</el-radio-button>
+                <el-radio-button value="all">全部</el-radio-button>
+                <el-radio-button value="0">待结算</el-radio-button>
+                <el-radio-button value="1">猜中</el-radio-button>
+                <el-radio-button value="2">未中</el-radio-button>
               </el-radio-group>
             </div>
 
@@ -392,12 +392,12 @@
               <div class="table-scroll">
               <el-table :data="bets" style="width: 100%" v-loading="betsLoading" :row-class-name="betRowClass">
                 <el-table-column label="赛事" min-width="180">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span class="bet-match-title">{{ scope.row.matchTitle || ('赛事 #' + scope.row.matchId) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="押注方" width="100" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <el-tag size="small" :type="scope.row.betSide === 0 ? 'danger' : 'primary'">
                       {{ getBetTeamName(scope.row) }}
                     </el-tag>
@@ -405,19 +405,19 @@
                 </el-table-column>
                 <el-table-column label="积分" width="80" align="center" prop="betAmount" />
                 <el-table-column label="返还" width="80" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span v-if="scope.row.status === 0" class="net-change--pending">-</span>
                     <span v-else class="returned-amount">{{ getReturnedAmount(scope.row) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="净收益" width="100" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span v-if="scope.row.status === 0" class="net-change--pending">-</span>
                     <span v-else :class="netChangeClass(scope.row)">{{ formatNetChange(scope.row) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="状态" width="100" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span v-if="scope.row.status === 0" class="status-badge status-badge--pending">待结算</span>
                     <span v-else-if="scope.row.status === 1" class="status-badge status-badge--won">
                       <span class="status-dot"></span>猜中
@@ -428,7 +428,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column label="时间" width="160" align="center">
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     {{ formatDate(scope.row.createTime) }}
                   </template>
                 </el-table-column>
@@ -441,7 +441,7 @@
                 layout="prev, pager, next"
                 :total="betTotal"
                 :page-size="betPageSize"
-                :current-page.sync="betCurrentPage"
+                v-model:current-page="betCurrentPage"
                 @current-change="fetchBets"
               />
             </template>
@@ -453,15 +453,15 @@
     <!-- Edit Profile Dialog -->
     <el-dialog
       title="编辑个人资料"
-      :visible.sync="editDialogVisible"
+      v-model="editDialogVisible"
       width="420px"
       :close-on-click-modal="false"
     >
       <el-form :model="editForm" :rules="editRules" ref="editForm" label-width="80px">
         <el-form-item label="头像">
           <div class="avatar-upload">
-            <el-avatar :size="64" :src="avatarPreview" icon="el-icon-user-solid" />
-            <el-button size="small" type="text" @click="showCropper = true">更换头像</el-button>
+            <el-avatar :size="64" :src="avatarPreview" :icon="UserFilled" />
+            <el-button size="small" link @click="showCropper = true">更换头像</el-button>
           </div>
         </el-form-item>
         <el-form-item label="昵称" prop="nickname">
@@ -473,14 +473,14 @@
           />
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
+      <template #footer><span class="dialog-footer">
         <el-button @click="editDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="editSaving" @click="saveProfile">保存</el-button>
-      </span>
+      </span></template>
     </el-dialog>
 
     <!-- Password Change Dialog -->
-    <el-dialog title="修改密码" :visible.sync="passwordDialogVisible" width="420px" :close-on-click-modal="false">
+    <el-dialog title="修改密码" v-model="passwordDialogVisible" width="420px" :close-on-click-modal="false">
       <el-form ref="passwordForm" :model="passwordForm" :rules="passwordRules" label-width="80px">
         <el-form-item label="原密码" prop="oldPassword">
           <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入原密码" show-password />
@@ -492,10 +492,10 @@
           <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="再次输入新密码" show-password />
         </el-form-item>
       </el-form>
-      <span slot="footer">
+      <template #footer><span>
         <el-button @click="passwordDialogVisible = false" :disabled="passwordSaving">取消</el-button>
         <el-button type="primary" @click="submitPassword" :loading="passwordSaving">确认修改</el-button>
-      </span>
+      </span></template>
     </el-dialog>
 
     <!-- Avatar Cropper -->
@@ -504,17 +504,22 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
 import { getToken, setUser } from '@/utils/auth'
 import AvatarCropper from '@/components/AvatarCropper.vue'
+// Element Plus SVG 图标（迁移自 Element UI 字体图标）
+import { UserFilled, Edit, Lock, Link, Wallet, ArrowRight } from '@element-plus/icons-vue'
 
 var LAST_VISIT_KEY = 'egg_lastVisitTime'
 
 export default {
   name: 'UserCenter',
-  components: { AvatarCropper },
+  components: { AvatarCropper, UserFilled, Edit, Lock, Link, Wallet, ArrowRight },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      UserFilled: markRaw(UserFilled),
       loading: false,
       betsLoading: false,
       user: null,
@@ -1102,16 +1107,16 @@ export default {
 }
 
 /* New Settlement Row Highlight */
-::v-deep .el-table .new-settlement td {
+:deep(.el-table .new-settlement td) {
   background: rgba(0, 229, 160, 0.06) !important;
   box-shadow: inset 0 0 20px rgba(0, 229, 160, 0.05);
 }
 
-::v-deep .el-table .new-settlement td:first-child {
+:deep(.el-table .new-settlement td:first-child) {
   position: relative;
 }
 
-::v-deep .el-table .new-settlement td:first-child::before {
+:deep(.el-table .new-settlement td:first-child::before) {
   content: '';
   position: absolute;
   left: 0;

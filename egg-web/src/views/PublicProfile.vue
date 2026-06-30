@@ -1,17 +1,17 @@
 <template>
   <div class="public-profile">
     <div class="page-header">
-      <el-button type="text" icon="el-icon-arrow-left" class="back-btn" @click="$router.back()">返回</el-button>
+      <el-button link :icon="ArrowLeft" class="back-btn" @click="$router.back()">返回</el-button>
     </div>
 
     <div v-if="loading" class="loading-state">
-      <i class="el-icon-loading"></i> 加载中...
+      <el-icon><Loading /></el-icon> 加载中...
     </div>
 
     <div v-else-if="user" class="profile-content">
       <div class="user-info-card">
         <div class="user-avatar-section">
-          <el-avatar :size="80" :src="user.avatar" icon="el-icon-user-solid" />
+          <el-avatar :size="80" :src="user.avatar" :icon="UserFilled" />
           <div class="user-meta">
             <div class="user-nickname">{{ user.nickname }}</div>
             <div class="user-stats-brief">
@@ -91,7 +91,7 @@
       </div>
 
       <div class="login-hint">
-        <p><i class="el-icon-info"></i> 登录后可查看详细投注记录</p>
+        <p><el-icon><InfoFilled /></el-icon> 登录后可查看详细投注记录</p>
         <el-button type="primary" size="small" @click="$router.push('/login')">去登录</el-button>
       </div>
     </div>
@@ -104,13 +104,19 @@
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import request from '@/utils/request'
 import { getToken } from '@/utils/auth'
+import { ArrowLeft, Loading, UserFilled, InfoFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'PublicProfile',
+  components: { ArrowLeft, Loading, UserFilled, InfoFilled },
   data() {
     return {
+      // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
+      ArrowLeft: markRaw(ArrowLeft),
+      UserFilled: markRaw(UserFilled),
       loading: false,
       user: null,
       ranks: {

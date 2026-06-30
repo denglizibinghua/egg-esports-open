@@ -44,7 +44,7 @@
           <div class="hero-odds" v-if="heroMatch.oddsA !== null && heroMatch.oddsA !== undefined">
             <span class="hero-odds-item">{{ heroMatch.oddsA.toFixed(2) }}</span>
             <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。最终按彩池制结算。">
-              <i class="el-icon-question" style="font-size:11px;margin:0 4px;cursor:help;opacity:0.5"></i>
+              <el-icon style="font-size:11px;margin:0 4px;cursor:help;opacity:0.5"><QuestionFilled /></el-icon>
             </el-tooltip>
             <span class="hero-odds-sep">/</span>
             <span class="hero-odds-item">{{ heroMatch.oddsB.toFixed(2) }}</span>
@@ -267,38 +267,38 @@
         <div v-if="top3.length > 0" class="podium">
           <div v-if="top3[1]" class="podium-item silver">
             <div class="podium-rank">2</div>
-            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
             <div class="podium-points">{{ top3[1].points }} 积分</div>
           </div>
           <div v-if="top3[0]" class="podium-item gold">
             <div class="podium-crown">👑</div>
             <div class="podium-rank">1</div>
-            <div class="podium-avatar"><el-avatar :size="72" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="72" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
             <div class="podium-points">{{ top3[0].points }} 积分</div>
           </div>
           <div v-if="top3[2]" class="podium-item bronze">
             <div class="podium-rank">3</div>
-            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
             <div class="podium-points">{{ top3[2].points }} 积分</div>
           </div>
         </div>
         <el-table v-if="leaderboard.length > 0" :data="leaderboard" style="width: 100%" class="rank-table">
           <el-table-column label="排名" width="80" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <span :class="getRankClass(scope.$index + 1)">{{ scope.$index + 1 }}</span>
             </template>
           </el-table-column>
           <el-table-column label="昵称" min-width="150">
-            <template slot-scope="scope">
+            <template #default="scope">
               <span>{{ scope.row.nickname || scope.row.username }}</span>
             </template>
           </el-table-column>
           <el-table-column label="积分" width="100" align="center" prop="points" />
           <el-table-column label="胜率" width="100" align="center">
-            <template slot-scope="scope">{{ getAccuracy(scope.row) }}%</template>
+            <template #default="scope">{{ getAccuracy(scope.row) }}%</template>
           </el-table-column>
           <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
         </el-table>
@@ -329,12 +329,16 @@
 import request from '@/utils/request'
 import AnnouncementBar from '@/components/AnnouncementBar.vue'
 import OnboardingCard from '@/components/OnboardingCard.vue'
+import { markRaw } from 'vue'
+import { QuestionFilled, UserFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'HomePage',
-  components: { AnnouncementBar, OnboardingCard },
+  components: { AnnouncementBar, OnboardingCard, QuestionFilled, UserFilled },
   data() {
     return {
+      // 暴露给模板 :icon 绑定的图标组件（用 markRaw 避免响应化）
+      UserFilled: markRaw(UserFilled),
       games: [],
       selectedGameId: null,
       // hero
@@ -364,7 +368,7 @@ export default {
     this.loadAll()
     this.startPolling()
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopPolling()
   },
   methods: {

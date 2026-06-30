@@ -30,7 +30,7 @@
       </div>
       <div class="onboarding-footer">
         <router-link to="/about" class="onboarding-link">了解更多 →</router-link>
-        <el-button type="text" size="small" @click="dismiss">不再显示</el-button>
+        <el-button link size="small" @click="dismiss">不再显示</el-button>
       </div>
     </div>
   </div>
