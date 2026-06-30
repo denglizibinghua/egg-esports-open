@@ -620,15 +620,15 @@ a {
 
 /* Element Plus: Button（默认 & plain 类型暗色覆盖） */
 .el-button {
-  background: var(--bg-surface-1);
-  border-color: var(--border-default);
-  color: var(--text-secondary);
+  background: rgba(0,229,160,0.10);
+  border-color: rgba(0,229,160,0.25);
+  color: var(--accent-primary);
 }
 
 .el-button:hover {
-  color: var(--accent-primary);
+  background: rgba(0,229,160,0.18);
   border-color: var(--accent-primary);
-  background: var(--bg-surface-2);
+  color: var(--accent-primary);
 }
 
 .el-button:active {
