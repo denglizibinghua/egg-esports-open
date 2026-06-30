@@ -59,6 +59,13 @@ public class JwtUtils {
     }
 
     /**
+     * 获取用户名
+     */
+    public String getUsername(String token) {
+        return parseToken(token).get("username", String.class);
+    }
+
+    /**
      * 获取用户角色
      */
     public Integer getRole(String token) {

@@ -54,7 +54,7 @@ public class EggCommentController {
     /**
      * 删除评论（作者本人）
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         commentService.deleteComment(id, userId);
@@ -64,7 +64,7 @@ public class EggCommentController {
     /**
      * 隐藏评论（管理员）
      */
-    @PutMapping("/hide/{id}")
+    @PutMapping("/hide/{id:\\d+}")
     public Result<Void> hide(@PathVariable Long id) {
         commentService.hideComment(id);
         return Result.success();
@@ -73,7 +73,7 @@ public class EggCommentController {
     /**
      * 赛事评论数
      */
-    @GetMapping("/count/{matchId}")
+    @GetMapping("/count/{matchId:\\d+}")
     public Result<Integer> count(@PathVariable Long matchId) {
         return Result.success(commentService.countByMatch(matchId));
     }

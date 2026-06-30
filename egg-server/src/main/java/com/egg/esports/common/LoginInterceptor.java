@@ -38,10 +38,12 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 把用户 ID 和角色放到 request attribute 里
+        // 把用户 ID、用户名和角色放到 request attribute 里
         Long userId = jwtUtils.getUserId(token);
+        String username = jwtUtils.getUsername(token);
         Integer role = jwtUtils.getRole(token);
         request.setAttribute("userId", userId);
+        request.setAttribute("username", username);
         request.setAttribute("role", role != null ? role : 0);
 
         // 管理接口需要 admin 角色

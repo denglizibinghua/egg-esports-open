@@ -23,6 +23,9 @@ public class EggAnnouncement {
 
     private Integer status;
 
+    /** 展示类型: 1=横幅 2=弹窗，默认1 */
+    private Integer displayType;
+
     private Integer sortOrder;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

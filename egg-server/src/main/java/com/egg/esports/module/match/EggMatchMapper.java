@@ -22,11 +22,10 @@ public interface EggMatchMapper extends BaseMapper<EggMatch> {
     EggMatch selectByExternalId(@Param("externalId") String externalId);
 
     /**
-     * 查询已结束且有结果但未结算的赛事
+     * 查询已结束且有结果但可能未结算押注的赛事
      * 用于自动结算定时任务
-     * settled_at IS NULL 过滤已结算赛事，防止重复结算
      */
-    @Select("SELECT * FROM egg_match WHERE status = 2 AND result IS NOT NULL AND settled_at IS NULL")
+    @Select("SELECT * FROM egg_match WHERE status = 2 AND result IS NOT NULL")
     List<EggMatch> selectFinishedWithResult();
 
     /**

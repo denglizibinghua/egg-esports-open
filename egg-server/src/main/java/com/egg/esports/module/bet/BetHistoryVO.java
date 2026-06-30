@@ -20,6 +20,11 @@ public class BetHistoryVO {
 
     private String teamB;
 
+    /** 下注时快照队名，优先于 teamA/teamB 展示 */
+    private String teamASnapshot;
+
+    private String teamBSnapshot;
+
     private Integer betSide;
 
     private Integer betAmount;

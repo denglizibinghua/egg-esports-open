@@ -23,6 +23,14 @@ public class EggBet {
     /** 押注方: 0=A队胜, 1=B队胜 */
     private Integer betSide;
 
+    /** 下注时快照：A队名（防止同步翻转后历史记录错乱） */
+    @TableField("team_a_snapshot")
+    private String teamASnapshot;
+
+    /** 下注时快照：B队名（防止同步翻转后历史记录错乱） */
+    @TableField("team_b_snapshot")
+    private String teamBSnapshot;
+
     private Integer betAmount;
 
     /** 状态: 0=待结算, 1=猜中, 2=未中 */

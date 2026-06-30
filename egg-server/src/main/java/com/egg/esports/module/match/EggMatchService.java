@@ -316,27 +316,32 @@ public class EggMatchService {
                 changed = true;
             }
             if (match.getResult() != null && !match.getResult().equals(existing.getResult())) {
-                existing.setResult(match.getResult());
+                // 🔒 检测 Riot API 队伍是否翻转：如果新数据的 teamA 与已有记录不同，result 需要重新映射
+                boolean teamFlipped = match.getTeamA() != null && existing.getTeamA() != null
+                        && !match.getTeamA().equals(existing.getTeamA());
+                if (teamFlipped && match.getResult() != 2) {
+                    // 队伍被 Riot API 翻转了，result 映射取反（0↔1）
+                    existing.setResult(match.getResult() == 0 ? 1 : 0);
+                } else {
+                    existing.setResult(match.getResult());
+                }
                 changed = true;
-                // 不再在此处自动结算——统一交由 autoSettlePending 定时任务处理
-                // 避免 syncAll → settleBet 与 autoSettlePending → settleBet 双重触发导致通知重复
             }
             if (match.getMatchTime() != null && !match.getMatchTime().equals(existing.getMatchTime())) {
                 existing.setMatchTime(match.getMatchTime());
                 changed = true;
             }
+            // 🔒 title 首次创建后不覆盖，防止同步翻转
+            /*
             if (match.getTitle() != null && !match.getTitle().equals(existing.getTitle())) {
                 existing.setTitle(match.getTitle());
                 changed = true;
             }
-            if (match.getTeamA() != null && !match.getTeamA().equals(existing.getTeamA())) {
-                existing.setTeamA(match.getTeamA());
-                changed = true;
-            }
-            if (match.getTeamB() != null && !match.getTeamB().equals(existing.getTeamB())) {
-                existing.setTeamB(match.getTeamB());
-                changed = true;
-            }
+            */
+            // 🔒 队伍名/logo 首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
+            // 只允许同步更新比分、状态、结果、比赛时间、标题、赛事名
+            // 队伍 logo 同样首次创建后不覆盖
+            /*
             if (match.getTeamALogo() != null && !match.getTeamALogo().equals(existing.getTeamALogo())) {
                 existing.setTeamALogo(match.getTeamALogo());
                 changed = true;
@@ -345,6 +350,7 @@ public class EggMatchService {
                 existing.setTeamBLogo(match.getTeamBLogo());
                 changed = true;
             }
+            */
             if (match.getTournament() != null && !match.getTournament().equals(existing.getTournament())) {
                 existing.setTournament(match.getTournament());
                 changed = true;

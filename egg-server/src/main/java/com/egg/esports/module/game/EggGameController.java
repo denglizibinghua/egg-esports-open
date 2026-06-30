@@ -30,7 +30,7 @@ public class EggGameController {
     /**
      * 游戏详情（公开）
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public Result<EggGame> detail(@PathVariable Long id) {
         return Result.success(gameService.getById(id));
     }
@@ -53,7 +53,7 @@ public class EggGameController {
     /**
      * 更新游戏（管理员）
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public Result<EggGame> update(@PathVariable Long id,
                                   @RequestBody EggGame game,
                                   HttpServletRequest request) {
@@ -69,7 +69,7 @@ public class EggGameController {
     /**
      * 删除游戏（管理员）
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public Result<Boolean> delete(@PathVariable Long id,
                                   HttpServletRequest request) {
         Integer role = (Integer) request.getAttribute("role");

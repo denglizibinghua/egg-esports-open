@@ -289,15 +289,11 @@ export default {
   transform: translateY(-6px);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
   .announcement-bar {
     padding: 8px 12px;
     gap: 8px;
-  }
-
-  .announcement-content {
-    white-space: normal;
-    line-height: 1.4;
+    font-size: 12px;
   }
 }
 

@@ -27,19 +27,17 @@ public class LoanService {
     private EggBetMapper eggBetMapper;
 
     /**
-     * 发放救济贷款。当用户积分不足支付下注金额且债务未达上限时，自动发放贷款。
-     * @param user 用户实体
-     * @param requiredAmount 需要的积分（通常是下注金额）
+     * 发放救济贷款。当用户无积分且债务未达上限时，自动发放贷款。
      * Returns true if loan was issued.
      */
     @Transactional
     @OperationLog(module = "贷款", value = "发放救济贷款")
-    public boolean tryReliefLoan(EggUser user, int requiredAmount) {
+    public boolean tryReliefLoan(EggUser user) {
         int loanAmount = user.getLoanAmount() != null ? user.getLoanAmount() : 0;
         int loanLimit = user.getLoanLimit() != null ? user.getLoanLimit() : loanConfig.getMaxLoan();
 
-        // 条件：积分不够支付所需金额 且 |loan_amount| < loan_limit
-        if (user.getPoints() >= requiredAmount || Math.abs(loanAmount) >= loanLimit) {
+        // 条件：积分 <= 0 且 |loan_amount| < loan_limit
+        if (user.getPoints() > 0 || Math.abs(loanAmount) >= loanLimit) {
             return false;
         }
 

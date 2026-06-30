@@ -56,21 +56,21 @@
           <div class="rank-item" @click="cycleRankDimension('points')" :class="{ active: rankDimension === 'points' }">
             <div class="rank-item-label">积分榜</div>
             <div class="rank-item-value" v-if="ranks.points && ranks.points.rank > 0">
-              #{{ ranks.points.rank }}<span class="rank-item-total">/{{ ranks.points.total }}</span>
+              #{{ ranks.points.rank }}
             </div>
             <div class="rank-item-value rank-item-none" v-else>未上榜</div>
           </div>
           <div class="rank-item" @click="cycleRankDimension('accuracy')" :class="{ active: rankDimension === 'accuracy' }">
             <div class="rank-item-label">胜率榜</div>
             <div class="rank-item-value" v-if="ranks.accuracy && ranks.accuracy.rank > 0">
-              #{{ ranks.accuracy.rank }}<span class="rank-item-total">/{{ ranks.accuracy.total }}</span>
+              #{{ ranks.accuracy.rank }}
             </div>
             <div class="rank-item-value rank-item-none" v-else>未上榜</div>
           </div>
           <div class="rank-item" @click="cycleRankDimension('worst-profit')" :class="{ active: rankDimension === 'worst-profit' }">
             <div class="rank-item-label">亏损榜</div>
             <div class="rank-item-value" v-if="ranks['worst-profit'] && ranks['worst-profit'].rank > 0">
-              #{{ ranks['worst-profit'].rank }}<span class="rank-item-total">/{{ ranks['worst-profit'].total }}</span>
+              #{{ ranks['worst-profit'].rank }}
             </div>
             <div class="rank-item-value rank-item-none" v-else>未上榜</div>
           </div>

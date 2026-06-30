@@ -61,7 +61,7 @@
                     <span v-else-if="myRank.rank === 1">🥇</span>
                     <span v-else-if="myRank.rank === 2">🥈</span>
                     <span v-else-if="myRank.rank === 3">🥉</span>
-                    #{{ myRank.rank }}<span class="rank-total"> / {{ myRank.total }}</span>
+                    #{{ myRank.rank }}
                     <span class="rank-dim-label">{{ rankDimensionLabel }}</span>
                   </span>
                   <span v-else class="rank-badge rank-badge--none"
@@ -399,7 +399,7 @@
                 <el-table-column label="押注方" width="100" align="center">
                   <template slot-scope="scope">
                     <el-tag size="small" :type="scope.row.betSide === 0 ? 'danger' : 'primary'">
-                      {{ scope.row.betSide === 0 ? 'A队' : 'B队' }}
+                      {{ getBetTeamName(scope.row) }}
                     </el-tag>
                   </template>
                 </el-table-column>
@@ -957,6 +957,19 @@ export default {
       if (bet.status === 0) return base
       return Math.min(max, base + bet.betAmount * 2)
     },
+    getBetTeamName(bet) {
+      // 优先用下注时快照队名，兜底用 A队/B队
+      if (bet.teamASnapshot || bet.teamBSnapshot) {
+        return bet.betSide === 0
+          ? (bet.teamASnapshot || 'A队')
+          : (bet.teamBSnapshot || 'B队')
+      }
+      // 无快照时用当前 match 队名
+      if (bet.teamA && bet.teamB) {
+        return bet.betSide === 0 ? bet.teamA : bet.teamB
+      }
+      return bet.betSide === 0 ? 'A队' : 'B队'
+    },
     resultDotClass(idx) {
       if (idx >= this.recentBets.length) return 'result-dot--empty'
       var bet = this.recentBets[idx]
@@ -974,7 +987,7 @@ export default {
     resultDotTitle(idx) {
       if (idx >= this.recentBets.length) return '暂无数据'
       var bet = this.recentBets[idx]
-      var team = bet.betSide === 0 ? 'A队' : 'B队'
+      var team = this.getBetTeamName(bet)
       var status = bet.status === 1 ? '猜中' : bet.status === 2 ? '未中' : '待结算'
       return (bet.matchTitle || '赛事') + ' | ' + team + ' | ' + bet.betAmount + '分 | ' + status
     },

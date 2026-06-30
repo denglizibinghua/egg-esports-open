@@ -52,23 +52,11 @@ public class EggUserController {
      * 获取当前登录用户信息
      */
     @GetMapping("/me")
-    public Result<MeVO> me(HttpServletRequest request) {
+    public Result<EggUser> me(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         EggUser user = userService.getById(userId);
-        MeVO vo = new MeVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setNickname(user.getNickname());
-        vo.setAvatar(user.getAvatar());
-        vo.setPoints(user.getPoints());
-        vo.setTotalBets(user.getTotalBets());
-        vo.setCorrectBets(user.getCorrectBets());
-        vo.setWinStreak(user.getWinStreak());
-        vo.setMaxWinStreak(user.getMaxWinStreak());
-        vo.setRole(user.getRole());
-        vo.setCreateTime(user.getCreateTime());
-        vo.setRankingScore(loanService.getRankingScore(user));
-        return Result.success(vo);
+        user.setRankingScore(loanService.getRankingScore(user));
+        return Result.success(user);
     }
 
     /**

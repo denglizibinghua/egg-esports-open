@@ -71,7 +71,7 @@ public class EggBetController {
     /**
      * 获取赛事下注数
      */
-    @GetMapping("/count/{matchId}")
+    @GetMapping("/count/{matchId:\\d+}")
     public Result<Map<String, Integer>> getBetCount(@PathVariable Long matchId) {
         Map<String, Integer> counts = new java.util.HashMap<>();
         counts.put("teamA", eggBetMapper.countBySideA(matchId));
@@ -92,7 +92,7 @@ public class EggBetController {
      * 修改下注
      */
     @RateLimit(window = 5, maxRequests = 3, message = "修改过于频繁，请5秒后再试")
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public Result<EggBet> modifyBet(@PathVariable Long id, @RequestBody ModifyBetRequest request, HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("userId");
         EggBet bet = eggBetService.modifyBet(userId, id, request.getBetSide(), request.getBetAmount());
@@ -102,7 +102,7 @@ public class EggBetController {
     /**
      * 获取赛事实时赔率
      */
-    @GetMapping("/odds/{matchId}")
+    @GetMapping("/odds/{matchId:\\d+}")
     public Result<Map<String, BigDecimal>> getOdds(@PathVariable Long matchId) {
         EggMatch match = matchMapper.selectById(matchId);
         if (match == null) {

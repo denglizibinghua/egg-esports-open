@@ -40,7 +40,7 @@ public class EggNotificationController {
     /**
      * 标记单条通知为已读
      */
-    @PutMapping("/read/{id}")
+    @PutMapping("/read/{id:\\d+}")
     public Result<Void> markAsRead(@PathVariable Long id, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         notificationService.markAsRead(id, userId);

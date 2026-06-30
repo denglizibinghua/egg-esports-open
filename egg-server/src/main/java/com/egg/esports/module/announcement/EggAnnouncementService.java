@@ -34,6 +34,16 @@ public class EggAnnouncementService {
      * @param gameId 游戏ID，null则只查全站公告
      */
     public List<EggAnnouncement> getActive(Long gameId) {
+        return getActive(gameId, null);
+    }
+
+    /**
+     * 获取当前生效的公告列表（公开接口），可按展示类型过滤
+     *
+     * @param gameId      游戏ID，null则只查全站公告
+     * @param displayType 展示类型: 1=横幅 2=弹窗，null则不过滤
+     */
+    public List<EggAnnouncement> getActive(Long gameId, Integer displayType) {
         QueryWrapper<EggAnnouncement> wrapper = new QueryWrapper<>();
         wrapper.eq("status", 1);
 
@@ -41,6 +51,10 @@ public class EggAnnouncementService {
             wrapper.and(w -> w.isNull("game_id").or().eq("game_id", gameId));
         } else {
             wrapper.isNull("game_id");
+        }
+
+        if (displayType != null) {
+            wrapper.eq("display_type", displayType);
         }
 
         LocalDateTime now = LocalDateTime.now();
