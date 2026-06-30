@@ -37,7 +37,10 @@ request.interceptors.response.use(
         Message.error('登录已过期，请重新登录')
         removeToken()
         localStorage.removeItem('user')
-        router.push('/login')
+        // 防止多个 401 并发触发重复导航（NavigationCancelled）
+        if (router.currentRoute.path !== '/login') {
+          router.push('/login').catch(() => {})
+        }
       } else if (status === 403) {
         Message.error('没有权限执行此操作')
       } else if (status === 500) {

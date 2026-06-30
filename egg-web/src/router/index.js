@@ -4,17 +4,11 @@ import { getToken, getUser } from '@/utils/auth'
 
 Vue.use(VueRouter)
 
-// 修复 Vue Router v3 重复导航 & 取消导航报错
+// 修复 Vue Router v3 重复导航报错
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
   return originalPush.call(this, location).catch(function (err) {
-    if (err.name !== 'NavigationDuplicated' && err.name !== 'NavigationCancelled') throw err
-  })
-}
-const originalReplace = VueRouter.prototype.replace
-VueRouter.prototype.replace = function replace(location) {
-  return originalReplace.call(this, location).catch(function (err) {
-    if (err.name !== 'NavigationDuplicated' && err.name !== 'NavigationCancelled') throw err
+    if (err.name !== 'NavigationDuplicated') throw err
   })
 }
 
@@ -22,61 +16,61 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import(/* webpackChunkName: "home" */ '@/views/Home.vue')
+    component: () => import('@/views/Home.vue')
   },
   {
     path: '/matches',
     name: 'MatchList',
-    component: () => import(/* webpackChunkName: "match-list" */ '@/views/MatchList.vue')
+    component: () => import('@/views/MatchList.vue')
   },
   {
     path: '/match/:id',
     name: 'MatchDetail',
-    component: () => import(/* webpackChunkName: "match-detail" */ '@/views/MatchDetail.vue')
+    component: () => import('@/views/MatchDetail.vue')
   },
   {
     path: '/leaderboard',
     name: 'Leaderboard',
-    component: () => import(/* webpackChunkName: "leaderboard" */ '@/views/Leaderboard.vue')
+    component: () => import('@/views/Leaderboard.vue')
   },
   {
     path: '/login',
     name: 'Login',
-    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue')
+    component: () => import('@/views/Login.vue')
   },
   {
     path: '/bank',
     name: 'Bank',
-    component: () => import(/* webpackChunkName: "bank" */ '@/views/Bank.vue'),
+    component: () => import('@/views/Bank.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/user',
     name: 'UserCenter',
-    component: () => import(/* webpackChunkName: "user-center" */ '@/views/UserCenter.vue'),
+    component: () => import('@/views/UserCenter.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/notifications',
     name: 'Notifications',
-    component: () => import(/* webpackChunkName: "notifications" */ '@/views/Notifications.vue'),
+    component: () => import('@/views/Notifications.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/profile/:id',
     name: 'PublicProfile',
-    component: () => import(/* webpackChunkName: "public-profile" */ '@/views/PublicProfile.vue')
+    component: () => import('@/views/PublicProfile.vue')
   },
   {
     path: '/admin',
     name: 'AdminDashboard',
-    component: () => import(/* webpackChunkName: "admin-dashboard" */ '@/views/admin/AdminDashboard.vue'),
+    component: () => import('@/views/admin/AdminDashboard.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
     path: '/admin/match/create',
     name: 'MatchCreate',
-    component: () => import(/* webpackChunkName: "admin-match-create" */ '@/views/admin/MatchCreate.vue'),
+    component: () => import('@/views/admin/MatchCreate.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
@@ -88,7 +82,7 @@ const routes = [
   {
     path: '/about',
     name: 'About',
-    component: () => import(/* webpackChunkName: "about" */ '@/views/About.vue')
+    component: () => import('@/views/About.vue')
   },
   {
     path: '*',

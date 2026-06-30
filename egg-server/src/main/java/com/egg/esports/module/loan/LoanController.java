@@ -43,8 +43,10 @@ public class LoanController {
                 && Math.abs(loanAmount) >= loanLimit
                 && (user.getLastStipendDate() == null || !user.getLastStipendDate().equals(LocalDate.now()));
 
-        // 判断是否可申请救济贷款（积分 < 500 且贷款未满）
-        boolean canClaimLoan = user.getPoints() < 500 && Math.abs(loanAmount) < loanLimit;
+        // 判断是否可申请救济贷款（积分<=0、债务未达上限、无活跃下注）
+        boolean canClaimLoan = user.getPoints() <= 0
+                && Math.abs(loanAmount) < loanLimit
+                && activeBets == 0;
 
         Map<String, Object> data = new HashMap<>();
         data.put("loanAmount", loanAmount);
@@ -85,41 +87,6 @@ public class LoanController {
     }
 
     /**
-     * 申请救济贷款（手动）
-     */
-    @RateLimit(window = 60, maxRequests = 3, message = "操作过于频繁，请1分钟后再试")
-    @PostMapping("/relief")
-    public Result<Map<String, Object>> claimRelief(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("userId");
-        EggUser user = eggUserMapper.selectById(userId);
-        if (user == null) {
-            return Result.error("用户不存在");
-        }
-
-        // 贷款触发条件：积分 < 500（救济金额）且未达贷款上限
-        if (user.getPoints() >= 500) {
-            return Result.error("积分充足，无需借款");
-        }
-        int loanAmount = user.getLoanAmount() != null ? user.getLoanAmount() : 0;
-        int loanLimit = user.getLoanLimit() != null ? user.getLoanLimit() : 2000;
-        if (Math.abs(loanAmount) >= loanLimit) {
-            return Result.error("贷款已达上限");
-        }
-
-        boolean ok = loanService.tryReliefLoan(user, 500);
-        if (!ok) {
-            return Result.error("借款失败，可能已被其他操作抢先");
-        }
-
-        user = eggUserMapper.selectById(userId);
-        Map<String, Object> data = new HashMap<>();
-        data.put("points", user.getPoints());
-        data.put("loanAmount", user.getLoanAmount());
-
-        return Result.success(data);
-    }
-
-    /**
      * 主动还款
      */
     @RateLimit(window = 60, maxRequests = 5, message = "操作过于频繁，请1分钟后再试")
@@ -142,6 +109,32 @@ public class LoanController {
         data.put("repaidAmount", actualRepay);
         data.put("remainingDebt", user.getLoanAmount());
         data.put("points", user.getPoints());
+        return Result.success(data);
+    }
+
+    /**
+     * 申请救济贷款
+     * <p>条件：积分<=0 且债务未达上限（LoanService.tryReliefLoan 内部校验）
+     */
+    @RateLimit(window = 60, maxRequests = 3, message = "操作过于频繁，请1分钟后再试")
+    @PostMapping("/relief")
+    public Result<Map<String, Object>> relief(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        EggUser user = eggUserMapper.selectById(userId);
+        if (user == null) {
+            return Result.error("用户不存在");
+        }
+
+        boolean success = loanService.tryReliefLoan(user);
+        if (!success) {
+            return Result.error("不符合救济贷款条件（积分>0或贷款已达上限）");
+        }
+
+        // 重新读取用户数据
+        user = eggUserMapper.selectById(userId);
+        Map<String, Object> data = new HashMap<>();
+        data.put("points", user.getPoints());
+        data.put("loanAmount", user.getLoanAmount());
         return Result.success(data);
     }
 }

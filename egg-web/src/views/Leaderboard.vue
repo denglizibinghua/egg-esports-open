@@ -138,6 +138,11 @@
         </div>
       </div>
 
+      <!-- 胜率榜门槛提示 -->
+      <div v-if="leaderboardTab === 'accuracy'" class="leaderboard-notice">
+        💡 需累计押注 <strong>10 场以上</strong> 才能进入胜率榜
+      </div>
+
       <!-- Full Leaderboard Table -->
       <div class="table-scroll">
         <el-table :data="leaderboard" style="width: 100%" class="leaderboard-table">
@@ -783,5 +788,20 @@ export default {
   .leaderboard-table >>> .el-table__body-wrapper {
     overflow-x: auto;
   }
+}
+
+/* 胜率榜门槛提示 */
+.leaderboard-notice {
+  text-align: center;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: rgba(91,140,255,0.06);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.leaderboard-notice strong {
+  color: var(--accent-secondary);
 }
 </style>

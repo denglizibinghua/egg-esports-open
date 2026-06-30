@@ -1,5 +1,7 @@
 <template>
   <div class="home">
+    <!-- 新手引导卡片 -->
+    <OnboardingCard />
     <!-- 1. HERO 区域 -->
     <div class="hero" :class="heroThemeClass">
       <div class="grain-overlay-hero" aria-hidden="true"></div>
@@ -41,6 +43,9 @@
         <div class="hero-footer">
           <div class="hero-odds" v-if="heroMatch.oddsA !== null && heroMatch.oddsA !== undefined">
             <span class="hero-odds-item">{{ heroMatch.oddsA.toFixed(2) }}</span>
+            <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。最终按彩池制结算。">
+              <i class="el-icon-question" style="font-size:11px;margin:0 4px;cursor:help;opacity:0.5"></i>
+            </el-tooltip>
             <span class="hero-odds-sep">/</span>
             <span class="hero-odds-item">{{ heroMatch.oddsB.toFixed(2) }}</span>
           </div>
@@ -48,44 +53,8 @@
         </div>
       </div>
       <div v-else class="hero-empty">
-        <svg class="hero-empty-svg" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M25 20 H55 L50 48 H30 Z" stroke="#d4a843" stroke-width="2" fill="rgba(212,168,67,0.06)"/>
-          <path d="M25 20 C14 20, 10 28, 17 35 L25 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <path d="M55 20 C66 20, 70 28, 63 35 L55 32" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <rect x="34" y="48" width="12" height="8" rx="1" fill="rgba(212,168,67,0.12)" stroke="#d4a843" stroke-width="1"/>
-          <rect x="28" y="56" width="24" height="6" rx="2" fill="rgba(212,168,67,0.08)" stroke="#d4a843" stroke-width="1"/>
-          <path d="M36 28 L40 22 L44 28 L40 26 Z" fill="#d4a843" opacity="0.5"/>
-          <circle cx="40" cy="12" r="4" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.4"/>
-          <line x1="40" y1="8" x2="40" y2="5" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-          <line x1="36" y1="10" x2="34" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-          <line x1="44" y1="10" x2="46" y2="7" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-        </svg>
-        <div class="hero-empty-title">👋 欢迎来到 Egg 赛事竞猜</div>
-        <div class="hero-empty-text">三步上手，开启你的预言家之旅</div>
-        <div class="beginner-steps">
-          <div class="beginner-step">
-            <span class="beginner-step-num">1</span>
-            <div class="beginner-step-body">
-              <strong>浏览赛事</strong>
-              <p>在赛事列表中挑选你熟悉的比赛</p>
-            </div>
-          </div>
-          <div class="beginner-step">
-            <span class="beginner-step-num">2</span>
-            <div class="beginner-step-body">
-              <strong>押注预测</strong>
-              <p>用积分押注你支持的队伍，每场只能押一次</p>
-            </div>
-          </div>
-          <div class="beginner-step">
-            <span class="beginner-step-num">3</span>
-            <div class="beginner-step-body">
-              <strong>赢取积分</strong>
-              <p>猜中按奖池比例分账，0% 抽水全归你</p>
-            </div>
-          </div>
-        </div>
-        <el-button type="primary" class="hero-empty-cta" @click="$router.push('/matches')">去赛事列表看看</el-button>
+        <div class="hero-empty-icon">🎮</div>
+        <div class="hero-empty-text">暂无赛事，管理员正在筹备中</div>
       </div>
     </div>
 
@@ -138,7 +107,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -151,7 +120,7 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -192,7 +161,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -205,7 +174,7 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -243,7 +212,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
+                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
@@ -251,7 +220,7 @@
             <div class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
+                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
                 <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
@@ -290,40 +259,28 @@
         </div>
       </template>
       <div v-else-if="top3.length === 0 && leaderboard.length === 0" class="empty-state">
-        <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M25 20 H55 L50 48 H30 Z" stroke="#d4a843" stroke-width="2" fill="rgba(212,168,67,0.08)"/>
-          <path d="M25 20 C15 20, 12 30, 18 36 L25 34" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <path d="M55 20 C65 20, 68 30, 62 36 L55 34" stroke="#d4a843" stroke-width="1.5" fill="none" opacity="0.5"/>
-          <rect x="34" y="48" width="12" height="8" rx="1" fill="rgba(212,168,67,0.15)" stroke="#d4a843" stroke-width="1"/>
-          <rect x="28" y="56" width="24" height="6" rx="2" fill="rgba(212,168,67,0.1)" stroke="#d4a843" stroke-width="1"/>
-          <path d="M36 30 L40 24 L44 30 L40 28 Z" fill="#d4a843" opacity="0.6"/>
-          <circle cx="40" cy="14" r="3" fill="none" stroke="#d4a843" stroke-width="1" opacity="0.4"/>
-          <line x1="40" y1="11" x2="40" y2="8" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-          <line x1="37" y1="12" x2="35" y2="10" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-          <line x1="43" y1="12" x2="45" y2="10" stroke="#d4a843" stroke-width="1" opacity="0.3"/>
-        </svg>
+        <div class="empty-icon">🏆</div>
         <h3 class="empty-title">排行榜暂无数据</h3>
         <p class="empty-desc">还没有人参与竞猜，成为第一个上榜的人吧</p>
-        <el-button type="primary" class="empty-cta" @click="$router.push('/matches')">去押注</el-button>
       </div>
       <template v-else>
         <div v-if="top3.length > 0" class="podium">
           <div v-if="top3[1]" class="podium-item silver">
             <div class="podium-rank">2</div>
-            <div class="podium-avatar"><el-avatar :size="56" :src="top3[1].avatar" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
             <div class="podium-points">{{ top3[1].points }} 积分</div>
           </div>
           <div v-if="top3[0]" class="podium-item gold">
             <div class="podium-crown">👑</div>
             <div class="podium-rank">1</div>
-            <div class="podium-avatar"><el-avatar :size="72" :src="top3[0].avatar" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="72" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
             <div class="podium-points">{{ top3[0].points }} 积分</div>
           </div>
           <div v-if="top3[2]" class="podium-item bronze">
             <div class="podium-rank">3</div>
-            <div class="podium-avatar"><el-avatar :size="56" :src="top3[2].avatar" icon="el-icon-user-solid" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" icon="el-icon-user-solid" /></div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
             <div class="podium-points">{{ top3[2].points }} 积分</div>
           </div>
@@ -371,10 +328,11 @@
 <script>
 import request from '@/utils/request'
 import AnnouncementBar from '@/components/AnnouncementBar.vue'
+import OnboardingCard from '@/components/OnboardingCard.vue'
 
 export default {
   name: 'HomePage',
-  components: { AnnouncementBar },
+  components: { AnnouncementBar, OnboardingCard },
   data() {
     return {
       games: [],
@@ -438,7 +396,7 @@ export default {
     },
     getAccuracy(row) {
       if (!row.totalBets || row.totalBets === 0) return 0
-      return Math.min(100, Math.round((row.correctBets / row.totalBets) * 100))
+      return Math.round((row.correctBets / row.totalBets) * 100)
     },
     getRankClass(rank) {
       if (rank === 1) return 'rank-gold'
@@ -777,96 +735,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: var(--text-tertiary);
 }
 
-.hero-empty-svg {
-  width: 100px;
-  height: 68px;
-  margin-bottom: 4px;
-  opacity: 0.7;
-  animation: empty-float 3s ease-in-out infinite;
-}
-
-@keyframes empty-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.hero-empty-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.hero-empty-text { font-size: 13px; color: var(--text-tertiary); }
-
-.beginner-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 20px 0 24px;
-  width: 100%;
-  max-width: 320px;
-}
-
-.beginner-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  text-align: left;
-}
-
-.beginner-step-num {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-full);
-  background: var(--accent-primary);
-  color: #0a0a0f;
-  font-weight: 700;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-}
-
-.beginner-step-body strong {
-  display: block;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.beginner-step-body p {
-  color: var(--text-tertiary);
-  font-size: 12px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.hero-empty-cta {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-  padding: 10px 28px;
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
-  transition: all 0.2s var(--ease-out);
-}
-
-.hero-empty-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
-}
+.hero-empty-icon { font-size: 36px; opacity: 0.5; }
+.hero-empty-text { font-size: 14px; }
 
 /* ===== 游戏筛选栏 ===== */
 .game-tabs {
@@ -1173,69 +1047,28 @@ export default {
   justify-content: center;
   padding: 48px 24px;
   text-align: center;
-  max-width: 400px;
-  margin: 0 auto;
-}
-.empty-svg {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 16px;
-  opacity: 0.7;
-  animation: empty-float 3s ease-in-out infinite;
 }
 .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
 .empty-title { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-.empty-desc { font-size: 14px; color: var(--text-tertiary); max-width: 300px; margin-bottom: 20px; }
-.empty-cta {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-  padding: 10px 28px !important;
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
-  transition: all 0.2s var(--ease-out);
-}
-.empty-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
-}
+.empty-desc { font-size: 14px; color: var(--text-tertiary); max-width: 300px; }
 
 /* ===== Skeleton 加载 ===== */
 @keyframes shimmer {
-  0% { background-position: -200% 0; transform: scaleY(1); }
-  50% { transform: scaleY(1.012); }
-  100% { background-position: 200% 0; transform: scaleY(1); }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
-@keyframes skeleton-avatar-pulse {
-  0%, 100% { transform: scale(0.98); opacity: 0.85; }
-  50% { transform: scale(1.02); opacity: 1; }
-}
-@keyframes skeleton-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.skeleton {
-  pointer-events: none;
-  animation: skeleton-fade-in 0.3s ease both;
-}
+.skeleton { pointer-events: none; }
 .skeleton .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
   background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 .skeleton-line--lg { width: 80%; height: 32px; margin-bottom: 12px; }
 .skeleton-line--md { width: 60%; height: 20px; margin-bottom: 8px; }
 .skeleton-line--sm { width: 40%; height: 14px; }
-.skeleton-line--avatar {
-  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px;
-  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
-}
-.skeleton-line--avatar-lg {
-  width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 8px;
-  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
-}
+.skeleton-line--avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; }
+.skeleton-line--avatar-lg { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 8px; }
 .skeleton-line--name { width: 80px; height: 14px; margin: 0 auto; }
 
 .loading-full {
@@ -1287,8 +1120,6 @@ export default {
   .podium { gap: 10px; }
   .podium-item { min-width: 100px; padding: 14px 12px; }
   .podium-item.gold { min-width: 120px; }
-  .beginner-steps { max-width: 100%; }
-  .beginner-step { padding: 10px 12px; }
 }
 @media (max-width: 480px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }

@@ -10,6 +10,11 @@
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
+          <!-- 银行按钮（仅登录后显示，带债务小红点） -->
+          <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
+            <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
+          </el-badge>
+          <!-- 关于按钮（公开） -->
           <el-button type="text" class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
           <el-button v-if="isAdmin" type="text" class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
           <span class="nav-divider"></span>
@@ -74,78 +79,42 @@
             <el-button type="text" class="nav-btn" @click="$router.push('/login')">登录</el-button>
           </template>
         </div>
-        <!-- Mobile Hamburger Toggle -->
-        <button class="mobile-toggle" @click="toggleMobileMenu" aria-label="菜单">
-          <span class="mobile-toggle-bar"></span>
-          <span class="mobile-toggle-bar"></span>
-          <span class="mobile-toggle-bar"></span>
-        </button>
       </el-header>
-      <!-- Mobile Drawer -->
-      <transition name="drawer-fade">
-        <div v-if="mobileMenuOpen" class="drawer-overlay" @click.self="mobileMenuOpen = false">
-          <transition name="drawer-slide">
-            <div v-if="mobileMenuOpen" class="drawer-panel">
-              <div class="drawer-header">
-                <span class="drawer-title">菜单</span>
-                <button class="drawer-close" @click="mobileMenuOpen = false" aria-label="关闭">
-                  <span></span><span></span>
-                </button>
-              </div>
-              <div class="drawer-body">
-                <div v-if="isLoggedIn" class="drawer-user">
-                  <span class="drawer-user-name">{{ userNickname }}</span>
-                </div>
-                <div class="drawer-nav">
-                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/'); mobileMenuOpen = false">主页</button>
-                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches'); mobileMenuOpen = false">赛程</button>
-                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard'); mobileMenuOpen = false">排行榜</button>
-                  <button class="nav-btn drawer-nav-item" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about'); mobileMenuOpen = false">关于</button>
-                  <button v-if="isAdmin" class="nav-btn drawer-nav-item admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin'); mobileMenuOpen = false">管理</button>
-                </div>
-                <div class="drawer-divider"></div>
-                <template v-if="isLoggedIn">
-                  <button class="nav-btn drawer-nav-item" @click="$router.push('/notifications'); mobileMenuOpen = false">
-                    <i class="el-icon-bell drawer-nav-icon"></i>通知
-                    <span v-if="unreadCount > 0" class="drawer-badge">{{ unreadCount }}</span>
-                  </button>
-                  <div class="drawer-divider"></div>
-                  <button class="nav-btn drawer-nav-item drawer-logout" @click="handleUserCommand('logout'); mobileMenuOpen = false">退出登录</button>
-                </template>
-                <template v-else>
-                  <button class="nav-btn drawer-nav-item" @click="$router.push('/login'); mobileMenuOpen = false">登录</button>
-                </template>
-              </div>
-            </div>
-          </transition>
-        </div>
-      </transition>
       <el-main class="app-main">
         <router-view />
       </el-main>
     </el-container>
+    <!-- 公告弹窗（自驱组件，无需 props/events） -->
+    <AnnouncementPopup />
   </div>
 </template>
 
 <script>
-import { getToken, getUser, removeToken, removeUser } from '@/utils/auth'
+import { getToken, getUser, removeToken } from '@/utils/auth'
 import request from '@/utils/request'
 import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
+import AnnouncementPopup from '@/components/AnnouncementPopup.vue'
 
 export default {
   name: 'App',
+  components: {
+    AnnouncementPopup
+  },
   data() {
     return {
       unreadCount: 0,
       notificationPopoverVisible: false,
       recentNotifications: [],
       notificationPollTimer: null,
-      isLoggedIn: !!getToken(),
       currentUser: null,
-      mobileMenuOpen: false
+      loanDebt: 0,
+      appToken: getToken()
     }
   },
   computed: {
+    isLoggedIn() {
+      return !!this.appToken
+    },
     user() {
       return this.currentUser || {}
     },
@@ -153,7 +122,7 @@ export default {
       return this.user.nickname || this.user.username || '用户'
     },
     isAdmin() {
-      return this.isLoggedIn && this.currentUser && this.currentUser.role === 1
+      return this.user && this.user.role === 1
     }
   },
   created() {
@@ -161,6 +130,7 @@ export default {
     if (getToken()) {
       this.fetchUnreadCount()
       this.fetchRecentNotifications()
+      this.fetchLoanDebt()
       this.notificationPollTimer = setInterval(() => {
         this.fetchUnreadCount()
       }, 30000)
@@ -190,20 +160,15 @@ export default {
   methods: {
     refreshUser() {
       this.currentUser = getUser()
-      this.isLoggedIn = !!getToken()
-    },
-    toggleMobileMenu() {
-      this.mobileMenuOpen = !this.mobileMenuOpen
+      this.appToken = getToken()
     },
     handleUserCommand(command) {
       if (command === 'profile') {
         this.$router.push('/user')
       } else if (command === 'logout') {
         removeToken()
-        removeUser()
         this.currentUser = null
-        this.isLoggedIn = false
-        this.unreadCount = 0
+        this.appToken = null
         this.$router.push('/login')
       }
     },
@@ -221,6 +186,12 @@ export default {
       request.get('/notification/list', { params: { page: 1, size: 5 } }).then(function (res) {
         var data = res.data || res
         this.recentNotifications = data.records || data.list || []
+      }.bind(this)).catch(function () {})
+    },
+    fetchLoanDebt() {
+      request.get('/loan/status').then(function (res) {
+        var data = res.data || res
+        this.loanDebt = Math.abs(data.loanAmount || 0)
       }.bind(this)).catch(function () {})
     },
     markAllRead() {
@@ -302,9 +273,6 @@ export default {
   --radius-lg: 16px;
   --radius-xl: 20px;
   --radius-full: 9999px;
-  --bp-sm: 480px;
-  --bp-md: 768px;
-  --bp-lg: 1200px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.40);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.05);
@@ -546,49 +514,6 @@ a {
   color: var(--text-tertiary) !important;
 }
 
-/* Element UI: Input word count */
-.el-input__count {
-  color: var(--text-tertiary) !important;
-  background: transparent !important;
-}
-.el-input__count-inner {
-  background: transparent !important;
-}
-
-/* Element UI: Textarea word count */
-.el-textarea .el-input__count {
-  color: var(--text-tertiary) !important;
-  background: transparent !important;
-}
-
-/* Element UI: Textarea (独立的 inner class) */
-.el-textarea__inner {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-primary) !important;
-  border-radius: var(--radius-md) !important;
-  font-family: var(--font-body) !important;
-}
-.el-textarea__inner:hover {
-  border-color: var(--border-strong) !important;
-}
-.el-textarea__inner:focus {
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
-}
-.el-textarea__inner::placeholder {
-  color: var(--text-tertiary) !important;
-}
-
-/* Element UI: Empty (空状态) */
-.el-empty__description p {
-  color: var(--text-tertiary) !important;
-}
-.el-empty__image svg {
-  fill: var(--text-tertiary) !important;
-  opacity: 0.3;
-}
-
 /* Element UI: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
@@ -610,23 +535,6 @@ a {
 .el-dialog__body {
   padding: 24px !important;
   color: var(--text-secondary) !important;
-}
-
-/* Element UI: Dialog Close Button */
-.el-dialog__close {
-  color: var(--text-tertiary) !important;
-  font-size: 18px !important;
-}
-.el-dialog__close:hover {
-  color: var(--text-primary) !important;
-}
-.el-dialog__close .el-icon-close,
-.el-dialog__close::before {
-  color: var(--text-tertiary) !important;
-}
-.el-dialog__close:hover .el-icon-close,
-.el-dialog__close:hover::before {
-  color: var(--text-primary) !important;
 }
 
 .el-overlay {
@@ -660,387 +568,15 @@ a {
   border-color: var(--border-default) !important;
 }
 
-.el-message-box__title {
-  color: var(--text-primary) !important;
-}
-
-.el-message-box__message p {
-  color: var(--text-secondary) !important;
-}
-
-.el-message-box__btns .el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-
-.el-message-box__btns .el-button--default {
-  background: var(--bg-surface-3) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-}
-
-/* Element UI: Message Box Close Button */
-.el-message-box__close {
-  color: var(--text-tertiary) !important;
-}
-.el-message-box__close:hover {
-  color: var(--text-primary) !important;
-}
-.el-message-box__close .el-icon-close,
-.el-message-box__close::before {
-  color: var(--text-tertiary) !important;
-}
-.el-message-box__close:hover .el-icon-close,
-.el-message-box__close:hover::before {
-  color: var(--text-primary) !important;
-}
-
-/* Admin Confirm Warning Dialog */
-.admin-confirm-warning {
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--accent-warning) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,181,71,0.15) !important;
-  max-width: 460px !important;
-}
-
-.admin-confirm-warning .el-message-box__header {
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 12px;
-}
-
-.admin-confirm-warning .el-message-box__title {
-  color: var(--accent-warning) !important;
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.admin-confirm-warning .el-message-box__content {
-  padding: 20px 24px;
-}
-
-.admin-confirm-warning .el-message-box__message p {
-  color: var(--text-primary) !important;
-  line-height: 1.7;
-  font-size: 14px;
-}
-
-.admin-confirm-warning .el-message-box__status {
-  color: var(--accent-warning) !important;
-}
-
-.admin-confirm-warning .el-message-box__btns {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 14px;
-}
-
-.admin-confirm-warning .el-message-box__btns .el-button--warning {
-  background: var(--accent-warning) !important;
-  border-color: var(--accent-warning) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-}
-
-.admin-confirm-warning .el-message-box__btns .el-button--warning:hover {
-  opacity: 0.9;
-}
-
-.admin-confirm-warning .el-message-box__btns .el-button--default {
-  background: var(--bg-surface-3) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-  border-radius: var(--radius-md) !important;
-}
-
-/* Element UI: Date Picker (full dark) */
+/* Element UI: Date Picker */
 .el-date-picker {
   background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-}
-.el-date-picker__header-label {
-  color: var(--text-secondary) !important;
-}
-.el-date-picker__header-label:hover {
-  color: var(--accent-primary) !important;
-}
-.el-picker-panel__icon-btn {
-  color: var(--text-tertiary) !important;
-}
-.el-picker-panel__icon-btn:hover {
-  color: var(--accent-primary) !important;
-}
-/* Date table cells */
-.el-date-table th {
-  color: var(--text-tertiary) !important;
-  border-bottom-color: var(--border-subtle) !important;
-}
-.el-date-table td {
-  color: var(--text-secondary) !important;
-}
-.el-date-table td.available:hover {
-  color: var(--accent-primary) !important;
-  background: rgba(0,229,160,0.08) !important;
-}
-.el-date-table td.current:not(.disabled) span {
-  background: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-.el-date-table td.today span {
-  color: var(--accent-primary) !important;
-  font-weight: 600;
-}
-.el-date-table td.next-month,
-.el-date-table td.prev-month {
-  color: var(--text-tertiary) !important;
-  opacity: 0.4;
-}
-.el-date-table td.disabled {
-  color: var(--text-tertiary) !important;
-  opacity: 0.25;
-}
-/* Month/year picker */
-.el-month-table td,
-.el-year-table td {
-  color: var(--text-secondary) !important;
-}
-.el-month-table td.current:not(.disabled) .cell,
-.el-year-table td.current:not(.disabled) .cell {
-  background: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-.el-month-table td .cell:hover,
-.el-year-table td .cell:hover {
-  color: var(--accent-primary) !important;
-  background: rgba(0,229,160,0.08) !important;
-}
-/* Time picker panel (if date picker includes time) */
-.el-time-panel {
-  background: var(--bg-surface-2) !important;
-  border-left-color: var(--border-default) !important;
-}
-.el-time-panel__footer {
-  border-top-color: var(--border-subtle) !important;
-}
-.el-time-spinner__item {
-  color: var(--text-secondary) !important;
-}
-.el-time-spinner__item.active:not(.disabled) {
-  color: var(--accent-primary) !important;
 }
 
 /* Element UI: Pagination */
 .el-pagination {
   text-align: center;
   margin-top: 20px;
-}
-
-/* ── Button: default (白底 → 暗底) ── */
-.el-button {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-}
-.el-button:hover,
-.el-button:focus {
-  background: var(--bg-surface-3) !important;
-  border-color: var(--accent-primary) !important;
-  color: var(--accent-primary) !important;
-}
-.el-button:active {
-  background: var(--bg-surface-1) !important;
-}
-.el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-}
-.el-button--primary:hover {
-  opacity: 0.88;
-}
-.el-button--info {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-tertiary) !important;
-}
-.el-button--info.is-disabled,
-.el-button--info:disabled {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-subtle) !important;
-  color: var(--text-tertiary) !important;
-}
-.el-button--text {
-  background: transparent !important;
-  border-color: transparent !important;
-  color: var(--text-secondary) !important;
-}
-.el-button--text:hover {
-  color: var(--accent-primary) !important;
-}
-/* ── Button-Group ── */
-.el-button-group > .el-button {
-  border-color: var(--border-default) !important;
-}
-.el-button-group > .el-button:not(:last-child) {
-  border-right-color: var(--bg-page) !important;
-}
-
-/* ── Radio ── */
-.el-radio__label {
-  color: var(--text-secondary) !important;
-}
-.el-radio__inner {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--border-default) !important;
-}
-.el-radio__input.is-checked .el-radio__inner {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-}
-.el-radio__input.is-checked + .el-radio__label {
-  color: var(--text-primary) !important;
-}
-.el-radio:focus:not(.is-focus):not(:active) .el-radio__inner {
-  box-shadow: 0 0 0 3px rgba(0,229,160,0.15) !important;
-}
-
-/* ── Radio Button ── */
-.el-radio-button__inner {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-}
-.el-radio-button__inner:hover {
-  color: var(--accent-primary) !important;
-}
-.el-radio-button__orig-radio:checked + .el-radio-button__inner {
-  background: rgba(0,229,160,0.08) !important;
-  border-color: var(--accent-primary) !important;
-  color: var(--accent-primary) !important;
-  box-shadow: -1px 0 0 0 var(--accent-primary) !important;
-}
-
-/* ── Switch ── */
-.el-switch__core {
-  background: var(--bg-surface-3) !important;
-  border-color: var(--border-default) !important;
-}
-.el-switch.is-checked .el-switch__core {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-}
-
-/* ── Tag ── */
-.el-tag {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-secondary) !important;
-  border-radius: var(--radius-sm) !important;
-}
-.el-tag .el-tag__close {
-  color: var(--text-tertiary) !important;
-}
-.el-tag .el-tag__close:hover {
-  background: rgba(255,255,255,0.06) !important;
-  color: var(--accent-primary) !important;
-}
-
-/* ── Input Number ── */
-.el-input-number__increase,
-.el-input-number__decrease {
-  background: var(--bg-surface-2) !important;
-  color: var(--text-secondary) !important;
-  border-color: var(--border-default) !important;
-}
-.el-input-number__increase:hover,
-.el-input-number__decrease:hover {
-  color: var(--accent-primary) !important;
-}
-.el-input-number.is-disabled .el-input-number__increase,
-.el-input-number.is-disabled .el-input-number__decrease {
-  background: var(--bg-surface-2) !important;
-  color: var(--text-tertiary) !important;
-}
-
-/* ── Slider ── */
-.el-slider__runway {
-  background: var(--bg-surface-3) !important;
-}
-.el-slider__bar {
-  background: var(--accent-primary) !important;
-}
-.el-slider__button {
-  border-color: var(--accent-primary) !important;
-  background: var(--bg-surface-1) !important;
-}
-
-/* ── Alert ── */
-.el-alert {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-  border-radius: var(--radius-md) !important;
-}
-.el-alert__title {
-  color: var(--text-primary) !important;
-}
-.el-alert--info {
-  border-left: 3px solid var(--accent-secondary) !important;
-}
-.el-alert--success {
-  border-left: 3px solid var(--accent-primary) !important;
-}
-.el-alert--warning {
-  border-left: 3px solid var(--accent-warning) !important;
-}
-.el-alert--error {
-  border-left: 3px solid var(--accent-danger) !important;
-}
-
-/* ── Image ── */
-.el-image__placeholder,
-.el-image__error {
-  background: var(--bg-surface-2) !important;
-  color: var(--text-tertiary) !important;
-}
-
-/* ── Loading ── */
-.el-loading-mask {
-  background: rgba(10,10,15,0.75) !important;
-}
-.el-loading-spinner .el-icon-loading {
-  color: var(--accent-primary) !important;
-}
-.el-loading-spinner .el-loading-text {
-  color: var(--text-secondary) !important;
-}
-
-/* ── Pagination 暗色 ── */
-.el-pagination .btn-prev,
-.el-pagination .btn-next,
-.el-pagination .el-pager li {
-  background: var(--bg-surface-1) !important;
-  color: var(--text-secondary) !important;
-}
-.el-pagination .el-pager li.active {
-  background: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-.el-pagination .btn-prev:disabled,
-.el-pagination .btn-next:disabled {
-  background: var(--bg-surface-2) !important;
-  color: var(--text-tertiary) !important;
-}
-
-/* Pagination total/jumper text */
-.el-pagination__total {
-  color: var(--text-tertiary) !important;
-  font-size: 13px;
-  margin-right: 12px;
-}
-.el-pagination__jumper {
-  color: var(--text-tertiary) !important;
 }
 
 /* Badge System */
@@ -1341,221 +877,5 @@ a {
 .el-popover .popper__arrow::after,
 .el-popover .popper__arrow {
   border-bottom-color: var(--bg-surface-2) !important;
-}
-
-/* ── Mobile Hamburger & Drawer ── */
-.mobile-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  width: 40px;
-  height: 40px;
-  background: transparent;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  padding: 8px;
-  transition: background var(--duration-fast) ease;
-}
-
-.mobile-toggle:hover {
-  background: var(--bg-surface-2);
-}
-
-.mobile-toggle-bar {
-  display: block;
-  width: 18px;
-  height: 2px;
-  background: var(--text-primary);
-  border-radius: 1px;
-  transition: transform var(--duration-normal) var(--ease-out);
-}
-
-/* Drawer Overlay */
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-/* Drawer Panel */
-.drawer-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 280px;
-  height: 100vh;
-  background: var(--bg-surface-2);
-  border-left: 1px solid var(--border-subtle);
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.drawer-title {
-  font-family: var(--font-display);
-  font-size: 20px;
-  color: var(--text-primary);
-  letter-spacing: 2px;
-}
-
-.drawer-close {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--duration-fast) ease;
-}
-
-.drawer-close:hover {
-  background: var(--bg-surface-3);
-}
-
-.drawer-close span {
-  position: absolute;
-  width: 14px;
-  height: 2px;
-  background: var(--text-secondary);
-  border-radius: 1px;
-}
-
-.drawer-close span:first-child {
-  transform: rotate(45deg);
-}
-
-.drawer-close span:last-child {
-  transform: rotate(-45deg);
-}
-
-.drawer-body {
-  flex: 1;
-  padding: 12px 12px 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.drawer-user {
-  padding: 12px 12px 16px;
-}
-
-.drawer-user-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--accent-primary);
-}
-
-.drawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.drawer-nav-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 12px !important;
-  font-size: 15px !important;
-  border-radius: var(--radius-md) !important;
-  text-align: left;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer;
-  transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
-}
-
-.drawer-nav-item:hover {
-  background: var(--bg-surface-3) !important;
-}
-
-.drawer-nav-icon {
-  margin-right: 8px;
-  font-size: 16px;
-}
-
-.drawer-badge {
-  margin-left: auto;
-  background: var(--accent-danger);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  min-width: 20px;
-  height: 20px;
-  line-height: 20px;
-  text-align: center;
-  border-radius: var(--radius-full);
-  padding: 0 6px;
-}
-
-.drawer-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 8px 12px;
-}
-
-.drawer-logout {
-  color: var(--accent-danger) !important;
-}
-
-.drawer-logout:hover {
-  background: rgba(255, 77, 109, 0.08) !important;
-}
-
-/* Drawer transitions */
-.drawer-fade-enter-active,
-.drawer-fade-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-out);
-}
-
-.drawer-fade-enter,
-.drawer-fade-leave-to {
-  opacity: 0;
-}
-
-.drawer-slide-enter-active,
-.drawer-slide-leave-active {
-  transition: transform var(--duration-normal) var(--ease-out);
-}
-
-.drawer-slide-enter,
-.drawer-slide-leave-to {
-  transform: translateX(100%);
-}
-
-/* ── Mobile Responsive ── */
-@media (max-width: 767px) {
-  .header-right {
-    display: none !important;
-  }
-
-  .mobile-toggle {
-    display: flex;
-  }
-
-  .app-header {
-    padding: 0 16px;
-  }
-
-  .app-main {
-    padding: 16px;
-  }
 }
 </style>

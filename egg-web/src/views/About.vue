@@ -8,8 +8,7 @@
       <div class="about-section">
         <h3 class="about-section-title">🎮 关于 Egg 赛事竞猜</h3>
         <p class="about-text">
-          Egg 赛事竞猜是一个纯粹的电子竞技预测平台，目前只覆盖 Valorant、英雄联盟、Dota 2 三大热门电竞项目。
-          我们相信预测的乐趣在于公平——平台采用纯彩池制（Parimutuel），<strong>0% 抽水</strong>，你押的每一分都在奖池里。
+          Egg Esports 是一个独立的电竞赛事预测平台，覆盖 Valorant、英雄联盟、Dota 2 三大热门电竞项目。平台采用纯彩池制（Parimutuel），<strong>0% 抽水</strong>——不设庄家、不抽一分钱，赔率完全由玩家投注决定。你押的每一分都在奖池里，猜中按比例分账。积分永远是积分，不可变现——这不是博彩，是判断力的竞技场。
         </p>
       </div>
 
@@ -17,31 +16,52 @@
         <h3 class="about-section-title">✨ 核心特色</h3>
         <div class="feature-list">
           <div class="feature-item">
-            <span class="feature-icon">💰</span>
-            <div class="feature-body">
-              <strong>0% 抽水 · 纯彩池</strong>
-              <p>不抽一分钱，猜中按比例分账，公平透明</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🏦</span>
-            <div class="feature-body">
-              <strong>兜底系统</strong>
-              <p>积分输光？银行自动发放救济贷款，让你东山再起，但是有负债惩罚，不会干扰积分榜</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">📊</span>
-            <div class="feature-body">
-              <strong>三维排行榜</strong>
-              <p>积分榜 · 胜率榜 · 亏损榜，纯押注实力说话</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🔒</span>
+            <span class="feature-icon">🎯</span>
             <div class="feature-body">
               <strong>积分纯靠竞猜</strong>
-              <p>无签到、无任务，积分只来自你的预测眼光</p>
+              <p>无签到、无任务、无额外获取方式，积分只来自你的预测眼光</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🛟</span>
+            <div class="feature-body">
+              <strong>兜底系统</strong>
+              <p>0 积分可领取贷款和低保，让你东山再起的机会</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🏆</span>
+            <div class="feature-body">
+              <strong>0% 抽水 · 纯彩池</strong>
+              <p>不抽一分钱，纯粹的对赌，猜中按比例分账</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📈</span>
+            <div class="feature-body">
+              <strong>净收益榜</strong>
+              <p>只计算押注输赢，低保和贷款不计入排名。能上榜，全凭眼光</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">♾️</span>
+            <div class="feature-body">
+              <strong>单次押注不设限</strong>
+              <p>没有上限，想押多少押多少</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⏱️</span>
+            <div class="feature-body">
+              <strong>押注截止前为准</strong>
+              <p>结算以最后截止前为准，绝不提前锁定</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🛡️</span>
+            <div class="feature-body">
+              <strong>非博彩 · 纯竞技</strong>
+              <p>积分不可充值、不可提现，竞赛纯粹靠判断力</p>
             </div>
           </div>
         </div>
@@ -50,7 +70,7 @@
       <div class="about-section">
         <h3 class="about-section-title">📬 联系我们</h3>
         <p class="about-text">
-          这是一个大学生的独立项目，如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：
+          Egg Esports 由独立开发者维护。如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：
         </p>
         <div class="contact-list">
           <div class="contact-item">
@@ -62,7 +82,7 @@
 
       <div class="about-section">
         <h3 class="about-section-title">☕ 请作者喝杯咖啡</h3>
-        <p class="about-text">如果你喜欢这个平台，欢迎打赏支持独立开发~</p>
+        <p class="about-text">如果你喜欢这个平台，欢迎支持独立开发（纯自愿，不影响任何功能）</p>
         <div class="donate-qr">
           <img src="/uploads/donate-qr.png" alt="打赏二维码" class="donate-qr-img" />
           <span class="donate-qr-label">微信扫码打赏</span>

@@ -70,14 +70,9 @@
 
         <!-- Not Logged In Prompt -->
         <div v-else-if="!getToken()" class="bet-login-prompt">
-          <svg class="prompt-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="16" y="28" width="32" height="26" rx="4" stroke="#00e5a0" stroke-width="2" fill="rgba(0,229,160,0.06)"/>
-            <path d="M22 28 V20 C22 13, 27 8, 32 8 C37 8, 42 13, 42 20 V28" stroke="#00e5a0" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <circle cx="32" cy="40" r="4" fill="#00e5a0" opacity="0.5"/>
-            <line x1="32" y1="44" x2="32" y2="48" stroke="#00e5a0" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-          </svg>
+          <div class="prompt-icon">🔒</div>
           <p class="prompt-text">登录后即可参与竞猜</p>
-          <el-button type="primary" class="prompt-btn" @click="$router.push({ path: '/login', query: { redirect: '/match/' + $route.params.id } })">去登录</el-button>
+          <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
         </div>
 
         <template v-else>
@@ -107,11 +102,16 @@
                   @click="betForm.betSide = 0"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
+                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
                     <span v-else class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span>
                   </div>
                   <div class="team-card-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
-                  <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">{{ match.oddsA.toFixed(2) }}</div>
+                  <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
+                    {{ match.oddsA.toFixed(2) }}
+                    <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+                      <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                    </el-tooltip>
+                  </div>
                   <div v-if="betForm.betSide === 0" class="team-card-check">&#10003;</div>
                 </div>
                 <div class="team-card-vs">VS</div>
@@ -121,11 +121,16 @@
                   @click="betForm.betSide = 1"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
+                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
                     <span v-else class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span>
                   </div>
                   <div class="team-card-name">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
-                  <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">{{ match.oddsB.toFixed(2) }}</div>
+                  <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
+                    {{ match.oddsB.toFixed(2) }}
+                    <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+                      <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                    </el-tooltip>
+                  </div>
                   <div v-if="betForm.betSide === 1" class="team-card-check">&#10003;</div>
                 </div>
               </div>
@@ -139,7 +144,7 @@
               <el-slider
                 v-model="betForm.betAmount"
                 :min="1"
-                :max="Math.max(userPoints, 1)"
+                :max="userPoints"
                 :step="1"
                 show-input
                 :show-input-controls="false"
@@ -161,6 +166,21 @@
               确认押注
             </el-button>
           </div>
+
+          <!-- 押注确认弹窗 -->
+          <el-dialog title="确认押注" :visible.sync="showBetConfirmDialog" width="400px" custom-class="bet-confirm-dialog" :append-to-body="true">
+            <div class="confirm-body">
+              <p class="confirm-team">押注队伍：<strong>{{ betForm.betSide === 0 ? match.teamA : match.teamB }}</strong></p>
+              <p class="confirm-amount">押注积分：<strong>{{ betForm.betAmount }}</strong></p>
+              <p class="confirm-odds">当前赔率：<strong>{{ currentSelectedOdds }}</strong>（最终按彩池结算）</p>
+              <p class="confirm-est">猜中预估回报：<strong style="color:var(--accent-primary)">{{ estimatedReturn }} 积分</strong></p>
+              <p class="confirm-lose">猜错将失去：<strong style="color:var(--accent-danger)">{{ betForm.betAmount }} 积分</strong></p>
+            </div>
+            <span slot="footer">
+              <el-button @click="showBetConfirmDialog = false">取消</el-button>
+              <el-button type="primary" @click="confirmPlaceBet">确认押注</el-button>
+            </span>
+          </el-dialog>
         </template>
 
         <div class="bet-stats">
@@ -175,6 +195,13 @@
         </div>
       </div>
 
+      <!-- BrokeModal - 积分耗尽弹窗 -->
+      <BrokeModal
+        :visible="showBrokeModal"
+        @close="showBrokeModal = false"
+        @success="onBrokeLoanSuccess"
+      />
+
       <!-- Comments Panel -->
       <div class="comments-panel">
         <h3 class="panel-title">
@@ -185,18 +212,9 @@
 
         <!-- Not Logged In -->
         <div v-if="!getToken()" class="bet-login-prompt">
-          <svg class="prompt-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="14" width="44" height="32" rx="6" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.06)"/>
-            <path d="M10 46 L22 54 L22 46" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.08)" stroke-linejoin="round"/>
-            <circle cx="24" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
-            <circle cx="32" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
-            <circle cx="40" cy="30" r="3" fill="#5b8cff" opacity="0.4"/>
-            <rect x="36" y="38" width="14" height="14" rx="3" stroke="#00e5a0" stroke-width="1.5" fill="rgba(0,229,160,0.06)"/>
-            <path d="M40 38 V34 C40 31, 42 29, 43 29 C44 29, 46 31, 46 34 V38" stroke="#00e5a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            <circle cx="43" cy="44" r="2" fill="#00e5a0" opacity="0.5"/>
-          </svg>
-          <p class="prompt-text">登录后参与讨论</p>
-          <el-button type="primary" class="prompt-btn" @click="$router.push({ path: '/login', query: { redirect: '/match/' + $route.params.id } })">去登录</el-button>
+          <div class="prompt-icon">🔒</div>
+          <p class="prompt-text">登录后参与评论</p>
+          <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
         </div>
 
         <template v-else>
@@ -323,11 +341,16 @@
               @click="modifyForm.betSide = 0"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
+                <img v-if="match && match.teamALogo" :src="match.teamALogo" alt="">
                 <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamA : '').charAt(0) }}</span>
               </div>
               <div class="team-card-name">{{ match && match.teamA === 'TBD' ? '待定' : (match ? match.teamA : '') }}</div>
-              <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">{{ match.oddsA.toFixed(2) }}</div>
+              <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
+                {{ match.oddsA.toFixed(2) }}
+                <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+                  <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                </el-tooltip>
+              </div>
               <div v-if="modifyForm.betSide === 0" class="team-card-check">&#10003;</div>
             </div>
             <div class="team-card-vs">VS</div>
@@ -337,11 +360,16 @@
               @click="modifyForm.betSide = 1"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
+                <img v-if="match && match.teamBLogo" :src="match.teamBLogo" alt="">
                 <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamB : '').charAt(0) }}</span>
               </div>
               <div class="team-card-name">{{ match && match.teamB === 'TBD' ? '待定' : (match ? match.teamB : '') }}</div>
-              <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">{{ match.oddsB.toFixed(2) }}</div>
+              <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
+                {{ match.oddsB.toFixed(2) }}
+                <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+                  <i class="el-icon-question" style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"></i>
+                </el-tooltip>
+              </div>
               <div v-if="modifyForm.betSide === 1" class="team-card-check">&#10003;</div>
             </div>
           </div>
@@ -355,7 +383,7 @@
           <el-slider
             v-model="modifyForm.betAmount"
             :min="1"
-            :max="Math.max(modifyMaxAmount, 1)"
+            :max="modifyMaxAmount"
             :step="1"
             show-input
             :show-input-controls="false"
@@ -383,9 +411,13 @@ import request from '@/utils/request'
 import { getToken, getUser } from '@/utils/auth'
 import { subscribe as wsSubscribe, unsubscribe as wsUnsubscribe } from '@/utils/websocket'
 import DOMPurify from 'dompurify'
+import BrokeModal from '@/components/BrokeModal.vue'
 
 export default {
   name: 'MatchDetail',
+  components: {
+    BrokeModal
+  },
   data() {
     return {
       loading: false,
@@ -414,7 +446,9 @@ export default {
       commentInput: '',
       commentPosting: false,
       replyTarget: null,
-      replyParent: null
+      replyParent: null,
+      showBrokeModal: false,
+      showBetConfirmDialog: false
     }
   },
   computed: {
@@ -530,6 +564,17 @@ export default {
         this.userPoints = user.points || 0
       }.bind(this)).catch(function () {})
     },
+    onBrokeLoanSuccess(data) {
+      this.showBrokeModal = false
+      // 刷新用户积分
+      var newPoints = (data && data.points) ? data.points : 0
+      if (newPoints > 0) {
+        this.userPoints = newPoints
+        this.$message.success('救济贷款已发放，当前积分：' + newPoints)
+      } else {
+        this.fetchUserPoints()
+      }
+    },
     placeBet() {
       if (this.betForm.betSide === null) {
         this.$message.warning('请选择押注队伍')
@@ -539,6 +584,11 @@ export default {
         this.$message.warning('请输入押注积分')
         return
       }
+      // 打开确认弹窗，不直接提交
+      this.showBetConfirmDialog = true
+    },
+    confirmPlaceBet() {
+      this.showBetConfirmDialog = false
       this.betLoading = true
       request.post('/bet/place', {
         matchId: parseInt(this.$route.params.id),
@@ -550,7 +600,15 @@ export default {
         this.fetchMyBet()
         this.fetchBetCount()
         this.fetchUserPoints()
-      }.bind(this)).catch(function () {}).finally(function () {
+      }.bind(this)).catch(function (err) {
+        var msg = (err && err.response && err.response.data && err.response.data.message) || ''
+        // 积分不足相关错误 → 弹出救济贷款弹窗
+        if (msg.indexOf('积分不足') !== -1 || msg.indexOf('贷款') !== -1) {
+          this.showBrokeModal = true
+        } else if (msg) {
+          this.$message.error(msg)
+        }
+      }.bind(this)).finally(function () {
         this.betLoading = false
       }.bind(this))
     },
@@ -1088,19 +1146,6 @@ export default {
   text-align: center;
 }
 
-.prompt-svg {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 16px;
-  opacity: 0.8;
-  animation: prompt-float 3s ease-in-out infinite;
-}
-
-@keyframes prompt-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
 .prompt-icon {
   font-size: 36px;
   margin-bottom: 12px;
@@ -1121,13 +1166,6 @@ export default {
   font-weight: 600;
   border-radius: var(--radius-md) !important;
   padding: 10px 32px;
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
-  transition: all 0.2s var(--ease-out);
-}
-
-.prompt-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 30px rgba(0, 229, 160, 0.35);
 }
 
 /* TBD Notice */
@@ -1467,357 +1505,22 @@ export default {
   text-align: center;
 }
 
-/* ============================================================
-   Responsive: Tablet & Mobile (<768px)
-   - 赛事详情页移动端适配
-   - 队伍展示改为竖排，面板缩减内边距，押注卡片竖排
-   ============================================================ */
-@media (max-width: 767px) {
-  /* 顶部导航栏：允许换行，缩小间距 */
-  .detail-header {
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-  /* 赛事信息卡片：缩减内边距 */
-  .match-info-card {
-    padding: 24px 16px;
-  }
-
-  /* 比赛时间：减小下边距 */
-  .match-time {
-    margin-bottom: 20px;
-  }
-
-  /* 队伍展示区：改为竖排（team-a 上，VS 中，team-b 下） */
-  .teams-display {
-    flex-direction: column;
-    gap: 24px;
-    margin-bottom: 16px;
-  }
-
-  /* 队伍 logo：72px → 56px */
-  .team-logo-large {
-    width: 56px;
-    height: 56px;
-  }
-
-  /* 队伍 logo 占位符文字：28px → 22px */
-  .team-logo-placeholder-large {
-    font-size: 22px;
-  }
-
-  /* 队伍名称：20px → 16px */
-  .team-name-large {
-    font-size: 16px;
-  }
-
-  /* VS 文字：28px → 22px */
-  .vs-text {
-    font-size: 22px;
-    letter-spacing: 2px;
-  }
-
-  /* 比分显示：40px → 28px */
-  .score-display-large {
-    font-size: 28px;
-    gap: 12px;
-    margin-top: 4px;
-    margin-bottom: 12px;
-  }
-
-  /* 比分分隔符：32px → 22px */
-  .score-large-sep {
-    font-size: 22px;
-  }
-
-  /* 比分数字最小宽度缩减 */
-  .score-large-a,
-  .score-large-b {
-    min-width: 28px;
-  }
-
-  /* 比赛结果文字：20px → 16px */
-  .match-result-display {
-    font-size: 16px;
-    margin-top: 12px;
-  }
-
-  /* 押注面板：28px → 16px */
-  .bet-panel {
-    padding: 16px;
-    margin-top: 16px;
-  }
-
-  /* 面板标题：22px → 18px */
-  .panel-title {
-    font-size: 18px;
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-  }
-
-  /* 押注队伍卡片：横排改竖排 */
-  .bet-side-cards {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  /* 竖排时 VS 分隔改为水平线样式 */
-  .team-card-vs {
-    width: auto;
-    height: 20px;
-    font-size: 11px;
-  }
-
-  /* 押注统计 */
-  .bet-stats {
-    padding-top: 16px;
-  }
-
-  /* 已押注提示：允许换行 */
-  .already-bet {
-    flex-wrap: wrap;
-  }
-
-  /* 预估返还：允许换行 */
-  .estimated-return {
-    flex-wrap: wrap;
-    padding: 10px 12px;
-  }
-
-  .est-amount {
-    font-size: 18px;
-  }
-
-  /* 登录/TBD 提示：缩减内边距 */
-  .bet-login-prompt {
-    padding: 24px 16px;
-  }
-
-  .bet-tbd-notice {
-    padding: 24px 16px;
-  }
-
-  /* 评论面板：28px → 16px */
-  .comments-panel {
-    padding: 16px;
-    margin-top: 16px;
-  }
-
-  /* 评论项：缩小间距 */
-  .comment-list {
-    gap: 16px;
-  }
-
-  .comment-item {
-    gap: 8px;
-  }
-
-  /* 回复列表：缩减内边距 */
-  .reply-list {
-    padding: 8px;
-    gap: 8px;
-  }
-
-  /* 修改押注弹窗中的卡片也竖排 */
-  .modify-bet-form .bet-side-cards {
-    flex-direction: column;
-    gap: 8px;
-  }
+/* 押注确认弹窗 */
+.confirm-body p {
+  margin: 10px 0;
+  font-size: 15px;
+  color: var(--text-primary);
 }
 
-/* ============================================================
-   Responsive: Small Mobile (<480px)
-   - 进一步紧凑布局，适配小屏手机
-   - 元素尺寸再缩一档，间距最小化
-   ============================================================ */
-@media (max-width: 479px) {
-  /* 赛事信息卡片：进一步紧凑 */
-  .match-info-card {
-    padding: 16px 12px;
-  }
+.confirm-body strong {
+  font-weight: 700;
+}
 
-  /* 比赛时间 */
-  .match-time {
-    font-size: 12px;
-    margin-bottom: 16px;
-  }
+.confirm-body .confirm-est strong {
+  color: var(--accent-primary);
+}
 
-  /* 队伍展示区：间距进一步缩小 */
-  .teams-display {
-    gap: 16px;
-    margin-bottom: 12px;
-  }
-
-  /* 队伍 logo：56px → 48px */
-  .team-logo-large {
-    width: 48px;
-    height: 48px;
-  }
-
-  /* 队伍 logo 占位符：22px → 18px */
-  .team-logo-placeholder-large {
-    font-size: 18px;
-  }
-
-  /* 队伍名称：16px → 14px */
-  .team-name-large {
-    font-size: 14px;
-  }
-
-  /* VS 文字：22px → 18px */
-  .vs-text {
-    font-size: 18px;
-    letter-spacing: 1px;
-  }
-
-  /* 比分显示：28px → 24px */
-  .score-display-large {
-    font-size: 24px;
-    gap: 8px;
-  }
-
-  /* 比分分隔符 */
-  .score-large-sep {
-    font-size: 18px;
-  }
-
-  /* 比分数字最小宽度 */
-  .score-large-a,
-  .score-large-b {
-    min-width: 22px;
-  }
-
-  /* 比赛结果文字 */
-  .match-result-display {
-    font-size: 14px;
-    margin-top: 8px;
-  }
-
-  /* 押注面板 */
-  .bet-panel {
-    padding: 12px;
-  }
-
-  /* 面板标题 */
-  .panel-title {
-    font-size: 16px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-  }
-
-  /* 押注队伍卡片：缩减内边距 */
-  .team-card {
-    padding: 14px 12px;
-    min-height: 96px;
-    gap: 6px;
-  }
-
-  /* 卡片内 logo 缩小 */
-  .team-card-logo {
-    width: 40px;
-    height: 40px;
-  }
-
-  /* 卡片内队名缩小 */
-  .team-card-name {
-    font-size: 13px;
-  }
-
-  /* 卡片内赔率缩小 */
-  .team-card-odds {
-    font-size: 15px;
-  }
-
-  /* 押注金额标签 */
-  .bet-amount-label {
-    font-size: 12px;
-  }
-
-  /* 押注按钮 */
-  .bet-btn {
-    font-size: 14px;
-  }
-
-  /* 押注统计 */
-  .stat-label {
-    font-size: 13px;
-  }
-
-  .stat-value {
-    font-size: 12px;
-  }
-
-  /* 预估返还 */
-  .estimated-return {
-    padding: 8px 10px;
-    gap: 6px;
-  }
-
-  .est-amount {
-    font-size: 16px;
-  }
-
-  .est-odds {
-    font-size: 11px;
-  }
-
-  /* 登录/TBD 提示 */
-  .bet-login-prompt {
-    padding: 20px 12px;
-  }
-
-  .prompt-text {
-    font-size: 14px;
-  }
-
-  .bet-tbd-notice {
-    padding: 20px 12px;
-  }
-
-  .tbd-text {
-    font-size: 13px;
-  }
-
-  /* 评论面板 */
-  .comments-panel {
-    padding: 12px;
-  }
-
-  /* 评论头像缩小 */
-  .comment-avatar {
-    width: 30px;
-    height: 30px;
-  }
-
-  .comment-avatar--sm {
-    width: 24px;
-    height: 24px;
-  }
-
-  /* 评论内容 */
-  .comment-content {
-    font-size: 13px;
-  }
-
-  .comment-nickname {
-    font-size: 12px;
-  }
-
-  /* 回复列表 */
-  .reply-list {
-    padding: 6px;
-    gap: 6px;
-  }
-
-  .reply-item {
-    gap: 6px;
-  }
-
-  /* 评论输入区 */
-  .comment-input-wrap {
-    margin-bottom: 16px;
-  }
+.confirm-body .confirm-lose strong {
+  color: var(--accent-danger);
 }
 </style>

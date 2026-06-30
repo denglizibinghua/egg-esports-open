@@ -70,6 +70,9 @@
           </div>
           <div class="hot-card-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
             <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
+            <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+              <i class="el-icon-question" style="font-size:10px;margin:0 4px;cursor:help;color:var(--text-tertiary)"></i>
+            </el-tooltip>
             <span class="odds-vs">/</span>
             <span class="odds-item odds-item--b">{{ match.oddsB.toFixed(2) }}</span>
           </div>
@@ -198,6 +201,9 @@
 
               <div class="match-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
                 <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
+                <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
+                  <i class="el-icon-question" style="font-size:10px;margin:0 4px;cursor:help;color:var(--text-tertiary)"></i>
+                </el-tooltip>
                 <span class="odds-vs">-</span>
                 <span class="odds-item odds-item--b">{{ match.oddsB.toFixed(2) }}</span>
               </div>
