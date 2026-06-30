@@ -618,6 +618,56 @@ a {
   background: var(--bg-surface-2) !important;
 }
 
+/* Element Plus: Button（默认 & plain 类型暗色覆盖） */
+.el-button {
+  background: var(--bg-surface-1);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.el-button:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--bg-surface-2);
+}
+
+.el-button:active {
+  color: var(--accent-primary);
+}
+
+.el-button.is-disabled,
+.el-button.is-disabled:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+}
+
+.el-button--primary {
+  background: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+
+.el-button--primary:hover {
+  opacity: 0.9;
+}
+
+.el-button--primary.is-disabled {
+  opacity: 0.5;
+}
+
+.el-button--warning {
+  background: var(--accent-warning) !important;
+  border-color: var(--accent-warning) !important;
+  color: #0a0a0f !important;
+}
+
+.el-button--info {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-tertiary) !important;
+}
+
 /* Element Plus: Pagination */
 .el-pagination {
   text-align: center;
