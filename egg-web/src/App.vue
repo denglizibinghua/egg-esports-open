@@ -517,6 +517,15 @@ a {
   transition: box-shadow var(--duration-fast) ease !important;
 }
 
+/* Element Plus: Select 触发器继承 Input 暗色背景 */
+.el-select .el-input__wrapper {
+  background: var(--bg-surface-1) !important;
+}
+
+.el-select .el-input.is-focus .el-input__wrapper {
+  box-shadow: 0 0 0 1px var(--accent-primary) inset, 0 0 0 3px rgba(0,229,160,0.15) !important;
+}
+
 .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px var(--border-strong) inset !important;
 }
@@ -563,7 +572,13 @@ a {
   backdrop-filter: blur(4px);
 }
 
-/* Element Plus: Select Dropdown */
+/* Element Plus: Select Dropdown（Teleported Popper） */
+.el-select__popper {
+  background: var(--bg-surface-2) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
 .el-select-dropdown {
   background: var(--bg-surface-2) !important;
   border-color: var(--border-default) !important;
@@ -576,6 +591,24 @@ a {
 .el-select-dropdown__item.hover,
 .el-select-dropdown__item:hover {
   background: var(--bg-surface-3) !important;
+  color: var(--text-primary) !important;
+}
+
+.el-select-dropdown__item.selected {
+  color: var(--accent-primary) !important;
+  font-weight: 600;
+}
+
+/* Element Plus: Popper（Popover/Tooltip/Select 底层容器） */
+.el-popper {
+  background: var(--bg-surface-2) !important;
+  border: 1px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
+}
+
+.el-popper.is-light {
+  background: var(--bg-surface-2) !important;
+  border-color: var(--border-default) !important;
 }
 
 /* Element Plus: Form */
@@ -598,6 +631,51 @@ a {
 .el-pagination {
   text-align: center;
   margin-top: 20px;
+}
+
+.el-pagination button {
+  background: var(--bg-surface-1) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-default) !important;
+}
+
+.el-pagination button:hover {
+  color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.el-pagination button:disabled {
+  background: var(--bg-surface-2) !important;
+  color: var(--text-tertiary) !important;
+}
+
+.el-pagination .btn-prev,
+.el-pagination .btn-next {
+  background: var(--bg-surface-1) !important;
+  color: var(--text-secondary) !important;
+}
+
+.el-pager li {
+  background: var(--bg-surface-1) !important;
+  color: var(--text-secondary) !important;
+}
+
+.el-pager li:hover {
+  color: var(--accent-primary) !important;
+}
+
+.el-pager li.is-active {
+  background: var(--accent-primary) !important;
+  color: #0a0a0f !important;
+}
+
+/* Element Plus: Select 下拉箭头 */
+.el-select .el-input__suffix .el-icon {
+  color: var(--text-tertiary) !important;
+}
+
+.el-select .el-input__suffix .el-icon:hover {
+  color: var(--accent-primary) !important;
 }
 
 /* Badge System */
