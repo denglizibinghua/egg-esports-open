@@ -517,15 +517,6 @@ a {
   transition: box-shadow var(--duration-fast) ease !important;
 }
 
-/* Element Plus: Select 触发器继承 Input 暗色背景 */
-.el-select .el-input__wrapper {
-  background: var(--bg-surface-1) !important;
-}
-
-.el-select .el-input.is-focus .el-input__wrapper {
-  box-shadow: 0 0 0 1px var(--accent-primary) inset, 0 0 0 3px rgba(0,229,160,0.15) !important;
-}
-
 .el-input__wrapper:hover {
   box-shadow: 0 0 0 1px var(--border-strong) inset !important;
 }
@@ -669,12 +660,35 @@ a {
   color: #0a0a0f !important;
 }
 
-/* Element Plus: Select 下拉箭头 */
-.el-select .el-input__suffix .el-icon {
+/* Element Plus: Select 触发器 —— EP 2.x 用 .el-select__wrapper 而非 .el-input__wrapper */
+.el-select__wrapper {
+  background: var(--bg-surface-1) !important;
+  border-color: var(--border-default) !important;
+  box-shadow: 0 0 0 1px var(--border-default) inset !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--border-strong) inset !important;
+}
+
+.el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--accent-primary) inset, 0 0 0 3px rgba(0,229,160,0.15) !important;
+}
+
+.el-select__placeholder {
   color: var(--text-tertiary) !important;
 }
 
-.el-select .el-input__suffix .el-icon:hover {
+.el-select__placeholder.is-transparent {
+  color: var(--text-tertiary) !important;
+}
+
+.el-select__caret {
+  color: var(--text-tertiary) !important;
+}
+
+.el-select__caret:hover {
   color: var(--accent-primary) !important;
 }
 
