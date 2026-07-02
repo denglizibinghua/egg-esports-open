@@ -50,7 +50,7 @@
           <el-icon><Bell /></el-icon> 全站公告
         </span>
         <span class="detail-time" v-if="detailAnnouncement.createTime">
-          {{ formatTime(detailAnnouncement.createTime) }}
+          {{ detailAnnouncement.createTime }}
         </span>
       </div>
       <div class="detail-content">{{ detailAnnouncement.content }}</div>
@@ -99,15 +99,6 @@ export default {
     this.stopRotate()
   },
   methods: {
-    formatTime(timeStr) {
-      if (!timeStr) return ''
-      var d = new Date(timeStr)
-      var m = (d.getMonth() + 1).toString().padStart(2, '0')
-      var day = d.getDate().toString().padStart(2, '0')
-      var h = d.getHours().toString().padStart(2, '0')
-      var min = d.getMinutes().toString().padStart(2, '0')
-      return m + '-' + day + ' ' + h + ':' + min
-    },
     fetchAnnouncements() {
       var params = {}
       if (this.gameId) {

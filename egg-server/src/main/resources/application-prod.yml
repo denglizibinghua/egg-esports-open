@@ -37,6 +37,9 @@ egg:
     allowed-origins: ${EGG_CORS_ORIGINS}      # 必填，逗号分隔，如 https://egg.example.com
   upload:
     path: ${EGG_UPLOAD_PATH:/data/uploads}     # 生产环境使用绝对路径
+  grid:
+    api-key: ${GRID_API_KEY}                        # 生产环境必填，无默认值
+    central-data-url: https://api-op.grid.gg/central-data/graphql
   riot:
     api-key: ${RIOT_API_KEY}
     base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule

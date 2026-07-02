@@ -21,7 +21,7 @@ public class MatchSyncService {
     private final List<GameSourceAdapter> adapters;
     private final EggMatchService eggMatchService;
 
-    private static final LocalDateTime CUTOFF_DATE = LocalDateTime.of(2026, 1, 1, 0, 0, 0);
+    private static final LocalDateTime CUTOFF_DATE = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
 
     /**
      * 同步所有 Adapter 的赛事数据
@@ -49,6 +49,8 @@ public class MatchSyncService {
                     try {
                         // 过滤早于 CUTOFF_DATE 的赛事
                         if (raw.getMatchTime() == null || raw.getMatchTime().isBefore(CUTOFF_DATE)) {
+                            // 排查用：记录被 CUTOFF_DATE 过滤掉的赛事（debug 级别，生产关闭）
+                            log.debug("跳过赛事: externalId={}, matchTime={}", raw.getExternalId(), raw.getMatchTime());
                             skipped++;
                             continue;
                         }
@@ -88,6 +90,12 @@ public class MatchSyncService {
                 result.getTotalFetched(), result.getTotalCreated(),
                 result.getTotalUpdated(), result.getTotalSkipped(),
                 result.getErrors().size());
+
+        // 错误逐条输出，便于排查（errors 非空时才打；warn 级别，异常本不应静默）
+        if (!result.getErrors().isEmpty()) {
+            log.warn("同步过程发生 {} 个错误:", result.getErrors().size());
+            result.getErrors().forEach(err -> log.warn("  - {}", err));
+        }
 
         return result;
     }

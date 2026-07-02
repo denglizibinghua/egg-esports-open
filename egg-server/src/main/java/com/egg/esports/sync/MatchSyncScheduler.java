@@ -67,8 +67,13 @@ public class MatchSyncScheduler {
     /**
      * 每2分钟检查一次：已结束且有结果但押注未结算的赛事
      *
-     * <p>先触发一次轻量同步（各 Adapter 去重，无变化时几乎零开销），再执行结算。
-     * 确保结算前数据尽可能新鲜。
+     * <p>仅执行结算检查，不触发同步。理由：
+     * <ul>
+     *   <li>scheduledSync 每 10 分钟已同步最新数据，结算延迟 10 分钟可接受</li>
+     *   <li>Liquipedia（王者/第五人格）为全量爬取，每次请求都计入限流配额，
+     *       若在 autoSettleCheck 中也触发 syncAll 会达到 6×6=36 次/小时 × 配置的赛事数，
+     *       远超 Liquipedia 60 次/小时限制，触发 429 限流导致 gameId=5 数据无法入库</li>
+     * </ul>
      */
     @Scheduled(cron = "0 */2 * * * ?")
     public void autoSettleCheck() {
@@ -77,9 +82,6 @@ public class MatchSyncScheduler {
         }
 
         try {
-            // 先同步一次，确保结算前 result 数据是最新的
-            matchSyncService.syncAll();
-            // 再结算
             int settled = eggMatchService.autoSettlePending();
             if (settled > 0) {
                 log.info("自动结算检查完成: 结算 {} 场赛事", settled);

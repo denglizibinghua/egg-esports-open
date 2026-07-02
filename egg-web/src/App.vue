@@ -7,16 +7,35 @@
           <router-link to="/" class="logo">EGG ESPORTS</router-link>
         </div>
         <div class="header-right">
-          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
-          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
-          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行榜</el-button>
-          <!-- 银行按钮（仅登录后显示，带债务小红点） -->
-          <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
-            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
-          </el-badge>
-          <!-- 关于按钮（公开） -->
-          <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
-          <el-button v-if="isAdmin" link class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
+          <!-- 桌面端：横向主导航 -->
+          <div class="desktop-nav">
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行</el-button>
+            <!-- 银行按钮（仅登录后显示，带债务小红点） -->
+            <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
+              <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
+            </el-badge>
+            <!-- 关于按钮（公开） -->
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
+            <el-button v-if="isAdmin" link class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
+          </div>
+          <!-- 移动端：汉堡菜单（下拉包含主导航） -->
+          <el-dropdown class="mobile-nav" trigger="click" @command="handleNavCommand">
+            <el-button circle class="mobile-nav-trigger">
+              <el-icon><Menu /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="/">主页</el-dropdown-item>
+                <el-dropdown-item command="/matches">赛程</el-dropdown-item>
+                <el-dropdown-item command="/leaderboard">排行</el-dropdown-item>
+                <el-dropdown-item v-if="isLoggedIn" command="/bank">银行<span v-if="loanDebt > 0" class="mobile-nav-debt">●</span></el-dropdown-item>
+                <el-dropdown-item command="/about">关于</el-dropdown-item>
+                <el-dropdown-item v-if="isAdmin" command="/admin" divided>管理</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
           <span class="nav-divider"></span>
           <template v-if="isLoggedIn">
             <!-- Notification Bell -->
@@ -99,7 +118,7 @@
 <script>
 // Element Plus 图标按需引入（用于 :icon 属性绑定与动态 component）
 import { markRaw } from 'vue'
-import { Bell, ArrowDown, User, SwitchButton, CircleCheck, ChatDotSquare, MagicStick, InfoFilled } from '@element-plus/icons-vue'
+import { Bell, ArrowDown, User, SwitchButton, CircleCheck, ChatDotSquare, MagicStick, InfoFilled, Menu } from '@element-plus/icons-vue'
 import { getToken, getUser, removeToken } from '@/utils/auth'
 import request from '@/utils/request'
 import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
@@ -123,7 +142,8 @@ export default {
       Bell: markRaw(Bell),
       ArrowDown: markRaw(ArrowDown),
       User: markRaw(User),
-      SwitchButton: markRaw(SwitchButton)
+      SwitchButton: markRaw(SwitchButton),
+      Menu: markRaw(Menu)
     }
   },
   computed: {
@@ -187,6 +207,10 @@ export default {
         this.appToken = null
         this.$router.push('/login')
       }
+    },
+    // 移动端汉堡菜单跳转
+    handleNavCommand(command) {
+      if (command) this.$router.push(command)
     },
     fetchUnreadCount() {
       request.get('/notification/unread-count').then(function (res) {
@@ -391,6 +415,47 @@ body {
   margin: 0 8px;
 }
 
+/* 桌面端主导航容器 */
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 移动端汉堡菜单（默认隐藏，窄屏显示） */
+.mobile-nav {
+  display: none;
+}
+
+.mobile-nav-trigger {
+  background: transparent !important;
+  border: 1px solid var(--bg-surface-3) !important;
+  color: var(--text-secondary) !important;
+  padding: 8px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  height: auto !important;
+  width: auto !important;
+  min-height: 36px !important;
+  min-width: 36px !important;
+  transition: all 0.2s var(--ease-out);
+}
+
+.mobile-nav-trigger:hover {
+  background: var(--bg-surface-2) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* 汉堡菜单债务红点 */
+.mobile-nav-debt {
+  color: var(--accent-danger);
+  margin-left: 6px;
+  font-size: 10px;
+  vertical-align: top;
+}
+
 .user-dropdown-trigger {
   color: var(--text-primary);
   font-size: 14px;
@@ -535,17 +600,6 @@ a {
   color: var(--text-tertiary) !important;
 }
 
-/* Element Plus: 输入框字数统计 */
-.el-input__count {
-  color: var(--text-tertiary) !important;
-  background: transparent !important;
-}
-
-.el-input__count-inner {
-  color: var(--text-tertiary) !important;
-  background: transparent !important;
-}
-
 /* Element Plus: Dialog */
 .el-dialog {
   background: var(--bg-surface-2) !important;
@@ -574,13 +628,7 @@ a {
   backdrop-filter: blur(4px);
 }
 
-/* Element Plus: Select Dropdown（Teleported Popper） */
-.el-select__popper {
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--border-default) !important;
-  box-shadow: var(--shadow-lg) !important;
-}
-
+/* Element Plus: Select Dropdown */
 .el-select-dropdown {
   background: var(--bg-surface-2) !important;
   border-color: var(--border-default) !important;
@@ -593,24 +641,6 @@ a {
 .el-select-dropdown__item.hover,
 .el-select-dropdown__item:hover {
   background: var(--bg-surface-3) !important;
-  color: var(--text-primary) !important;
-}
-
-.el-select-dropdown__item.selected {
-  color: var(--accent-primary) !important;
-  font-weight: 600;
-}
-
-/* Element Plus: Popper（Popover/Tooltip/Select 底层容器） */
-.el-popper {
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--border-default) !important;
-  color: var(--text-primary) !important;
-}
-
-.el-popper.is-light {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
 }
 
 /* Element Plus: Form */
@@ -629,128 +659,10 @@ a {
   background: var(--bg-surface-2) !important;
 }
 
-/* Element Plus: Button（默认 & plain 类型暗色覆盖） */
-.el-button {
-  background: rgba(0,229,160,0.10);
-  border-color: rgba(0,229,160,0.25);
-  color: var(--accent-primary);
-}
-
-.el-button:hover {
-  background: rgba(0,229,160,0.18);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-
-.el-button:active {
-  color: var(--accent-primary);
-}
-
-.el-button.is-disabled,
-.el-button.is-disabled:hover {
-  background: var(--bg-surface-2);
-  border-color: var(--border-subtle);
-  color: var(--text-tertiary);
-}
-
-.el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-
-.el-button--primary:hover {
-  opacity: 0.9;
-}
-
-.el-button--primary.is-disabled {
-  opacity: 0.5;
-}
-
-.el-button--warning {
-  background: var(--accent-warning) !important;
-  border-color: var(--accent-warning) !important;
-  color: #0a0a0f !important;
-}
-
-.el-button--info {
-  background: var(--bg-surface-2) !important;
-  border-color: var(--border-default) !important;
-  color: var(--text-tertiary) !important;
-}
-
 /* Element Plus: Pagination */
 .el-pagination {
   text-align: center;
   margin-top: 20px;
-}
-
-.el-pagination button {
-  background: var(--bg-surface-1) !important;
-  color: var(--text-secondary) !important;
-  border-color: var(--border-default) !important;
-}
-
-.el-pagination button:hover {
-  color: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-}
-
-.el-pagination button:disabled {
-  background: var(--bg-surface-2) !important;
-  color: var(--text-tertiary) !important;
-}
-
-.el-pagination .btn-prev,
-.el-pagination .btn-next {
-  background: var(--bg-surface-1) !important;
-  color: var(--text-secondary) !important;
-}
-
-.el-pager li {
-  background: var(--bg-surface-1) !important;
-  color: var(--text-secondary) !important;
-}
-
-.el-pager li:hover {
-  color: var(--accent-primary) !important;
-}
-
-.el-pager li.is-active {
-  background: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-}
-
-/* Element Plus: Select 触发器 —— EP 2.x 用 .el-select__wrapper 而非 .el-input__wrapper */
-.el-select__wrapper {
-  background: var(--bg-surface-1) !important;
-  border-color: var(--border-default) !important;
-  box-shadow: 0 0 0 1px var(--border-default) inset !important;
-  border-radius: var(--radius-md) !important;
-}
-
-.el-select__wrapper:hover {
-  box-shadow: 0 0 0 1px var(--border-strong) inset !important;
-}
-
-.el-select__wrapper.is-focused {
-  box-shadow: 0 0 0 1px var(--accent-primary) inset, 0 0 0 3px rgba(0,229,160,0.15) !important;
-}
-
-.el-select__placeholder {
-  color: var(--text-tertiary) !important;
-}
-
-.el-select__placeholder.is-transparent {
-  color: var(--text-tertiary) !important;
-}
-
-.el-select__caret {
-  color: var(--text-tertiary) !important;
-}
-
-.el-select__caret:hover {
-  color: var(--accent-primary) !important;
 }
 
 /* Badge System */
@@ -835,6 +747,8 @@ a {
   padding: 3px 10px;
   font-size: 11px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   border-radius: var(--radius-full);
@@ -899,6 +813,10 @@ a {
 .tournament-chip {
   display: inline-flex;
   align-items: center;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 2px 8px;
   font-size: 11px;
   font-weight: 500;
@@ -1054,5 +972,102 @@ a {
 .el-popover .popper__arrow::after,
 .el-popover .popper__arrow {
   border-bottom-color: var(--bg-surface-2) !important;
+}
+
+/* ===== 全局移动端适配 ===== */
+/* 防止 iOS Safari 聚焦输入框时页面缩放（字体需 ≥16px） */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  /* touch-friendly：可点击元素最小高度 */
+  .el-button {
+    min-height: 40px;
+  }
+  .el-input__inner {
+    min-height: 40px;
+  }
+  /* 弹窗：移动端宽度自适应，避免 400px 固定宽度溢出小屏 */
+  .el-dialog {
+    width: 92% !important;
+    max-width: 92vw !important;
+    margin: 8vh auto !important;
+  }
+  .el-dialog__body {
+    padding: 16px !important;
+  }
+  .el-dialog__header {
+    padding: 14px 16px !important;
+  }
+  .el-dialog__footer {
+    padding: 12px 16px !important;
+  }
+  /* 分页器在移动端可点 */
+  .el-pagination button,
+  .el-pagination .number {
+    min-height: 32px;
+    min-width: 32px;
+  }
+}
+
+/* ===== Header 响应式 ===== */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    height: 52px !important;
+  }
+  .header-left .logo {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+  .header-right {
+    gap: 4px;
+  }
+  /* 桌面横向导航隐藏，显示汉堡菜单 */
+  .desktop-nav {
+    display: none;
+  }
+  .mobile-nav {
+    display: flex;
+    align-items: center;
+  }
+  /* 主导航已收进汉堡菜单，分隔线在移动端无意义，隐藏 */
+  .nav-divider {
+    display: none;
+  }
+  .nav-btn {
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+  }
+  /* 通知铃铛/用户下拉在移动端略缩 */
+  .nav-bell-btn {
+    padding: 6px 10px !important;
+    font-size: 15px !important;
+    min-height: 36px !important;
+  }
+  .user-dropdown-trigger {
+    font-size: 13px;
+    padding: 4px 6px;
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* 主内容区减少 padding，利用屏幕空间 */
+  .app-main {
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left .logo {
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+  .app-main {
+    padding: 10px !important;
+  }
 }
 </style>

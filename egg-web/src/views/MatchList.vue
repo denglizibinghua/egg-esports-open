@@ -711,6 +711,9 @@ export default {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vs-badge {
@@ -987,11 +990,75 @@ export default {
   .hot-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  /* 页面标题缩小 */
+  .page-title {
+    font-size: 26px;
+  }
+  /* 赛事卡片收紧 */
+  .match-card {
+    padding: 14px 14px;
+    gap: 10px;
+  }
+  .match-teams {
+    gap: 14px;
+  }
+  .team-name {
+    font-size: 14px;
+  }
+  .team-logo {
+    width: 28px;
+    height: 28px;
+  }
+  /* 锦标赛分组标题收紧 */
+  .tournament-group-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .tournament-group-name {
+    font-size: 15px;
+  }
+  /* 热门卡片收紧 */
+  .hot-card {
+    padding: 12px 12px;
+  }
+  .hot-team-name {
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 480px) {
   .hot-grid {
     grid-template-columns: 1fr;
+  }
+  .page-title {
+    font-size: 22px;
+  }
+  /* 小屏队伍名允许换行，避免横向溢出 */
+  .team-name {
+    font-size: 13px;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+  .hot-team-name {
+    font-size: 12px;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+  }
+  /* 队伍区 gap 进一步收紧 */
+  .match-teams {
+    gap: 8px;
+  }
+  .team {
+    gap: 8px;
+  }
+  /* score 字号略小 */
+  .score-display {
+    font-size: 17px;
+  }
+  .vs-badge {
+    font-size: 15px;
   }
 }
 

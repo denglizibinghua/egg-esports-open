@@ -214,4 +214,24 @@ export default {
   transform: translateY(-1px);
   box-shadow: 0 0 30px rgba(0,229,160,0.35);
 }
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 480px) {
+  .login-card {
+    /* 小屏减少内边距，避免内容贴边 */
+    padding: 32px 20px 24px;
+  }
+  .login-title {
+    font-size: 30px;
+    letter-spacing: 3px;
+  }
+  .login-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .submit-btn {
+    min-height: 44px;
+    letter-spacing: 2px;
+  }
+}
 </style>

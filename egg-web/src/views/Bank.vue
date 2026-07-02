@@ -529,11 +529,78 @@ export default {
 
 @media (max-width: 640px) {
   .bank-overview {
-    grid-template-columns: repeat(2, 1fr);
+    /* 移动端三卡片改为单列堆叠，避免第三个卡片孤立 */
+    grid-template-columns: 1fr;
   }
   .bank-quick-stats {
     flex-direction: column;
     gap: 8px;
+  }
+  /* 卡片内边距与字号收紧 */
+  .bank-card {
+    padding: 20px 16px;
+  }
+  .bank-card-value {
+    font-size: 26px;
+  }
+  /* 区块内边距收紧 */
+  .bank-section {
+    padding: 18px 14px;
+  }
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+  /* 还款表单：输入框 + 按钮改为纵向堆叠，避免横向溢出 */
+  .repay-input-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .repay-input {
+    width: 100%;
+  }
+  .repay-unit {
+    display: none;
+  }
+  .repay-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+  /* 还款信息允许换行 */
+  .repay-info {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .repay-sep {
+    display: none;
+  }
+  /* 低保/救济按钮全宽，touch-friendly */
+  .stipend-btn,
+  .repay-btn {
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 24px;
+  }
+  .bank-card-value {
+    font-size: 22px;
+  }
+  .bank-card {
+    padding: 16px 12px;
+  }
+  .rule-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .rule-icon {
+    font-size: 18px;
   }
 }
 

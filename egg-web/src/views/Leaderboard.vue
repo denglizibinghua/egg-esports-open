@@ -1,7 +1,7 @@
 <template>
   <div class="leaderboard">
     <div class="page-header">
-      <h2 class="page-title">排行榜</h2>
+      <h2 class="page-title">排行</h2>
       <div class="page-header-right">
         <div class="leaderboard-tabs">
           <span

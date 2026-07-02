@@ -5,8 +5,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: admin
+    password: admin123
   servlet:
     multipart:
       max-file-size: 2MB
@@ -26,7 +26,7 @@ mybatis-plus:
 
 # JWT
 jwt:
-  secret: ${JWT_SECRET}
+  secret: REDACTED-JWT-SECRET
   expiration: 604800000  # 7 days in ms
 
 # 押注配置
@@ -63,8 +63,35 @@ egg:
         league-ids: 98767991310872058,98767991314006698,98767991302996019,98767991299243165,98767991325878492
         league-names: LCK,LPL,LEC,LCS,MSI
       opendota:
-        enabled: true         # Dota2 已开启
+        enabled: true         # 恢复 OpenDota（替代 GRID Dota 2，免费且含队名/比分/联赛名）
         game-id: 3
+      pandascore-cs2:
+        enabled: false        # API 被墙（Cloudflare 525 SSL），不可用，等解封再启用
+        game-id: 4
+        base-url: https://api.pandascore.com
+        api-key: ${PANDASCORE_API_KEY}
+      grid-cs2:
+        enabled: true
+        game-id: 4
+        title-id: 28          # GRID 内部 CS2 title ID（Counter Strike 2）
+        api-key: ${GRID_API_KEY}
+      grid-dota2:
+        enabled: false        # 下线 GRID Dota 2（由 OpenDota 替代）
+        game-id: 3
+        title-id: 2           # GRID 内部 Dota 2 title ID（Defense of the Ancients 2）
+        api-key: ${GRID_API_KEY}
+      liquipedia-hok:         # 王者荣耀 KPL（Liquipedia 免费 API，无 Key）
+        enabled: false        # 服务器无法访问 Liquipedia，禁用
+        game-name: honorofkings
+        game-id: 5
+        base-url: https://liquipedia.net
+        tournaments: King_Pro_League/2026/Summer/Stage_1,King_Pro_League/2026/Summer/Stage_2,King_Pro_League/2026/Summer/Stage_3,King_Pro_League/2026/Summer/Playoffs
+      liquipedia-idv:         # 第五人格 IVL/IJL（Liquipedia 免费 API，无 Key）
+        enabled: false        # 无数据，禁用
+        game-name: identityv
+        game-id: 6
+        base-url: https://liquipedia.net
+        tournaments: IVL/2026/Summer,IJL/2026/Summer
   http:
     # 开发环境：国内走 Clash 代理访问外网 API（Riot/OpenDota）
     # 生产环境：部署海外服务器时注释掉这两行即可直连
@@ -72,6 +99,9 @@ egg:
     proxy-port: 7897
   cors:
     allowed-origins: "*"   # 生产环境改为具体域名，如 https://your-domain.com
+  grid:
+    api-key: ${GRID_API_KEY}
+    central-data-url: https://api-op.grid.gg/central-data/graphql
   riot:
     api-key: ${RIOT_API_KEY}
     base-url: https://esports-api.service.valorantesports.com/persisted/val/getSchedule

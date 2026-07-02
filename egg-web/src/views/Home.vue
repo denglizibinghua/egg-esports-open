@@ -239,7 +239,7 @@
     <!-- 🏆 排行榜 -->
     <div ref="rankSection" class="home-section">
       <div class="section-header">
-        <span class="section-header-title">🏆 预言家排行榜</span>
+        <span class="section-header-title">🏆 预言家排行</span>
         <span class="section-header-count" v-if="leaderboard.length > 0">Top {{ leaderboard.length }}</span>
       </div>
       <template v-if="rankLoading">
@@ -260,7 +260,7 @@
       </template>
       <div v-else-if="top3.length === 0 && leaderboard.length === 0" class="empty-state">
         <div class="empty-icon">🏆</div>
-        <h3 class="empty-title">排行榜暂无数据</h3>
+        <h3 class="empty-title">排行暂无数据</h3>
         <p class="empty-desc">还没有人参与竞猜，成为第一个上榜的人吧</p>
       </div>
       <template v-else>
@@ -360,6 +360,7 @@ export default {
       if (this.selectedGameId === 1) return 'hero--valorant'
       if (this.selectedGameId === 2) return 'hero--lol'
       if (this.selectedGameId === 3) return 'hero--dota'
+      if (this.selectedGameId === 4) return 'hero--cs2'
       return 'hero--default'
     }
   },
@@ -380,8 +381,9 @@ export default {
       return data.list || data.content || []
     },
     filterTBD(list) {
+      // 过滤所有 TBD 变体（TBD、TBD-1、TBD-2 等）
       return list.filter(function (m) {
-        return m.teamA !== 'TBD' && m.teamB !== 'TBD'
+        return !/^TBD/.test(m.teamA) && !/^TBD/.test(m.teamB)
       })
     },
     hasScore(match) {
@@ -577,6 +579,15 @@ export default {
     radial-gradient(ellipse 60% 80% at 85% 30%, rgba(255,77,109,0.20) 0%, transparent 50%),
     radial-gradient(ellipse 40% 60% at 50% 80%, rgba(140,91,255,0.12) 0%, transparent 60%),
     #0d0a14;
+}
+
+/* CS2 主题：橙金/暗色底（经典 CS 配色） */
+.hero--cs2 {
+  background:
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(222,155,40,0.30) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(235,179,52,0.20) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(222,155,40,0.10) 0%, transparent 60%),
+    #0d0c09;
 }
 
 .hero--default {
@@ -1118,12 +1129,27 @@ export default {
 @media (max-width: 768px) {
   .card-list, .loading-full { grid-template-columns: repeat(2, 1fr); }
   .hero { height: 200px; }
+  .hero-content { padding: 14px 12px; gap: 10px; }
+  .hero-teams { gap: 16px; }
   .hero-team-name { font-size: 20px; }
   .hero-score { font-size: 32px; }
   .hero-vs { font-size: 28px; }
+  /* hero 底部按钮区允许换行，避免溢出 */
+  .hero-footer { gap: 12px; flex-wrap: wrap; }
+  .hero-btn { padding: 8px 18px !important; font-size: 13px !important; }
   .podium { gap: 10px; }
   .podium-item { min-width: 100px; padding: 14px 12px; }
   .podium-item.gold { min-width: 120px; }
+  /* 分区标题与卡片收紧 */
+  .home-section { margin-bottom: 24px; }
+  .section-header { margin-bottom: 14px; padding-bottom: 10px; }
+  .section-header-title { font-size: 16px; }
+  .match-card { padding: 14px 14px; }
+  .match-card-teams { gap: 12px; }
+  .match-card-team-name { font-size: 14px; }
+  /* 浮动导航缩小，避免遮挡内容 */
+  .float-nav { right: 8px; bottom: 24px; }
+  .float-nav-btn { width: 36px; height: 36px; font-size: 16px; }
 }
 @media (max-width: 480px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }
@@ -1132,5 +1158,8 @@ export default {
   .hero-team-name { font-size: 16px; }
   .hero-score { font-size: 26px; }
   .hero-vs { font-size: 22px; }
+  /* 长队名允许换行，避免横向溢出 */
+  .hero-team-name { white-space: normal; text-align: center; line-height: 1.2; }
+  .hero-team { gap: 8px; }
 }
 </style>

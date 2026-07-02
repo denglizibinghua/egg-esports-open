@@ -1531,4 +1531,193 @@ export default {
 .confirm-body .confirm-lose strong {
   color: var(--accent-danger);
 }
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 768px) {
+  /* 返回栏 */
+  .detail-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* 比赛信息卡片：缩小内边距 */
+  .match-info-card {
+    padding: 24px 16px;
+  }
+  .match-time {
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+  /* 队伍展示：缩小间距与 logo */
+  .teams-display {
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+  .team-logo-large {
+    width: 56px;
+    height: 56px;
+  }
+  .team-logo-placeholder-large {
+    font-size: 22px;
+  }
+  .team-name-large {
+    font-size: 16px;
+  }
+  .vs-text {
+    font-size: 22px;
+    letter-spacing: 2px;
+  }
+  /* 比分缩小 */
+  .score-display-large {
+    font-size: 30px;
+    gap: 10px;
+    letter-spacing: 1px;
+  }
+  .score-large-sep {
+    font-size: 24px;
+  }
+  .match-result-display {
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  /* 押注面板：缩小内边距 */
+  .bet-panel {
+    padding: 18px 14px;
+    margin-top: 16px;
+  }
+  .panel-title {
+    font-size: 18px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  /* 押注队伍卡片：缩小内边距，VS 间距收紧 */
+  .bet-side-cards {
+    gap: 8px;
+  }
+  .team-card {
+    min-height: 96px;
+    padding: 14px 10px;
+    gap: 6px;
+  }
+  .team-card-logo {
+    width: 40px;
+    height: 40px;
+  }
+  .team-card-logo-placeholder {
+    font-size: 16px;
+  }
+  .team-card-name {
+    font-size: 13px;
+  }
+  .team-card-odds {
+    font-size: 15px;
+  }
+  .team-card-vs {
+    width: 22px;
+    font-size: 10px;
+  }
+
+  /* 押注积分区 */
+  .bet-amount-label {
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .current-points {
+    font-size: 12px;
+    margin-left: 0;
+    width: 100%;
+  }
+  /* 预估返还：允许换行 */
+  .estimated-return {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .est-amount {
+    font-size: 18px;
+  }
+
+  /* 确认押注按钮：touch-friendly */
+  .bet-btn {
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  /* 押注统计：紧凑 */
+  .bet-stats {
+    padding-top: 14px;
+    gap: 12px;
+  }
+  .stat-label {
+    font-size: 13px;
+  }
+  .stat-value {
+    font-size: 12px;
+  }
+
+  /* 已押注提示：改为纵向堆叠 */
+  .already-bet {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .modify-bet-btn {
+    width: 100%;
+  }
+
+  /* 评论面板：缩小内边距 */
+  .comments-panel {
+    padding: 18px 14px;
+    margin-top: 16px;
+  }
+  .comment-input-actions {
+    justify-content: stretch;
+  }
+  .comment-input-actions .el-button {
+    flex: 1;
+    min-height: 40px;
+  }
+
+  /* 未登录提示按钮：全宽 */
+  .bet-login-prompt {
+    padding: 24px 16px;
+  }
+  .prompt-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* 小屏手机进一步收紧 */
+@media (max-width: 480px) {
+  .match-info-card {
+    padding: 20px 12px;
+  }
+  .teams-display {
+    gap: 12px;
+  }
+  .team-name-large {
+    font-size: 14px;
+  }
+  .team-logo-large {
+    width: 48px;
+    height: 48px;
+  }
+  .vs-text {
+    font-size: 18px;
+  }
+  .score-display-large {
+    font-size: 24px;
+  }
+  /* 队伍卡片名称占满，避免溢出 */
+  .team-card-name {
+    font-size: 12px;
+    word-break: break-word;
+    white-space: normal;
+  }
+}
 </style>

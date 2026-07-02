@@ -338,10 +338,8 @@ public class EggMatchService {
                 changed = true;
             }
             */
-            // 🔒 队伍名/logo 首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
-            // 只允许同步更新比分、状态、结果、比赛时间、标题、赛事名
-            // 队伍 logo 同样首次创建后不覆盖
-            /*
+            // 🔒 队伍名首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
+            // 队标可以安全更新——图片 URL 不存在翻转问题
             if (match.getTeamALogo() != null && !match.getTeamALogo().equals(existing.getTeamALogo())) {
                 existing.setTeamALogo(match.getTeamALogo());
                 changed = true;
@@ -350,7 +348,6 @@ public class EggMatchService {
                 existing.setTeamBLogo(match.getTeamBLogo());
                 changed = true;
             }
-            */
             if (match.getTournament() != null && !match.getTournament().equals(existing.getTournament())) {
                 existing.setTournament(match.getTournament());
                 changed = true;

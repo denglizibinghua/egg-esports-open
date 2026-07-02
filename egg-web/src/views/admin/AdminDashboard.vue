@@ -201,7 +201,7 @@
               :icon="Refresh"
               @click="triggerSync"
             >
-              {{ syncLoading ? '正在同步...' : '从 Riot API 同步赛事数据' }}
+              {{ syncLoading ? '正在同步...' : '同步全部赛事数据（Riot + PandaScore + Liquipedia + GRID）' }}
             </el-button>
             <p v-if="lastSyncTime" class="sync-last-time">
               上次同步: {{ formatSyncTime(lastSyncTime) }}
@@ -242,7 +242,7 @@
             <!-- Per-Game Stats -->
             <div v-if="syncResult.perGameStats" class="sync-per-game">
               <div v-for="(stats, gameKey) in syncResult.perGameStats" :key="gameKey" class="sync-per-game-item">
-                <span class="sync-per-game-label">{{ gameKey }}:</span>
+                <span class="sync-per-game-label">{{ getGameNameByKey(gameKey) }}:</span>
                 <span class="sync-per-game-val">+{{ stats[0] }} ~{{ stats[1] }} -{{ stats[2] }}</span>
               </div>
             </div>
@@ -746,10 +746,22 @@ export default {
       if (status === 2) return 'status-badge--finished'
       return 'status-badge--upcoming'
     },
+    // 将 perGameStats 的 raw key（如 "game-1"）映射为人类可读的游戏名
+    getGameNameByKey(key) {
+      var map = {
+        'game-1': '无畏契约',
+        'game-2': '英雄联盟',
+        'game-3': 'Dota 2',
+        'game-4': 'CS2'
+      }
+      return map[key] || key
+    },
     triggerSync() {
       this.syncLoading = true
       this.syncResult = null
-      request.post('/match/sync').then(res => {
+      // 同步涉及多个外部 API（Riot/OpenDota/GRID），整体耗时较长，
+      // 单独放宽到 120 秒，避免默认 15 秒超时导致前端一直 loading
+      request.post('/match/sync', {}, { timeout: 120000 }).then(res => {
         var data = res.data || res
         this.syncResult = data
         if (data.syncTime) {
@@ -1488,5 +1500,88 @@ export default {
 .game-icon-empty {
   color: var(--text-tertiary);
   font-size: 14px;
+}
+
+/* ===== 移动端基础适配 ===== */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 26px;
+  }
+
+  /* tab 头部：筛选与操作按钮改为纵向堆叠，避免横向溢出 */
+  .tab-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .tab-header .el-button {
+    width: 100%;
+  }
+
+  /* 表格容器保证可横向滚动 */
+  :deep(.el-table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 操作列按钮 touch-friendly */
+  :deep(.el-table .el-button) {
+    min-height: 32px;
+    padding: 4px 8px;
+  }
+
+  /* 同步统计/骨架网格：3 列 → 2 列 */
+  .sync-stats-grid,
+  .sync-skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .sync-stat-card {
+    padding: 12px 14px;
+  }
+  .sync-stat-value {
+    font-size: 24px;
+  }
+  .sync-action-area {
+    padding: 14px;
+  }
+  .sync-action-area .el-button--primary {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* 导入错误项：窄屏堆叠 */
+  .import-error-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .import-error-title {
+    min-width: 0;
+  }
+  .import-submit-row {
+    justify-content: stretch;
+  }
+  .import-submit-row .el-button--primary {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* 公告表单 label 宽度收紧 */
+  .announcement-form :deep(.el-form-item__label) {
+    width: 64px !important;
+  }
+  .announcement-form :deep(.el-input-number) {
+    width: 140px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 22px;
+  }
+  /* 同步统计在小屏单列堆叠 */
+  .sync-stats-grid,
+  .sync-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
