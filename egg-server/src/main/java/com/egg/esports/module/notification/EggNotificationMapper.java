@@ -1,6 +1,7 @@
 package com.egg.esports.module.notification;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -25,4 +26,15 @@ public interface EggNotificationMapper extends BaseMapper<EggNotification> {
 
     @Select("SELECT COUNT(*) FROM egg_notification WHERE user_id = #{userId} AND type = #{type} AND related_id = #{relatedId}")
     int countByUserAndTypeAndRelated(@Param("userId") Long userId, @Param("type") Integer type, @Param("relatedId") Long relatedId);
+
+    /**
+     * 批量插入通知
+     */
+    @Insert("<script>" +
+            "INSERT INTO egg_notification (user_id, type, title, content, related_id, is_read, create_time) VALUES " +
+            "<foreach collection='list' item='item' separator=','>" +
+            "(#{item.userId}, #{item.type}, #{item.title}, #{item.content}, #{item.relatedId}, #{item.isRead}, #{item.createTime})" +
+            "</foreach>" +
+            "</script>")
+    int batchInsert(@Param("list") List<EggNotification> list);
 }

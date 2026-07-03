@@ -18,8 +18,9 @@
         <div class="hero-teams">
           <div class="hero-team">
             <div class="team-logo">
-              <img v-if="heroMatch.teamALogo" :src="heroMatch.teamALogo" alt="">
-              <span v-else class="team-logo-placeholder">{{ heroMatch.teamA.charAt(0) }}</span>
+              <el-image :src="heroMatch.teamALogo" alt="" fit="contain">
+                <template #error><span class="team-logo-placeholder">{{ heroMatch.teamA.charAt(0) }}</span></template>
+              </el-image>
             </div>
             <span class="hero-team-name">{{ heroMatch.teamA }}</span>
           </div>
@@ -34,8 +35,9 @@
           </div>
           <div class="hero-team">
             <div class="team-logo">
-              <img v-if="heroMatch.teamBLogo" :src="heroMatch.teamBLogo" alt="">
-              <span v-else class="team-logo-placeholder">{{ heroMatch.teamB.charAt(0) }}</span>
+              <el-image :src="heroMatch.teamBLogo" alt="" fit="contain">
+                <template #error><span class="team-logo-placeholder">{{ heroMatch.teamB.charAt(0) }}</span></template>
+              </el-image>
             </div>
             <span class="hero-team-name">{{ heroMatch.teamB }}</span>
           </div>
@@ -70,7 +72,9 @@
         :class="{ active: selectedGameId === game.id }"
         @click="switchGame(game.id)"
       >
-        <img v-if="game.icon" :src="game.icon" class="game-icon" alt="">
+        <el-image v-if="game.icon" :src="game.icon" class="game-icon" fit="contain">
+          <template #error><span class="img-fallback">{{ game.name.charAt(0) }}</span></template>
+        </el-image>
         {{ game.name }}
       </button>
     </div>
@@ -107,8 +111,9 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
+                <el-image :src="match.teamALogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
             </div>
@@ -120,8 +125,9 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
             </div>
@@ -137,6 +143,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div v-else class="section-empty">
+      <span>暂无赛事</span>
     </div>
 
     <!-- 🔴 进行中 -->
@@ -161,8 +170,9 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
+                <el-image :src="match.teamALogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
             </div>
@@ -174,8 +184,9 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
             </div>
@@ -188,6 +199,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div v-else class="section-empty">
+      <span>暂无赛事</span>
     </div>
 
     <!-- ⏰ 即将开始 -->
@@ -212,16 +226,18 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span>
+                <el-image :src="match.teamALogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamA }}</span>
             </div>
             <div class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span>
+                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                  <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="match-card-team-name">{{ match.teamB }}</span>
             </div>
@@ -234,6 +250,9 @@
           </div>
         </div>
       </div>
+    </div>
+    <div v-else class="section-empty">
+      <span>暂无赛事</span>
     </div>
 
     <!-- 🏆 排行榜 -->
@@ -805,6 +824,13 @@ export default {
 }
 
 /* ===== 堆叠分区 ===== */
+/* 分区无数据时的空态提示 */
+.section-empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 40px 0;
+}
+
 .home-section {
   margin-bottom: 36px;
   animation: fade-in 0.4s var(--ease-out);

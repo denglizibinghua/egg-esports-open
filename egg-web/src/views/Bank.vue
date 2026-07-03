@@ -205,9 +205,15 @@ export default {
         var userData = results[1].data || results[1]
         this.status = loanData
         this.userPoints = userData.points || 0
-      }.bind(this)).catch(function () {
-        this.$message.error('加载失败')
-      }.bind(this)).finally(function () {
+      }.bind(this)).catch((error) => {
+        // 区分 401 未登录与其他错误，提供差异化提示
+        if (error.response && error.response.status === 401) {
+          this.$message.error('请先登录')
+          this.$router.push('/login')
+        } else {
+          this.$message.error('加载失败，请刷新重试')
+        }
+      }).finally(function () {
         this.loading = false
       }.bind(this))
     },

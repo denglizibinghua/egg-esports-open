@@ -1,13 +1,27 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // Vite 配置：替代原 vue.config.js
 // - @ 别名指向 src/
 // - 开发服务器 8080 端口，代理 /api 与 /uploads 到后端 8088
 // - 生产构建关闭 sourcemap
+// - Element Plus 按需引入（组件 + 样式自动导入）
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+      dts: false
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+      dts: false
+    })
+  ],
   // sockjs-client 等老库引用了 Node.js 的 global 全局变量，
   // Vite 不自动 polyfill，这里把 global 重写为 globalThis（浏览器原生支持）
   define: {

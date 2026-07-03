@@ -19,8 +19,9 @@
         <div class="teams-display">
           <div class="team-display team-a-display">
             <div class="team-logo-large">
-              <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-              <span v-else class="team-logo-placeholder-large">{{ match.teamA === 'TBD' ? '?' : (match.teamA || '').charAt(0) }}</span>
+              <el-image :src="match.teamALogo" alt="" fit="contain">
+                <template #error><span class="team-logo-placeholder-large">{{ match.teamA === 'TBD' ? '?' : (match.teamA || '').charAt(0) }}</span></template>
+              </el-image>
             </div>
             <div class="team-name-large" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
           </div>
@@ -31,8 +32,9 @@
 
           <div class="team-display team-b-display">
             <div class="team-logo-large">
-              <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-              <span v-else class="team-logo-placeholder-large">{{ match.teamB === 'TBD' ? '?' : (match.teamB || '').charAt(0) }}</span>
+              <el-image :src="match.teamBLogo" alt="" fit="contain">
+                <template #error><span class="team-logo-placeholder-large">{{ match.teamB === 'TBD' ? '?' : (match.teamB || '').charAt(0) }}</span></template>
+              </el-image>
             </div>
             <div class="team-name-large" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
           </div>
@@ -102,8 +104,9 @@
                   @click="betForm.betSide = 0"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="">
-                    <span v-else class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span>
+                    <el-image :src="match.teamALogo" alt="" fit="contain">
+                      <template #error><span class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span></template>
+                    </el-image>
                   </div>
                   <div class="team-card-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
                   <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
@@ -121,8 +124,9 @@
                   @click="betForm.betSide = 1"
                 >
                   <div class="team-card-logo">
-                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="">
-                    <span v-else class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span>
+                    <el-image :src="match.teamBLogo" alt="" fit="contain">
+                      <template #error><span class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span></template>
+                    </el-image>
                   </div>
                   <div class="team-card-name">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</div>
                   <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
@@ -251,8 +255,9 @@
           <div v-else class="comment-list">
             <div v-for="comment in comments" :key="comment.id" class="comment-item">
               <div class="comment-avatar">
-                <img v-if="comment.userAvatar" :src="comment.userAvatar" alt="">
-                <span v-else class="avatar-placeholder">{{ (comment.userNickname || '?').charAt(0) }}</span>
+                <el-image :src="comment.userAvatar" alt="" fit="cover">
+                  <template #error><span class="avatar-placeholder">{{ (comment.userNickname || '?').charAt(0) }}</span></template>
+                </el-image>
               </div>
               <div class="comment-body">
                 <div class="comment-header">
@@ -275,8 +280,9 @@
                 <div v-if="comment.replies && comment.replies.length > 0" class="reply-list">
                   <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
                     <div class="comment-avatar comment-avatar--sm">
-                      <img v-if="reply.userAvatar" :src="reply.userAvatar" alt="">
-                      <span v-else class="avatar-placeholder">{{ (reply.userNickname || '?').charAt(0) }}</span>
+                      <el-image :src="reply.userAvatar" alt="" fit="cover">
+                        <template #error><span class="avatar-placeholder">{{ (reply.userNickname || '?').charAt(0) }}</span></template>
+                      </el-image>
                     </div>
                     <div class="comment-body">
                       <div class="comment-header">
@@ -341,8 +347,9 @@
               @click="modifyForm.betSide = 0"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamALogo" :src="match.teamALogo" alt="">
-                <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamA : '').charAt(0) }}</span>
+                <el-image :src="match && match.teamALogo" alt="" fit="contain">
+                  <template #error><span class="team-card-logo-placeholder">{{ (match ? match.teamA : '').charAt(0) }}</span></template>
+                </el-image>
               </div>
               <div class="team-card-name">{{ match && match.teamA === 'TBD' ? '待定' : (match ? match.teamA : '') }}</div>
               <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
@@ -360,8 +367,9 @@
               @click="modifyForm.betSide = 1"
             >
               <div class="team-card-logo">
-                <img v-if="match && match.teamBLogo" :src="match.teamBLogo" alt="">
-                <span v-else class="team-card-logo-placeholder">{{ (match ? match.teamB : '').charAt(0) }}</span>
+                <el-image :src="match && match.teamBLogo" alt="" fit="contain">
+                  <template #error><span class="team-card-logo-placeholder">{{ (match ? match.teamB : '').charAt(0) }}</span></template>
+                </el-image>
               </div>
               <div class="team-card-name">{{ match && match.teamB === 'TBD' ? '待定' : (match ? match.teamB : '') }}</div>
               <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
@@ -542,7 +550,7 @@ export default {
         if (this.match && this.match.id) {
           wsSubscribe('/topic/match/' + this.match.id, this.onWsComment)
         }
-      }.bind(this)).catch(function () {}).finally(function () {
+      }.bind(this)).catch(() => { this.$message.error('加载失败') }).finally(function () {
         if (!silent) this.loading = false
       }.bind(this))
     },
@@ -553,7 +561,7 @@ export default {
           teamA: data.teamA || data.teamACount || data.sideA || 0,
           teamB: data.teamB || data.teamBCount || data.sideB || 0
         }
-      }.bind(this)).catch(function () {})
+      }.bind(this)).catch(() => { this.$message.error('加载失败') })
     },
     fetchMyBet() {
       request.get('/bet/my').then(function (res) {
@@ -564,13 +572,13 @@ export default {
         if (found) {
           this.myBet = found
         }
-      }.bind(this)).catch(function () {})
+      }.bind(this)).catch(() => { this.$message.error('加载失败') })
     },
     fetchUserPoints() {
       request.get('/user/me').then(function (res) {
         var user = res.data || res
         this.userPoints = user.points || 0
-      }.bind(this)).catch(function () {})
+      }.bind(this)).catch(() => { this.$message.error('加载失败') })
     },
     onBrokeLoanSuccess(data) {
       this.showBrokeModal = false
@@ -685,7 +693,7 @@ export default {
         })
         this.comments = records
         this.commentTotal = data.total || 0
-      }.bind(this)).catch(function () {}).finally(function () {
+      }.bind(this)).catch(() => { this.$message.error('加载失败') }).finally(function () {
         this.commentsLoading = false
       }.bind(this))
     },

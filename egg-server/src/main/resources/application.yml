@@ -6,7 +6,26 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: admin
-    password: admin123
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 30       # 连接池最大连接数（默认10，2核2G下30没问题）
+      minimum-idle: 5             # 最小空闲连接
+      connection-timeout: 5000    # 获取连接超时（ms）
+      idle-timeout: 300000        # 空闲连接回收（ms，5分钟）
+      max-lifetime: 600000        # 连接最大存活时间（ms，10分钟）
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16          # 连接池最大连接数
+          max-idle: 8             # 最大空闲连接
+          min-idle: 2             # 最小空闲连接
+          max-wait: 2000ms        # 获取连接最大等待时间
   servlet:
     multipart:
       max-file-size: 2MB
@@ -26,7 +45,7 @@ mybatis-plus:
 
 # JWT
 jwt:
-  secret: REDACTED-JWT-SECRET
+  secret: ${JWT_SECRET}
   expiration: 604800000  # 7 days in ms
 
 # 押注配置

@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.egg.esports.module.notification.EggNotification;
 import com.egg.esports.module.notification.EggNotificationService;
 import com.egg.esports.module.user.EggUser;
 import com.egg.esports.module.user.EggUserMapper;
@@ -127,8 +129,20 @@ public class EggAnnouncementService {
         if (content != null && content.length() > 50) {
             content = content.substring(0, 50) + "...";
         }
+        // 批量构建通知对象，一次性插入
+        List<EggNotification> notifications = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
         for (EggUser user : users) {
-            notificationService.create(user.getId(), 5, announcement.getTitle(), content, announcement.getId());
+            EggNotification notification = new EggNotification();
+            notification.setUserId(user.getId());
+            notification.setType(5);
+            notification.setTitle(announcement.getTitle());
+            notification.setContent(content);
+            notification.setRelatedId(announcement.getId());
+            notification.setIsRead(0);
+            notification.setCreateTime(now);
+            notifications.add(notification);
         }
+        notificationService.batchCreate(notifications);
     }
 }

@@ -23,8 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -328,9 +332,15 @@ public class EggBetService {
         wrapper.orderByDesc(EggBet::getCreateTime);
         List<EggBet> bets = eggBetMapper.selectList(wrapper);
 
+        // 批量查询赛事信息，避免 N+1
+        Set<Long> matchIds = bets.stream().map(EggBet::getMatchId).collect(Collectors.toSet());
+        Map<Long, EggMatch> matchMap = matchIds.isEmpty() ? Collections.emptyMap() :
+                eggMatchMapper.selectBatchIds(matchIds).stream()
+                        .collect(Collectors.toMap(EggMatch::getId, Function.identity()));
+
         List<BetHistoryVO> result = new ArrayList<>();
         for (EggBet bet : bets) {
-            EggMatch match = eggMatchMapper.selectById(bet.getMatchId());
+            EggMatch match = matchMap.get(bet.getMatchId());
             BetHistoryVO vo = new BetHistoryVO();
             vo.setId(bet.getId());
             vo.setMatchId(bet.getMatchId());
@@ -363,9 +373,15 @@ public class EggBetService {
     public List<BetHistoryVO> getSettledSince(Long userId, LocalDateTime since) {
         List<EggBet> bets = eggBetMapper.selectSettledSince(userId, since);
 
+        // 批量查询赛事信息，避免 N+1
+        Set<Long> matchIds = bets.stream().map(EggBet::getMatchId).collect(Collectors.toSet());
+        Map<Long, EggMatch> matchMap = matchIds.isEmpty() ? Collections.emptyMap() :
+                eggMatchMapper.selectBatchIds(matchIds).stream()
+                        .collect(Collectors.toMap(EggMatch::getId, Function.identity()));
+
         List<BetHistoryVO> result = new ArrayList<>();
         for (EggBet bet : bets) {
-            EggMatch match = eggMatchMapper.selectById(bet.getMatchId());
+            EggMatch match = matchMap.get(bet.getMatchId());
             BetHistoryVO vo = new BetHistoryVO();
             vo.setId(bet.getId());
             vo.setMatchId(bet.getMatchId());

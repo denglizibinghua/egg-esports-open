@@ -291,7 +291,7 @@ export default {
       request.get(url, { params }).then(res => {
         const data = res.data || res
         this.top3 = Array.isArray(data) ? data : []
-      }).catch(() => {})
+      }).catch(() => { this.$message.error('加载失败，请刷新重试') })
     },
     fetchLeaderboard() {
       this.loading = true
@@ -320,7 +320,7 @@ export default {
           this.leaderboard = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
-      }).catch(() => {}).finally(() => {
+      }).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(() => {
         this.loading = false
       })
     },

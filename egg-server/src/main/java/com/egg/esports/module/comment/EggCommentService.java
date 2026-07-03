@@ -18,8 +18,10 @@ import org.jsoup.Jsoup;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -182,13 +184,36 @@ public class EggCommentService {
 
         List<CommentVO> pageList = fromIndex < total ? all.subList(fromIndex, toIndex) : new ArrayList<>();
 
-        for (CommentVO vo : pageList) {
-            List<CommentVO> replies = commentMapper.selectReplies(vo.getId());
-            for (CommentVO reply : replies) {
-                fillReplyToNickname(reply);
+        // 批量查询所有回复，避免 N+1
+        if (!pageList.isEmpty()) {
+            List<Long> parentIds = pageList.stream().map(CommentVO::getId).collect(Collectors.toList());
+            List<CommentVO> allReplies = commentMapper.selectRepliesByParentIds(parentIds);
+            Map<Long, List<CommentVO>> repliesMap = allReplies.stream()
+                    .collect(Collectors.groupingBy(CommentVO::getParentId));
+
+            // 批量查询被回复用户昵称，避免 N+1
+            Set<Long> replyToUids = allReplies.stream()
+                    .map(CommentVO::getReplyToUid)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            Map<Long, EggUser> userMap = replyToUids.isEmpty() ? Collections.emptyMap() :
+                    userMapper.selectBatchIds(replyToUids).stream()
+                            .collect(Collectors.toMap(EggUser::getId, Function.identity()));
+
+            for (CommentVO vo : pageList) {
+                List<CommentVO> replies = repliesMap.getOrDefault(vo.getId(), Collections.emptyList());
+                for (CommentVO reply : replies) {
+                    // 填充被回复用户昵称
+                    if (reply.getReplyToUid() != null) {
+                        EggUser replyToUser = userMap.get(reply.getReplyToUid());
+                        if (replyToUser != null) {
+                            reply.setReplyToNickname(replyToUser.getNickname());
+                        }
+                    }
+                }
+                vo.setReplies(replies.size() > 3 ? replies.subList(0, 3) : replies);
+                vo.setReplyTotal(replies.size());
             }
-            vo.setReplies(replies.size() > 3 ? replies.subList(0, 3) : replies);
-            vo.setReplyTotal(replies.size());
         }
 
         Map<String, Object> result = new HashMap<>();

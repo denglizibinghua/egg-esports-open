@@ -15,7 +15,9 @@
         :class="{ active: selectedGameId === game.id }"
         @click="switchGame(game.id)"
       >
-        <img v-if="game.icon" :src="game.icon" class="game-icon" alt="">
+        <el-image v-if="game.icon" :src="game.icon" class="game-icon" fit="contain">
+          <template #error><span class="img-fallback">{{ game.name.charAt(0) }}</span></template>
+        </el-image>
         {{ game.name }}
       </button>
     </div>
@@ -46,8 +48,9 @@
           <div class="hot-card-teams">
             <div class="hot-team">
               <div class="team-logo">
-                <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
-                <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
+                <el-image :src="match.teamALogo" alt="" fit="contain" lazy>
+                  <template #error><span class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
             </div>
@@ -59,8 +62,9 @@
             <div v-else class="vs-badge vs-badge--sm">VS</div>
             <div class="hot-team hot-team--reverse">
               <div class="team-logo">
-                <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
-                <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
+                <el-image :src="match.teamBLogo" alt="" fit="contain" lazy>
+                  <template #error><span class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span></template>
+                </el-image>
               </div>
               <span class="hot-team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
             </div>
@@ -161,8 +165,9 @@
               <div class="match-teams">
                 <div class="team team-a">
                   <div class="team-logo">
-                    <img v-if="match.teamALogo" :src="match.teamALogo" alt="" loading="lazy">
-                    <span v-else class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span>
+                    <el-image :src="match.teamALogo" alt="" fit="contain" lazy>
+                      <template #error><span class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span></template>
+                    </el-image>
                   </div>
                   <span class="team-name" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span>
                 </div>
@@ -176,8 +181,9 @@
 
                 <div class="team team-b">
                   <div class="team-logo">
-                    <img v-if="match.teamBLogo" :src="match.teamBLogo" alt="" loading="lazy">
-                    <span v-else class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span>
+                    <el-image :src="match.teamBLogo" alt="" fit="contain" lazy>
+                      <template #error><span class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span></template>
+                    </el-image>
                   </div>
                   <span class="team-name" :class="{ 'team-name-tbd': match.teamB === 'TBD' }">{{ match.teamB === 'TBD' ? '待定' : match.teamB }}</span>
                 </div>
@@ -386,7 +392,7 @@ export default {
           this.matches = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
-      }.bind(this)).catch(function () {}).finally(function () {
+      }.bind(this)).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(function () {
         if (!silent) this.loading = false
       }.bind(this))
     },
@@ -409,7 +415,7 @@ export default {
         } else {
           this.hotMatches = data.list || data.content || []
         }
-      }.bind(this)).catch(function () {}).finally(function () {
+      }.bind(this)).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(function () {
         if (!silent) this.hotLoading = false
       }.bind(this))
     },

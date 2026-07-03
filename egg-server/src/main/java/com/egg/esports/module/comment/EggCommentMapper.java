@@ -22,6 +22,20 @@ public interface EggCommentMapper extends BaseMapper<EggComment> {
             "ORDER BY c.create_time ASC")
     List<CommentVO> selectReplies(@Param("parentId") Long parentId);
 
+    /**
+     * 批量查询多条顶级评论的回复（避免 N+1）
+     */
+    @Select("<script>" +
+            "SELECT c.*, u.nickname AS userNickname, u.avatar AS userAvatar " +
+            "FROM egg_comment c LEFT JOIN egg_user u ON c.user_id = u.id " +
+            "WHERE c.parent_id IN " +
+            "<foreach collection='parentIds' item='pid' open='(' separator=',' close=')'>" +
+            "#{pid}" +
+            "</foreach>" +
+            " AND c.status = 1 ORDER BY c.create_time ASC" +
+            "</script>")
+    List<CommentVO> selectRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
+
     @Select("SELECT COUNT(*) FROM egg_comment WHERE match_id = #{matchId} AND status = 1")
     int countByMatchId(@Param("matchId") Long matchId);
 }

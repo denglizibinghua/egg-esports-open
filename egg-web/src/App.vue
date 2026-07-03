@@ -12,8 +12,8 @@
             <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/' }" @click="$router.push('/')">主页</el-button>
             <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/matches' }" @click="$router.push('/matches')">赛程</el-button>
             <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/leaderboard' }" @click="$router.push('/leaderboard')">排行</el-button>
-            <!-- 银行按钮（仅登录后显示，带债务小红点） -->
-            <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
+            <!-- 银行按钮（仅登录后显示，有欠款时显示红点） -->
+            <el-badge v-if="isLoggedIn" is-dot :hidden="loanDebt <= 0" class="nav-badge">
               <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
             </el-badge>
             <!-- 关于按钮（公开） -->
@@ -825,6 +825,28 @@ a {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   letter-spacing: 0.03em;
+}
+
+/* el-image 图片加载失败时的首字母占位符（全局，供各页面复用） */
+.img-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-surface-2, #f5f5f5);
+  color: var(--text-tertiary, #999);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* el-image 填充圆形/方形容器（队标、头像等，确保 el-image 占满父容器） */
+.team-logo .el-image,
+.team-logo-large .el-image,
+.team-card-logo .el-image,
+.comment-avatar .el-image {
+  width: 100%;
+  height: 100%;
 }
 
 /* Accessibility */

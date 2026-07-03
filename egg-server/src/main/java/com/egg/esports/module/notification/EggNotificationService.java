@@ -103,4 +103,19 @@ public class EggNotificationService {
 
         notificationMapper.insert(notification);
     }
+
+    /**
+     * 批量创建通知
+     */
+    public void batchCreate(List<EggNotification> notifications) {
+        if (notifications == null || notifications.isEmpty()) {
+            return;
+        }
+        try {
+            notificationMapper.batchInsert(notifications);
+            log.info("批量创建通知成功: count={}", notifications.size());
+        } catch (Exception e) {
+            log.error("批量创建通知失败: {}", e.getMessage(), e);
+        }
+    }
 }

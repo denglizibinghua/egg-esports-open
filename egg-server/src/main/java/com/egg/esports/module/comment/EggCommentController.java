@@ -64,8 +64,14 @@ public class EggCommentController {
     /**
      * 隐藏评论（管理员）
      */
+    @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
     @PutMapping("/hide/{id:\\d+}")
-    public Result<Void> hide(@PathVariable Long id) {
+    public Result<Void> hide(@PathVariable Long id, HttpServletRequest request) {
+        // 管理员角色校验，防止越权隐藏评论
+        Integer role = (Integer) request.getAttribute("role");
+        if (role == null || role != 1) {
+            return Result.error(403, "无权限");
+        }
         commentService.hideComment(id);
         return Result.success();
     }
