@@ -1,5 +1,6 @@
 package com.egg.esports.sync;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
@@ -102,6 +105,7 @@ public class LiquipediaAdapter implements GameSourceAdapter {
     }
 
     @Override
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public List<RawMatch> fetchMatches() {
         List<RawMatch> result = new ArrayList<>();
         if (tournaments.isEmpty()) {
@@ -112,14 +116,12 @@ public class LiquipediaAdapter implements GameSourceAdapter {
         log.info("Liquipedia ({}) 开始同步，待解析赛事页: {}", displayName, tournaments);
 
         for (String tournament : tournaments) {
-            try {
-                List<RawMatch> pageMatches = fetchTournamentPage(tournament);
-                result.addAll(pageMatches);
-                log.info("Liquipedia ({}) 页面 {} 解析完成，本页 {} 场，累计 {} 场",
-                        displayName, tournament, pageMatches.size(), result.size());
-            } catch (Exception e) {
-                log.error("Liquipedia ({}) 解析赛事页 {} 失败: {}", displayName, tournament, e.getMessage(), e);
-            }
+            // 不再 catch Exception：单个赛事页网络失败会向上抛出，触发 @Retryable 整体重试
+            // 已成功的赛事页在重试时会被重复拉取，RawMatch 入库按 externalId 去重，可接受
+            List<RawMatch> pageMatches = fetchTournamentPage(tournament);
+            result.addAll(pageMatches);
+            log.info("Liquipedia ({}) 页面 {} 解析完成，本页 {} 场，累计 {} 场",
+                    displayName, tournament, pageMatches.size(), result.size());
             // 赛事页间间隔 2 秒
             sleep(REQUEST_INTERVAL_MS);
         }
@@ -444,6 +446,8 @@ public class LiquipediaAdapter implements GameSourceAdapter {
      * 发送带自定义 User-Agent 的 GET 请求并返回 JSON 根节点
      * <p>gzip 由 RestTemplateConfig 的 GzipSupportInterceptor 统一处理
      * （Liquipedia 强制要求 Accept-Encoding: gzip，缺失返回 406）
+     * <p>网络异常（RestClientException）和 JSON 解析异常（包装为 RuntimeException）均向上抛出，
+     * 由 fetchMatches 的 @Retryable 触发整体重试。
      */
     private JsonNode requestJson(String url) {
         HttpHeaders headers = new HttpHeaders();
@@ -452,14 +456,17 @@ public class LiquipediaAdapter implements GameSourceAdapter {
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
+        // restTemplate.exchange 抛出 RestClientException（运行时异常），直接向上传播触发重试
+        ResponseEntity<String> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, String.class);
+
+        // JsonProcessingException 为检查异常，包装为 RuntimeException 向上抛出
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, String.class);
             return objectMapper.readTree(response.getBody());
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             // 打印完整堆栈，便于排查 gzip 解压/SSL/超时等具体异常类型
-            log.error("Liquipedia 请求异常: {} - {}", url, e.getMessage(), e);
-            return null;
+            log.error("Liquipedia 解析响应 JSON 失败: {} - {}", url, e.getMessage(), e);
+            throw new RuntimeException("解析 Liquipedia 响应 JSON 失败: " + url, e);
         }
     }
 

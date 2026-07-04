@@ -1,7 +1,7 @@
 package com.egg.esports.module.game;
 
 import com.egg.esports.common.Result;
-import jakarta.servlet.http.HttpServletRequest;
+import com.egg.esports.common.annotation.RequireAdmin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,13 +38,9 @@ public class EggGameController {
     /**
      * 创建游戏（管理员）
      */
+    @RequireAdmin
     @PostMapping
-    public Result<EggGame> create(@RequestBody EggGame game,
-                                  HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+    public Result<EggGame> create(@RequestBody EggGame game) {
         game.setCreateTime(LocalDateTime.now());
         gameMapper.insert(game);
         return Result.success(game);
@@ -53,14 +49,10 @@ public class EggGameController {
     /**
      * 更新游戏（管理员）
      */
+    @RequireAdmin
     @PutMapping("/{id:\\d+}")
     public Result<EggGame> update(@PathVariable Long id,
-                                  @RequestBody EggGame game,
-                                  HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+                                  @RequestBody EggGame game) {
         game.setId(id);
         gameMapper.updateById(game);
         return Result.success(gameMapper.selectById(id));
@@ -69,13 +61,9 @@ public class EggGameController {
     /**
      * 删除游戏（管理员）
      */
+    @RequireAdmin
     @DeleteMapping("/{id:\\d+}")
-    public Result<Boolean> delete(@PathVariable Long id,
-                                  HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+    public Result<Boolean> delete(@PathVariable Long id) {
         return Result.success(gameMapper.deleteById(id) > 0);
     }
 }

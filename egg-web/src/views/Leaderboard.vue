@@ -215,11 +215,12 @@
 <script>
 import { markRaw } from 'vue'
 import request from '@/utils/request'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 import { UserFilled } from '@element-plus/icons-vue'
 
 export default {
   name: 'LeaderboardPage',
-  components: { UserFilled },
   data() {
     return {
       // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
@@ -256,13 +257,8 @@ export default {
     fetchGames() {
       request.get('/game/list').then(res => {
         const data = res.data || res
-        if (Array.isArray(data)) {
-          this.games = data
-        } else if (data.records) {
-          this.games = data.records
-        } else {
-          this.games = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        this.games = extractList(data)
       }).catch(() => {})
     },
     handleGameChange() {
@@ -310,14 +306,13 @@ export default {
       const url = endpoints[this.leaderboardTab] || '/leaderboard/points'
       request.get(url, { params }).then(res => {
         const data = res.data || res
+        // 兼容 records/list/content 多种后端返回格式
+        this.leaderboard = extractList(data)
         if (Array.isArray(data)) {
-          this.leaderboard = data
           this.total = data.length
         } else if (data.records) {
-          this.leaderboard = data.records
           this.total = data.total || data.records.length
         } else {
-          this.leaderboard = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
       }).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(() => {

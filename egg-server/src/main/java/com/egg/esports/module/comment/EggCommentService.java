@@ -235,8 +235,22 @@ public class EggCommentService {
         int toIndex = Math.min(fromIndex + size, total);
 
         List<CommentVO> pageList = fromIndex < total ? all.subList(fromIndex, toIndex) : new ArrayList<>();
+
+        // 批量查询被回复用户昵称，避免 N+1（照抄 listTopLevel 的 selectBatchIds 模式）
+        Set<Long> replyToUids = pageList.stream()
+                .map(CommentVO::getReplyToUid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, EggUser> userMap = replyToUids.isEmpty() ? Collections.emptyMap() :
+                userMapper.selectBatchIds(replyToUids).stream()
+                        .collect(Collectors.toMap(EggUser::getId, Function.identity()));
         for (CommentVO reply : pageList) {
-            fillReplyToNickname(reply);
+            if (reply.getReplyToUid() != null) {
+                EggUser replyToUser = userMap.get(reply.getReplyToUid());
+                if (replyToUser != null) {
+                    reply.setReplyToNickname(replyToUser.getNickname());
+                }
+            }
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -280,18 +294,6 @@ public class EggCommentService {
         vo.setReplyTotal(0);
 
         return vo;
-    }
-
-    /**
-     * 填充被回复用户昵称
-     */
-    private void fillReplyToNickname(CommentVO vo) {
-        if (vo.getReplyToUid() != null) {
-            EggUser user = userMapper.selectById(vo.getReplyToUid());
-            if (user != null) {
-                vo.setReplyToNickname(user.getNickname());
-            }
-        }
     }
 
     /**

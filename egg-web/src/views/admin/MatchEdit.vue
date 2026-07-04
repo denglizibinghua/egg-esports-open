@@ -63,11 +63,12 @@
 <script>
 import { markRaw } from 'vue'
 import request from '@/utils/request'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 import { ArrowLeft } from '@element-plus/icons-vue'
 
 export default {
   name: 'MatchEdit',
-  components: { ArrowLeft },
   data() {
     return {
       // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
@@ -113,13 +114,8 @@ export default {
     fetchGames() {
       request.get('/game/list').then(res => {
         const data = res.data || res
-        if (Array.isArray(data)) {
-          this.games = data
-        } else if (data.records) {
-          this.games = data.records
-        } else {
-          this.games = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        this.games = extractList(data)
       }).catch(() => {})
     },
     fetchMatch() {

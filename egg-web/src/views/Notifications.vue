@@ -83,6 +83,8 @@
 
 <script>
 import request from '@/utils/request'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 import { getToken } from '@/utils/auth'
 import { Bell, CircleCheck, ChatDotSquare, MagicStick, Message, InfoFilled } from '@element-plus/icons-vue'
 
@@ -125,14 +127,13 @@ export default {
       }
       request.get('/notification/list', { params: params }).then(function (res) {
         var data = res.data || res
+        // 兼容 records/list/content 多种后端返回格式
+        this.notifications = extractList(data)
         if (Array.isArray(data)) {
-          this.notifications = data
           this.total = data.length
         } else if (data.records) {
-          this.notifications = data.records
           this.total = data.total || data.records.length
         } else {
-          this.notifications = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
       }.bind(this)).catch(function () {}).finally(function () {

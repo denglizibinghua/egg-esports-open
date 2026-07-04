@@ -1,6 +1,7 @@
 package com.egg.esports.module.match;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -22,10 +23,11 @@ public interface EggMatchMapper extends BaseMapper<EggMatch> {
     EggMatch selectByExternalId(@Param("externalId") String externalId);
 
     /**
-     * 查询已结束且有结果但可能未结算押注的赛事
+     * 查询已结束且有结果且未结算押注的赛事
      * 用于自动结算定时任务
+     * 加 settled_at IS NULL 防止双重派彩（详见 migration_v18_settled_at.sql）
      */
-    @Select("SELECT * FROM egg_match WHERE status = 2 AND result IS NOT NULL")
+    @Select("SELECT * FROM egg_match WHERE status = 2 AND result IS NOT NULL AND settled_at IS NULL")
     List<EggMatch> selectFinishedWithResult();
 
     /**
@@ -34,4 +36,19 @@ public interface EggMatchMapper extends BaseMapper<EggMatch> {
      */
     @Update("UPDATE egg_match SET pool_a = pool_a + #{deltaA}, pool_b = pool_b + #{deltaB} WHERE id = #{id} AND pool_a = #{expectedA} AND pool_b = #{expectedB}")
     int updatePool(@Param("id") Long id, @Param("deltaA") Long deltaA, @Param("deltaB") Long deltaB, @Param("expectedA") Long expectedA, @Param("expectedB") Long expectedB);
+
+    /**
+     * 批量插入赛事（一条 SQL 插入多条，替代逐条 insert）
+     * id 由数据库自增，不插入；其余字段全部写入
+     */
+    @Insert("<script>" +
+            "INSERT INTO egg_match (external_id, game_id, title, team_a, team_b, team_a_logo, team_b_logo, " +
+            "tournament, match_time, score_a, score_b, status, result, create_time, settled_at, bet_deadline, pool_a, pool_b) VALUES " +
+            "<foreach collection='list' item='m' separator=','>" +
+            "(#{m.externalId}, #{m.gameId}, #{m.title}, #{m.teamA}, #{m.teamB}, #{m.teamALogo}, #{m.teamBLogo}, " +
+            "#{m.tournament}, #{m.matchTime}, #{m.scoreA}, #{m.scoreB}, #{m.status}, #{m.result}, #{m.createTime}, " +
+            "#{m.settledAt}, #{m.betDeadline}, #{m.poolA}, #{m.poolB})" +
+            "</foreach>" +
+            "</script>")
+    int batchInsert(@Param("list") List<EggMatch> matches);
 }

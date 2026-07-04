@@ -111,7 +111,7 @@ import { ArrowLeft, Loading, UserFilled, InfoFilled } from '@element-plus/icons-
 
 export default {
   name: 'PublicProfile',
-  components: { ArrowLeft, Loading, UserFilled, InfoFilled },
+  components: { Loading, InfoFilled },
   data() {
     return {
       // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）

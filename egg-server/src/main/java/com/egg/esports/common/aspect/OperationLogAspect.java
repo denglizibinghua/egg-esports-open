@@ -16,6 +16,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.regex.Pattern;
 
 /**
  * 操作日志切面
@@ -25,6 +26,13 @@ import java.lang.reflect.Parameter;
 @Aspect
 @Component
 public class OperationLogAspect {
+
+    /**
+     * 敏感关键字正则：匹配 password / token / secret / apiKey / authorization
+     * 用于异常消息脱敏，避免敏感信息写入操作日志表
+     */
+    private static final Pattern SENSITIVE_PATTERN =
+            Pattern.compile("password|token|secret|apikey|authorization");
 
     @Autowired
     private EggOperationLogService operationLogService;
@@ -43,6 +51,22 @@ public class OperationLogAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         logEntry.setMethod(method.getDeclaringClass().getName() + "." + method.getName());
+
+        // 从方法参数中提取业务 ID（betId/matchId），用于资金追踪
+        // 依赖 -parameters 编译选项（Spring Boot 3 默认开启），参数名不可用时跳过
+        String[] paramNames = signature.getParameterNames();
+        Object[] args = joinPoint.getArgs();
+        if (paramNames != null) {
+            for (int i = 0; i < paramNames.length && i < args.length; i++) {
+                String paramName = paramNames[i];
+                Object argValue = args[i];
+                if ("betId".equals(paramName) && argValue instanceof Long) {
+                    logEntry.setBetId((Long) argValue);
+                } else if ("matchId".equals(paramName) && argValue instanceof Long) {
+                    logEntry.setMatchId((Long) argValue);
+                }
+            }
+        }
 
         // 从 RequestContextHolder 拿请求信息（可能没有，如定时任务调用）
         HttpServletRequest request = getRequest();
@@ -71,9 +95,10 @@ public class OperationLogAspect {
             logEntry.setStatus(1);
         } catch (Throwable e) {
             logEntry.setStatus(0);
-            // 错误信息脱敏：如果异常消息里含 password 关键字，截断
+            // 错误信息脱敏：异常消息含敏感关键字时截断，避免泄露到操作日志
+            // 覆盖 password / token / secret / apiKey / authorization 等常见敏感词
             String msg = e.getMessage();
-            if (msg != null && msg.toLowerCase().contains("password")) {
+            if (msg != null && SENSITIVE_PATTERN.matcher(msg.toLowerCase()).find()) {
                 msg = "[敏感信息已脱敏]";
             }
             logEntry.setErrorMsg(truncate(msg, 1000));

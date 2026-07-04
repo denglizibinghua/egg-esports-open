@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.egg.esports.common.RateLimit;
 import com.egg.esports.common.Result;
-import jakarta.servlet.http.HttpServletRequest;
+import com.egg.esports.common.annotation.RequireAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,14 +37,10 @@ public class EggAnnouncementController {
     /**
      * 分页查询公告列表（管理员）
      */
+    @RequireAdmin
     @GetMapping("/list")
     public Result<IPage<EggAnnouncement>> list(@RequestParam(defaultValue = "1") Integer page,
-                                               @RequestParam(defaultValue = "10") Integer size,
-                                               HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+                                               @RequestParam(defaultValue = "10") Integer size) {
         Page<EggAnnouncement> pageParam = new Page<>(page, size);
         return Result.success(announcementService.listByPage(pageParam));
     }
@@ -53,13 +49,9 @@ public class EggAnnouncementController {
      * 创建公告（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PostMapping
-    public Result<EggAnnouncement> create(@RequestBody EggAnnouncement announcement,
-                                          HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+    public Result<EggAnnouncement> create(@RequestBody EggAnnouncement announcement) {
         return Result.success(announcementService.create(announcement));
     }
 
@@ -67,14 +59,10 @@ public class EggAnnouncementController {
      * 更新公告（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PutMapping("/{id}")
     public Result<EggAnnouncement> update(@PathVariable Long id,
-                                           @RequestBody EggAnnouncement announcement,
-                                           HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+                                           @RequestBody EggAnnouncement announcement) {
         announcement.setId(id);
         return Result.success(announcementService.update(announcement));
     }
@@ -83,13 +71,9 @@ public class EggAnnouncementController {
      * 删除公告（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @DeleteMapping("/{id}")
-    public Result<Boolean> delete(@PathVariable Long id,
-                                   HttpServletRequest request) {
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无管理权限");
-        }
+    public Result<Boolean> delete(@PathVariable Long id) {
         return Result.success(announcementService.delete(id));
     }
 }

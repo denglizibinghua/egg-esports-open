@@ -16,6 +16,20 @@ spring:
     multipart:
       max-file-size: 2MB
       max-request-size: 2MB
+  data:
+    redis:
+      # 生产环境 Redis 配置（显式覆盖 application.yml，避免继承 127.0.0.1 与弱口令 123456）
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}             # 必填，无默认值
+      database: ${REDIS_DB:0}
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: 2000ms
 
 mybatis-plus:
   configuration:
@@ -37,6 +51,10 @@ egg:
     allowed-origins: ${EGG_CORS_ORIGINS}      # 必填，逗号分隔，如 https://egg.example.com
   upload:
     path: ${EGG_UPLOAD_PATH:/data/uploads}     # 生产环境使用绝对路径
+  http:
+    # 生产环境：不走 Clash 代理，直连外网 API（置空覆盖 application.yml 的 127.0.0.1:7897 默认值）
+    proxy-host:
+    proxy-port:
   grid:
     api-key: ${GRID_API_KEY}                        # 生产环境必填，无默认值
     central-data-url: https://api-op.grid.gg/central-data/graphql

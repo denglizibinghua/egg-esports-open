@@ -66,6 +66,8 @@
 
 <script>
 import request from '@/utils/request'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 import { Bell, Close, Trophy } from '@element-plus/icons-vue'
 
 export default {
@@ -106,13 +108,8 @@ export default {
       }
       request.get('/announcement/active', { params: params }).then(function (res) {
         var data = res.data || res
-        if (Array.isArray(data)) {
-          this.announcements = data
-        } else if (data.records) {
-          this.announcements = data.records
-        } else {
-          this.announcements = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        this.announcements = extractList(data)
         this.currentIndex = 0
         this.startRotate()
       }.bind(this)).catch(function () {

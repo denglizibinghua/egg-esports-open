@@ -4,6 +4,7 @@ import com.egg.esports.common.RateLimit;
 import com.egg.esports.common.Result;
 import com.egg.esports.module.loan.LoanService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,11 +53,15 @@ public class EggUserController {
      * 获取当前登录用户信息
      */
     @GetMapping("/me")
-    public Result<EggUser> me(HttpServletRequest request) {
+    public Result<MeVO> me(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         EggUser user = userService.getById(userId);
-        user.setRankingScore(loanService.getRankingScore(user));
-        return Result.success(user);
+        // 用 MeVO 过滤敏感字段（password/lockedUntil/loginAttempts 等），避免泄露
+        MeVO vo = new MeVO();
+        BeanUtils.copyProperties(user, vo);
+        // 排行榜积分 = 积分 + 进行中押注金额 + 贷款金额（非 netProfit，保持原语义）
+        vo.setRankingScore(loanService.getRankingScore(user));
+        return Result.success(vo);
     }
 
     /**

@@ -1,0 +1,73 @@
+# 测试环境配置：H2 内存数据库（MODE=MySQL 兼容 MySQL 语法）
+# 用 @ActiveProfiles("test") 激活
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+  # Redis：不排除 RedisAutoConfiguration（排除会导致 RedisConfig 的 redisTemplate bean
+  # 因缺 RedisConnectionFactory 而创建失败）。LettuceConnectionFactory 默认懒连接，启动不报错。
+  # RateLimitInterceptor 用 @Autowired(required=false) 注入 StringRedisTemplate，且有 try-catch
+  # 降级到内存限流；测试均直接调 service，不经过 HTTP 拦截器，不会触发 Redis 调用。
+  # WebSocket 不影响测试，保持默认
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 关闭定时同步任务（避免测试期间触发外部 API 调用）
+egg:
+  sync:
+    enabled: false
+    # 覆盖 application.yml 里的 ${GRID_API_KEY} / ${PANDASCORE_API_KEY} 环境变量占位符
+    # 测试环境无这些环境变量，不覆盖会导致占位符解析失败、ApplicationContext 加载报错
+    adapters:
+      grid-cs2:
+        api-key: test-key        # application.yml 默认 enabled=true，会创建 bean，必须覆盖
+      grid-dota2:
+        api-key: test-key        # enabled=false，bean 不创建，覆盖仅为防御性
+      pandascore-cs2:
+        api-key: test-key        # enabled=false，bean 不创建，覆盖仅为防御性
+  # 赔率配置（与生产一致，0 抽水彩池制）
+  odds:
+    commission-rate: 0.00
+    min-odds: 1.01
+    max-odds: 10.00
+  bet:
+    init-points: 1000
+    win-multiplier: 2
+  # 贷款配置（与生产一致）
+  loan:
+    max-loan: 2000
+    relief-amount: 500
+    daily-stipend: 100
+    auto-repay-ratio: 0.5
+  # 测试环境无需上传目录
+  upload:
+    path: ./target/test-uploads
+  cors:
+    allowed-origins: "*"
+  grid:
+    api-key: test-key
+    central-data-url: http://localhost/test
+  riot:
+    api-key: test-key
+    base-url: http://localhost/test
+    leagues: []
+
+# JWT（测试用，不实际校验）
+jwt:
+  secret: test-jwt-secret-key-for-unit-tests-only
+  expiration: 604800000

@@ -3,6 +3,7 @@ package com.egg.esports.module.match;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.egg.esports.common.RateLimit;
 import com.egg.esports.common.Result;
+import com.egg.esports.common.annotation.RequireAdmin;
 import com.egg.esports.sync.MatchSyncService;
 import com.egg.esports.sync.SyncResult;
 import jakarta.validation.Valid;
@@ -54,6 +55,7 @@ public class EggMatchController {
      * 创建赛事（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PostMapping("/create")
     public Result<EggMatch> create(@Valid @RequestBody EggMatch match) {
         return Result.success(matchService.create(match));
@@ -63,6 +65,7 @@ public class EggMatchController {
      * 更新赛事信息（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PutMapping("/update")
     public Result<EggMatch> update(@RequestBody EggMatch match) {
         return Result.success(matchService.update(match));
@@ -72,6 +75,7 @@ public class EggMatchController {
      * 结算赛事结果（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PutMapping("/settle")
     public Result<EggMatch> settle(@RequestBody Map<String, Object> params) {
         Long matchId = Long.valueOf(params.get("matchId").toString());
@@ -92,6 +96,7 @@ public class EggMatchController {
      * 批量导入赛事（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PostMapping("/batch-import")
     public Result<Map<String, Object>> batchImport(@RequestBody List<EggMatch> matches) {
         return Result.success(matchService.batchImport(matches));
@@ -101,6 +106,7 @@ public class EggMatchController {
      * 手动触发数据同步（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PostMapping("/sync")
     public Result<SyncResult> sync() {
         return Result.success(matchSyncService.syncAll());

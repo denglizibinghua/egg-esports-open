@@ -83,7 +83,7 @@ import request from '@/utils/request'
 
 export default {
   name: 'AvatarCropper',
-  components: { VueCropper, ZoomIn, ZoomOut, RefreshLeft, RefreshRight },
+  components: { VueCropper },
   props: {
     modelValue: { type: Boolean, default: false }
   },

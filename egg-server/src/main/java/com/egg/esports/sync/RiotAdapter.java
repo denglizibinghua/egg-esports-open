@@ -1,5 +1,6 @@
 package com.egg.esports.sync;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -7,6 +8,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -63,8 +66,11 @@ public class RiotAdapter implements GameSourceAdapter {
     }
 
     @Override
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public List<RawMatch> fetchMatches() {
         List<RawMatch> result = new ArrayList<>();
+        // 循环内不再 catch 网络异常：单个联赛网络失败会向上抛出，触发 @Retryable 整体重试
+        // 已成功的联赛在重试时会被重复拉取，这是可接受的代价（保证最终一致性）
         for (int i = 0; i < leagueIds.size(); i++) {
             String leagueId = leagueIds.get(i);
             String leagueName = i < leagueNames.size() ? leagueNames.get(i) : leagueId;
@@ -77,6 +83,7 @@ public class RiotAdapter implements GameSourceAdapter {
                         result.add(raw);
                     }
                 } catch (Exception e) {
+                    // 单条数据映射异常为业务异常，不影响整体同步
                     log.error("映射赛事事件失败: {}", e.getMessage(), e);
                 }
             }
@@ -88,36 +95,41 @@ public class RiotAdapter implements GameSourceAdapter {
 
     /**
      * 获取指定联赛的赛程事件
+     * <p>网络异常（RestClientException）直接向上抛出，触发 fetchMatches 的 @Retryable 重试
+     * <p>JSON 解析异常（JsonProcessingException）包装为 RuntimeException 向上抛出
      */
     private List<JsonNode> fetchLeagueEvents(String leagueId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-api-key", apiKey);
+
+        String url = baseUrl + "?hl=en-US&sport=" + sport + "&leagueId=" + leagueId;
+        log.info("正在获取联赛 {} 的赛程数据: {}", leagueId, url);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        // restTemplate.exchange 抛出 RestClientException（运行时异常），直接向上传播触发重试
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+        // JsonProcessingException 为检查异常，包装为 RuntimeException 向上抛出
+        JsonNode root;
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("x-api-key", apiKey);
+            root = objectMapper.readTree(response.getBody());
+        } catch (JsonProcessingException e) {
+            log.error("解析联赛 {} 响应 JSON 失败: {}", leagueId, e.getMessage(), e);
+            throw new RuntimeException("解析 Riot 联赛 " + leagueId + " 响应 JSON 失败", e);
+        }
 
-            String url = baseUrl + "?hl=en-US&sport=" + sport + "&leagueId=" + leagueId;
-            log.info("正在获取联赛 {} 的赛程数据: {}", leagueId, url);
+        JsonNode events = root.at("/data/schedule/events");
 
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode events = root.at("/data/schedule/events");
-
-            if (events.isMissingNode() || !events.isArray()) {
-                log.warn("联赛 {} 响应中未找到 events 数组", leagueId);
-                return List.of();
-            }
-
-            List<JsonNode> result = new ArrayList<>();
-            for (JsonNode event : events) {
-                result.add(event);
-            }
-            return result;
-
-        } catch (Exception e) {
-            log.error("获取联赛 {} 赛程数据失败: {}", leagueId, e.getMessage(), e);
+        if (events.isMissingNode() || !events.isArray()) {
+            log.warn("联赛 {} 响应中未找到 events 数组", leagueId);
             return List.of();
         }
+
+        List<JsonNode> result = new ArrayList<>();
+        for (JsonNode event : events) {
+            result.add(event);
+        }
+        return result;
     }
 
     /**

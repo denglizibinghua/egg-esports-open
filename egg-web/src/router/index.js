@@ -75,6 +75,18 @@ const routes = [
     component: () => import('@/views/About.vue')
   },
   {
+    // 隐私政策占位页面（法律合规要求）
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import('@/views/Privacy.vue')
+  },
+  {
+    // 服务条款占位页面（法律合规要求）
+    path: '/terms',
+    name: 'Terms',
+    component: () => import('@/views/Terms.vue')
+  },
+  {
     // Vue Router 4 中 404 通配符使用动态参数语法
     path: '/:pathMatch(.*)*',
     name: 'NotFound',

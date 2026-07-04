@@ -1,5 +1,11 @@
 package com.egg.esports.config;
 
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,22 +15,20 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.zip.GZIPInputStream;
 
 /**
  * HTTP客户端配置
+ * <p>基于 Apache HttpClient5 连接池，替换默认的 JDK HttpURLConnection。
  * <p>开发环境通过 application.yml 配置代理访问外网 API；
  * 生产环境部署在海外服务器则无需代理，留空即可。
  * <p>注册 gzip 支持拦截器：Liquipedia API 强制要求 Accept-Encoding: gzip
- * （无该头返回 406），而 SimpleClientHttpRequestFactory（JDK HttpURLConnection）
- * 默认既不发送 Accept-Encoding: gzip 也不自动解压，故需显式处理。
+ * （无该头返回 406），HttpClient5 默认不自动处理 gzip，故需显式处理。
  */
 @Configuration
 public class RestTemplateConfig {
@@ -37,14 +41,28 @@ public class RestTemplateConfig {
 
     @Bean
     public RestTemplate restTemplate() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000);
-        factory.setReadTimeout(30000);
+        // 连接池：maxTotal 控制总连接数，defaultMaxPerRoute 控制单 host 连接数
+        // 20 总连接 / 10 单 host 足以支撑定时同步场景（每分钟一次，串行调用）
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(20);
+        cm.setDefaultMaxPerRoute(10);
 
+        // RequestConfig：连接超时 10s，响应超时 30s，可选代理
+        RequestConfig.Builder configBuilder = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(10))
+                .setResponseTimeout(Timeout.ofSeconds(30));
         if (!proxyHost.isEmpty() && proxyPort > 0) {
-            factory.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
+            // HttpClient5 代理通过 HttpHost 设置（替代 JDK java.net.Proxy）
+            configBuilder.setProxy(new HttpHost(proxyHost, proxyPort));
         }
+        RequestConfig config = configBuilder.build();
 
+        CloseableHttpClient client = HttpClients.custom()
+                .setConnectionManager(cm)
+                .setDefaultRequestConfig(config)
+                .build();
+
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
         RestTemplate restTemplate = new RestTemplate(factory);
         // 注册 gzip 支持拦截器（对所有数据源安全：仅当响应 Content-Encoding: gzip 时才解压）
         restTemplate.getInterceptors().add(new GzipSupportInterceptor());

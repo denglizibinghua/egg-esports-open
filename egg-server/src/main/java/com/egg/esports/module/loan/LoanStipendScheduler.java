@@ -53,9 +53,13 @@ public class LoanStipendScheduler {
             }
 
             // 原子更新：加积分 + 设置日期
+            // 乐观锁：只有 last_stipend_date != today（含 NULL）时才能领取
+            // 防止与用户主动领取（LoanController.stipend）并发时同一天重复发放
             int updated = userMapper.update(null,
                     new LambdaUpdateWrapper<EggUser>()
                             .eq(EggUser::getId, user.getId())
+                            .and(w -> w.isNull(EggUser::getLastStipendDate)
+                                    .or().ne(EggUser::getLastStipendDate, today))
                             .setSql("points = points + " + stipend)
                             .set(EggUser::getLastStipendDate, today)
             );

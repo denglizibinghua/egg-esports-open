@@ -65,6 +65,7 @@ public class LoanService {
      * Returns: [profitAfterRepay, loanRepaid]
      */
     @Transactional
+    @OperationLog(module = "贷款", value = "自动还款")
     public int[] autoRepay(Long userId, int profit) {
         EggUser user = eggUserMapper.selectById(userId);
         int loanAmount = user.getLoanAmount() != null ? user.getLoanAmount() : 0;
@@ -86,19 +87,32 @@ public class LoanService {
         boolean fullyRepaid = (repayAmount >= debt);
 
         if (fullyRepaid) {
-            eggUserMapper.update(null,
+            // 乐观锁：只有 loan_amount 仍为读取时的值才能清零
+            // 防止并发场景下另一个线程已修改 loan_amount（如又借了一笔贷款），此处误清零导致用户多拿积分
+            int updated = eggUserMapper.update(null,
                     new LambdaUpdateWrapper<EggUser>()
                             .eq(EggUser::getId, userId)
+                            .eq(EggUser::getLoanAmount, loanAmount)
                             .set(EggUser::getLoanAmount, 0)
             );
+            if (updated == 0) {
+                // 被并发改过了，本线程不还贷，避免超额还贷
+                log.warn("并发还款冲突，跳过清零: userId={}, expectedLoan={}", userId, loanAmount);
+                return new int[]{profit, 0};
+            }
             log.info("贷款还清: userId={}", userId);
         } else {
-            // 部分还款
-            eggUserMapper.update(null,
+            // 部分还款，同样加 loanAmount 乐观锁
+            int updated = eggUserMapper.update(null,
                     new LambdaUpdateWrapper<EggUser>()
                             .eq(EggUser::getId, userId)
+                            .eq(EggUser::getLoanAmount, loanAmount)
                             .setSql("loan_amount = loan_amount + " + repayAmount)
             );
+            if (updated == 0) {
+                log.warn("并发还款冲突，跳过部分还款: userId={}, expectedLoan={}", userId, loanAmount);
+                return new int[]{profit, 0};
+            }
             log.info("部分还款: userId={}, repaid={}", userId, repayAmount);
         }
 
@@ -110,6 +124,7 @@ public class LoanService {
      * Returns: amount given (0 if not eligible)
      */
     @Transactional
+    @OperationLog(module = "贷款", value = "每日补贴")
     public int tryDailyStipend(EggUser user) {
         int loanAmount = user.getLoanAmount() != null ? user.getLoanAmount() : 0;
         int loanLimit = user.getLoanLimit() != null ? user.getLoanLimit() : loanConfig.getMaxLoan();
@@ -125,9 +140,13 @@ public class LoanService {
 
         int stipend = loanConfig.getDailyStipend();
 
+        // 乐观锁：只有 last_stipend_date != today（含 NULL）时才能领取
+        // 防止并发请求或定时任务与用户主动领取同时触发，导致一天多次发放
         int updated = eggUserMapper.update(null,
                 new LambdaUpdateWrapper<EggUser>()
                         .eq(EggUser::getId, user.getId())
+                        .and(w -> w.isNull(EggUser::getLastStipendDate)
+                                .or().ne(EggUser::getLastStipendDate, today))
                         .setSql("points = points + " + stipend)
                         .set(EggUser::getLastStipendDate, today)
         );
@@ -136,6 +155,7 @@ public class LoanService {
             log.info("每日补贴发放: userId={}, amount={}", user.getId(), stipend);
             return stipend;
         }
+        // updated == 0 表示今天已领过（被并发线程抢先一步），返回 0
         return 0;
     }
 
@@ -181,12 +201,19 @@ public class LoanService {
         int debt = Math.abs(loanAmount);
         int actualRepay = Math.min(amount, debt);
 
-        eggUserMapper.update(null,
+        // 乐观锁：用读取时的 loanAmount 和 points 做条件，防止与 autoRepay 并发导致 loan_amount 变正数（用户被加钱）
+        int updated = eggUserMapper.update(null,
                 new LambdaUpdateWrapper<EggUser>()
                         .eq(EggUser::getId, userId)
+                        .eq(EggUser::getLoanAmount, loanAmount)
+                        .ge(EggUser::getPoints, actualRepay)
                         .setSql("points = points - " + actualRepay)
                         .setSql("loan_amount = loan_amount + " + actualRepay)
         );
+        if (updated == 0) {
+            log.warn("手动还款失败（并发冲突或积分不足）: userId={}", userId);
+            return 0;
+        }
 
         log.info("手动还款: userId={}, amount={}, 剩余债务={}", userId, actualRepay, -(loanAmount + actualRepay));
         return actualRepay;

@@ -147,7 +147,81 @@ public interface LeaderboardMapper {
             "ORDER BY accuracy DESC, correct_bets DESC")
     List<LeaderboardVO> selectAccuracyLeaderboardAll(@Param("gameId") Long gameId);
 
-    // ==================== 净收益最低排行榜（娱乐，≥1 场） ====================
+    // ==================== 全部游戏胜率榜（不按 gameId 过滤） ====================
+
+    @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, u.net_profit, " +
+            "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
+            "COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) as total_bets, " +
+            "u.win_streak, u.max_win_streak, " +
+            "ROUND(COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END), 0), 2) as accuracy " +
+            "FROM egg_user u " +
+            "INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "GROUP BY u.id " +
+            "HAVING total_bets >= 10 " +
+            "ORDER BY accuracy DESC, correct_bets DESC " +
+            "LIMIT #{offset}, #{n}")
+    List<LeaderboardVO> selectAccuracyLeaderboardLimitAll(@Param("offset") int offset, @Param("n") int n);
+
+    @Select("SELECT COUNT(*) FROM (" +
+            "  SELECT u.id FROM egg_user u " +
+            "  INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "  INNER JOIN egg_match m ON b.match_id = m.id " +
+            "  GROUP BY u.id " +
+            "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 10" +
+            ") t")
+    int countAccuracyLeaderboardAll();
+
+    @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, u.net_profit, " +
+            "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
+            "COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) as total_bets, " +
+            "u.win_streak, u.max_win_streak, " +
+            "ROUND(COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) * 100.0 / NULLIF(COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END), 0), 2) as accuracy " +
+            "FROM egg_user u " +
+            "INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "GROUP BY u.id " +
+            "HAVING total_bets >= 10 " +
+            "ORDER BY accuracy DESC, correct_bets DESC " +
+            "LIMIT #{n}")
+    List<LeaderboardVO> selectAccuracyLeaderboardTopAll(@Param("n") int n);
+
+    // ==================== 全部游戏净收益最低榜（不按 gameId 过滤） ====================
+
+    @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, u.net_profit, " +
+            "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
+            "COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) as total_bets, " +
+            "u.win_streak, u.max_win_streak " +
+            "FROM egg_user u " +
+            "INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "GROUP BY u.id " +
+            "HAVING total_bets >= 1 " +
+            "ORDER BY u.net_profit ASC " +
+            "LIMIT #{offset}, #{n}")
+    List<LeaderboardVO> selectWorstProfitLeaderboardLimitAll(@Param("offset") int offset, @Param("n") int n);
+
+    @Select("SELECT COUNT(*) FROM (" +
+            "  SELECT u.id FROM egg_user u " +
+            "  INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "  INNER JOIN egg_match m ON b.match_id = m.id " +
+            "  GROUP BY u.id " +
+            "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 1" +
+            ") t")
+    int countWorstProfitLeaderboardAll();
+
+    @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, u.net_profit, " +
+            "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
+            "COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) as total_bets, " +
+            "u.win_streak, u.max_win_streak " +
+            "FROM egg_user u " +
+            "INNER JOIN egg_bet b ON u.id = b.user_id " +
+            "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "GROUP BY u.id " +
+            "HAVING total_bets >= 1 " +
+            "ORDER BY u.net_profit ASC " +
+            "LIMIT #{n}")
+    List<LeaderboardVO> selectWorstProfitLeaderboardTopAll(@Param("n") int n);
 
     /**
      * 按游戏查询净收益排行榜（分页，≥1 场，ASC = 亏损最多在前）

@@ -236,6 +236,10 @@ import request from '@/utils/request'
 import { isAdmin } from '@/utils/auth'
 import AnnouncementBar from '@/components/AnnouncementBar.vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
+// 时间格式化工具（MM-DD HH:mm），统一提取自 @/utils/format
+import { formatTime } from '@/utils/format'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 
 export default {
   name: 'MatchList',
@@ -318,13 +322,8 @@ export default {
       this.gamesLoading = true
       request.get('/game/list').then(function (res) {
         var data = res.data || res
-        if (Array.isArray(data)) {
-          this.games = data
-        } else if (data.records) {
-          this.games = data.records
-        } else {
-          this.games = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        this.games = extractList(data)
       }.bind(this)).catch(function () {
         this.games = []
       }.bind(this)).finally(function () {
@@ -382,22 +381,25 @@ export default {
       }
       request.get('/match/list', { params }).then(function (res) {
         var data = res.data || res
+        // 兼容 records/list/content 多种后端返回格式
+        this.matches = extractList(data)
         if (Array.isArray(data)) {
-          this.matches = data
           this.total = data.length
         } else if (data.records) {
-          this.matches = data.records
           this.total = data.total || data.records.length
         } else {
-          this.matches = data.list || data.content || []
           this.total = data.total || data.totalElements || 0
         }
       }.bind(this)).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(function () {
         if (!silent) this.loading = false
       }.bind(this))
     },
-    handleTabChange() {
+    handleTabChange(tab) {
       this.currentPage = 1
+      this.matches = []
+      // tab.paneName 是点击的 tab 的 name 值，比 this.activeStatus 更可靠
+      // 因为 @tab-click 可能在 v-model 更新前触发，直接用事件参数避免读到旧值
+      this.activeStatus = tab.paneName
       this.fetchMatches()
     },
     fetchHotMatches(silent) {
@@ -408,13 +410,8 @@ export default {
       }
       request.get('/match/hot', { params: params }).then(function (res) {
         var data = res.data || res
-        if (Array.isArray(data)) {
-          this.hotMatches = data
-        } else if (data.records) {
-          this.hotMatches = data.records
-        } else {
-          this.hotMatches = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        this.hotMatches = extractList(data)
       }.bind(this)).catch(() => { this.$message.error('加载失败，请刷新重试') }).finally(function () {
         if (!silent) this.hotLoading = false
       }.bind(this))
@@ -422,15 +419,8 @@ export default {
     goDetail(id) {
       this.$router.push('/match/' + id)
     },
-    formatTime(timeStr) {
-      if (!timeStr) return ''
-      var d = new Date(timeStr)
-      var month = (d.getMonth() + 1).toString().padStart(2, '0')
-      var day = d.getDate().toString().padStart(2, '0')
-      var hour = d.getHours().toString().padStart(2, '0')
-      var min = d.getMinutes().toString().padStart(2, '0')
-      return month + '-' + day + ' ' + hour + ':' + min
-    }
+    // formatTime 已外移到 @/utils/format，此处通过 ES6 简写暴露给模板
+    formatTime
   }
 }
 </script>

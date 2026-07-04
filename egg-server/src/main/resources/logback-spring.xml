@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Logback 日志配置
+    开发环境（spring.profiles.active=dev）：DEBUG 级别，仅控制台输出
+    生产环境（spring.profiles.active=prod）：INFO 级别，控制台 + 文件（滚动 30 天）
+-->
+<configuration>
+    <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
+    <property name="PATTERN" value="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder><pattern>${PATTERN}</pattern></encoder>
+    </appender>
+
+    <!-- 文件输出（滚动：按天切分，保留 30 天） -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/egg-esports.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/egg-esports.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder><pattern>${PATTERN}</pattern></encoder>
+    </appender>
+
+    <!-- 默认兜底：profile 不匹配时用 INFO + 控制台，避免日志全丢 -->
+    <root level="INFO"><appender-ref ref="CONSOLE"/></root>
+    <logger name="com.egg.esports" level="INFO"/>
+
+    <!-- 开发环境：DEBUG 级别，仅控制台 -->
+    <springProfile name="dev">
+        <root level="DEBUG"><appender-ref ref="CONSOLE"/></root>
+        <logger name="com.egg.esports" level="DEBUG"/>
+    </springProfile>
+
+    <!-- 生产环境：INFO 级别，控制台 + 文件 -->
+    <springProfile name="prod">
+        <root level="INFO"><appender-ref ref="CONSOLE"/><appender-ref ref="FILE"/></root>
+        <logger name="com.egg.esports" level="INFO"/>
+    </springProfile>
+</configuration>

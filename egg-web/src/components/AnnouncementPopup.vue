@@ -41,6 +41,8 @@
 
 <script>
 import request from '@/utils/request'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 import { Bell, Trophy } from '@element-plus/icons-vue'
 
 export default {
@@ -91,14 +93,8 @@ export default {
       var self = this
       request.get('/announcement/active', { params: { displayType: 2 } }).then(function (res) {
         var data = res.data || res
-        var list = []
-        if (Array.isArray(data)) {
-          list = data
-        } else if (data.records) {
-          list = data.records
-        } else {
-          list = data.list || data.content || []
-        }
+        // 兼容 records/list/content 多种后端返回格式
+        var list = extractList(data)
 
         var dismissedIds = self.getDismissedIds()
         var filtered = list.filter(function (item) {

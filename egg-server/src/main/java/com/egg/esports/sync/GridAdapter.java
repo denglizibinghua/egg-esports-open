@@ -1,5 +1,6 @@
 package com.egg.esports.sync;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -123,6 +126,7 @@ public class GridAdapter implements GameSourceAdapter {
     }
 
     @Override
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public List<RawMatch> fetchMatches() {
         List<RawMatch> result = new ArrayList<>();
 
@@ -146,67 +150,65 @@ public class GridAdapter implements GameSourceAdapter {
 
         while (totalPages < MAX_PAGES) {
             totalPages++;
-            try {
-                JsonNode responseNode = executeGraphQLQuery(cursor, fromUtc, toUtc);
-                if (responseNode == null) {
-                    break;
-                }
+            // 不再 catch Exception：任一页网络失败会向上抛出，触发 @Retryable 整体重试
+            // 已成功拉取的页在重试时会被重复处理（RawMatch 入库按 externalId 去重，可接受）
+            JsonNode responseNode = executeGraphQLQuery(cursor, fromUtc, toUtc);
+            if (responseNode == null) {
+                break;
+            }
 
-                JsonNode allSeries = responseNode.at("/data/allSeries");
-                if (allSeries.isMissingNode()) {
-                    log.warn("GRID 响应缺少 data.allSeries 节点，停止同步");
-                    break;
-                }
+            JsonNode allSeries = responseNode.at("/data/allSeries");
+            if (allSeries.isMissingNode()) {
+                log.warn("GRID 响应缺少 data.allSeries 节点，停止同步");
+                break;
+            }
 
-                // 首次记录 totalCount（用于日志展示）
-                if (totalCount < 0) {
-                    totalCount = allSeries.path("totalCount").asInt(0);
-                    log.info("GRID(titleId={}) 赛事总数: {}", titleId, totalCount);
-                }
+            // 首次记录 totalCount（用于日志展示）
+            if (totalCount < 0) {
+                totalCount = allSeries.path("totalCount").asInt(0);
+                log.info("GRID(titleId={}) 赛事总数: {}", titleId, totalCount);
+            }
 
-                JsonNode edges = allSeries.path("edges");
-                if (!edges.isArray() || edges.isEmpty()) {
-                    log.info("GRID 第 {} 页无赛事数据，结束分页", totalPages);
-                    break;
-                }
+            JsonNode edges = allSeries.path("edges");
+            if (!edges.isArray() || edges.isEmpty()) {
+                log.info("GRID 第 {} 页无赛事数据，结束分页", totalPages);
+                break;
+            }
 
-                // 映射当前页赛事（单个失败不阻塞整体）
-                for (JsonNode edge : edges) {
-                    try {
-                        RawMatch raw = mapToRawMatch(edge.path("node"), now);
-                        if (raw != null) {
-                            result.add(raw);
-                        }
-                    } catch (Exception e) {
-                        log.error("映射 GRID 赛事失败: {}", e.getMessage(), e);
-                    }
-                }
-
-                // 检查是否有下一页
-                JsonNode pageInfo = allSeries.path("pageInfo");
-                boolean hasNextPage = pageInfo.path("hasNextPage").asBoolean(false);
-                String endCursor = pageInfo.path("endCursor").asText(null);
-
-                log.info("GRID(titleId={}) 第 {} 页处理完成，本页 {} 条，累计 {} 条，hasNextPage={}",
-                        titleId, totalPages, edges.size(), result.size(), hasNextPage);
-
-                if (!hasNextPage || endCursor == null || endCursor.isEmpty()) {
-                    break;
-                }
-
-                cursor = endCursor;
-
-                // 限频：请求间间隔 3 秒（Central Data 20 req/min）
+            // 映射当前页赛事（单个失败不阻塞整体）
+            for (JsonNode edge : edges) {
                 try {
-                    Thread.sleep(REQUEST_INTERVAL_MS);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    log.warn("GridAdapter(gameId={}) 同步被中断", gameId);
-                    break;
+                    RawMatch raw = mapToRawMatch(edge.path("node"), now);
+                    if (raw != null) {
+                        result.add(raw);
+                    }
+                } catch (Exception e) {
+                    // 单条数据映射异常为业务异常，不影响整体同步
+                    log.error("映射 GRID 赛事失败: {}", e.getMessage(), e);
                 }
+            }
 
-            } catch (Exception e) {
-                log.error("GRID(titleId={}) 第 {} 页处理失败: {}", titleId, totalPages, e.getMessage(), e);
+            // 检查是否有下一页
+            JsonNode pageInfo = allSeries.path("pageInfo");
+            boolean hasNextPage = pageInfo.path("hasNextPage").asBoolean(false);
+            String endCursor = pageInfo.path("endCursor").asText(null);
+
+            log.info("GRID(titleId={}) 第 {} 页处理完成，本页 {} 条，累计 {} 条，hasNextPage={}",
+                    titleId, totalPages, edges.size(), result.size(), hasNextPage);
+
+            if (!hasNextPage || endCursor == null || endCursor.isEmpty()) {
+                break;
+            }
+
+            cursor = endCursor;
+
+            // 限频：请求间间隔 3 秒（Central Data 20 req/min）
+            // InterruptedException 单独处理：线程中断时退出循环，不触发重试
+            try {
+                Thread.sleep(REQUEST_INTERVAL_MS);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                log.warn("GridAdapter(gameId={}) 同步被中断", gameId);
                 break;
             }
         }
@@ -218,53 +220,64 @@ public class GridAdapter implements GameSourceAdapter {
 
     /**
      * 执行 GRID GraphQL 查询（单页）
+     * <p>网络异常（RestClientException）和 JSON 解析异常（包装为 RuntimeException）均向上抛出，
+     * 由 fetchMatches 的 @Retryable 触发整体重试。
      *
      * @param after   cursor（首页传 null）
      * @param fromUtc 起始时间（UTC ISO 8601，如 2026-06-24T00:00:00Z）
      * @param toUtc   截止时间（UTC ISO 8601）
-     * @return 响应 JsonNode（根节点）；失败返回 null
+     * @return 响应 JsonNode（根节点）；GraphQL 返回 errors 字段时返回 null（业务错误不重试）
      */
     private JsonNode executeGraphQLQuery(String after, String fromUtc, String toUtc) {
+        // 构建 GraphQL request body: {"query": "...", "variables": {...}}
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("after", after);
+        variables.put("gte", fromUtc);
+        variables.put("lte", toUtc);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("query", seriesQuery);
+        requestBody.put("variables", variables);
+
+        // writeValueAsString 抛 JsonProcessingException（检查异常），包装为 RuntimeException 向上抛出
+        String jsonBody;
         try {
-            // 构建 GraphQL request body: {"query": "...", "variables": {...}}
-            Map<String, Object> variables = new HashMap<>();
-            variables.put("after", after);
-            variables.put("gte", fromUtc);
-            variables.put("lte", toUtc);
+            jsonBody = objectMapper.writeValueAsString(requestBody);
+        } catch (JsonProcessingException e) {
+            log.error("GRID(titleId={}) 序列化请求体失败: {}", titleId, e.getMessage(), e);
+            throw new RuntimeException("序列化 GRID GraphQL 请求体失败", e);
+        }
 
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("query", seriesQuery);
-            requestBody.put("variables", variables);
+        // 构建请求头：x-api-key 认证 + JSON Content-Type
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-api-key", apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String jsonBody = objectMapper.writeValueAsString(requestBody);
+        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
 
-            // 构建请求头：x-api-key 认证 + JSON Content-Type
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("x-api-key", apiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
+        log.info("请求 GRID(titleId={}): after={}, from={}, to={}", titleId, after, fromUtc, toUtc);
 
-            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        // restTemplate.exchange 抛出 RestClientException（运行时异常），直接向上传播触发重试
+        ResponseEntity<String> response = restTemplate.exchange(
+                centralDataUrl, HttpMethod.POST, entity, String.class);
 
-            log.info("请求 GRID(titleId={}): after={}, from={}, to={}", titleId, after, fromUtc, toUtc);
+        // readTree 抛 JsonProcessingException（检查异常），包装为 RuntimeException 向上抛出
+        JsonNode root;
+        try {
+            root = objectMapper.readTree(response.getBody());
+        } catch (JsonProcessingException e) {
+            log.error("GRID(titleId={}) 解析响应 JSON 失败: {}", titleId, e.getMessage(), e);
+            throw new RuntimeException("解析 GRID GraphQL 响应 JSON 失败", e);
+        }
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    centralDataUrl, HttpMethod.POST, entity, String.class);
-
-            JsonNode root = objectMapper.readTree(response.getBody());
-
-            // 检查 GraphQL errors 字段
-            JsonNode errors = root.path("errors");
-            if (errors.isArray() && !errors.isEmpty()) {
-                log.error("GRID(titleId={}) GraphQL 返回错误: {}", titleId, errors.toString());
-                return null;
-            }
-
-            return root;
-
-        } catch (Exception e) {
-            log.error("GRID(titleId={}) GraphQL 请求异常: {}", titleId, e.getMessage(), e);
+        // 检查 GraphQL errors 字段：业务级错误（如变量不合法）不触发重试，返回 null 退出循环
+        JsonNode errors = root.path("errors");
+        if (errors.isArray() && !errors.isEmpty()) {
+            log.error("GRID(titleId={}) GraphQL 返回错误: {}", titleId, errors.toString());
             return null;
         }
+
+        return root;
     }
 
     /**

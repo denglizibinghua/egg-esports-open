@@ -152,24 +152,6 @@ public class EggUserService {
     }
 
     /**
-     * 原子更新积分，防止积分变为负数
-     */
-    public boolean updatePoints(Long userId, int delta) {
-        LambdaUpdateWrapper<EggUser> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(EggUser::getId, userId);
-
-        if (delta >= 0) {
-            wrapper.setSql("points = points + " + delta);
-        } else {
-            // 防止积分变为负数
-            wrapper.setSql("points = GREATEST(0, points + (" + delta + "))");
-        }
-
-        int rows = userMapper.update(null, wrapper);
-        return rows > 0;
-    }
-
-    /**
      * 更新个人资料
      */
     public EggUser updateProfile(Long userId, String nickname) {

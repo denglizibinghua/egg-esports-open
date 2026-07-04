@@ -144,10 +144,6 @@
         </div>
       </div>
     </div>
-    <div v-else class="section-empty">
-      <span>暂无赛事</span>
-    </div>
-
     <!-- 🔴 进行中 -->
     <div v-if="liveMatches.length > 0" ref="liveSection" class="home-section">
       <div class="section-header">
@@ -200,10 +196,6 @@
         </div>
       </div>
     </div>
-    <div v-else class="section-empty">
-      <span>暂无赛事</span>
-    </div>
-
     <!-- ⏰ 即将开始 -->
     <div v-if="upcomingMatches.length > 0" ref="upcomingSection" class="home-section">
       <div class="section-header">
@@ -251,10 +243,6 @@
         </div>
       </div>
     </div>
-    <div v-else class="section-empty">
-      <span>暂无赛事</span>
-    </div>
-
     <!-- 🏆 排行榜 -->
     <div ref="rankSection" class="home-section">
       <div class="section-header">
@@ -350,10 +338,14 @@ import AnnouncementBar from '@/components/AnnouncementBar.vue'
 import OnboardingCard from '@/components/OnboardingCard.vue'
 import { markRaw } from 'vue'
 import { QuestionFilled, UserFilled } from '@element-plus/icons-vue'
+// 时间格式化工具（MM-DD HH:mm），统一提取自 @/utils/format
+import { formatTime } from '@/utils/format'
+// 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
+import { extractList } from '@/utils/pagination'
 
 export default {
   name: 'HomePage',
-  components: { AnnouncementBar, OnboardingCard, QuestionFilled, UserFilled },
+  components: { AnnouncementBar, OnboardingCard, QuestionFilled },
   data() {
     return {
       // 暴露给模板 :icon 绑定的图标组件（用 markRaw 避免响应化）
@@ -393,12 +385,8 @@ export default {
   },
   methods: {
     // ===== 工具 =====
-    extractList(res) {
-      var data = res.data || res
-      if (Array.isArray(data)) return data
-      if (data.records) return data.records
-      return data.list || data.content || []
-    },
+    // formatTime / extractList 已外移到 @/utils，此处通过 ES6 简写暴露 formatTime 给模板
+    formatTime,
     filterTBD(list) {
       // 过滤所有 TBD 变体（TBD、TBD-1、TBD-2 等）
       return list.filter(function (m) {
@@ -409,15 +397,6 @@ export default {
       return (match.status === 1 || match.status === 2) &&
         match.scoreA !== null && match.scoreA !== undefined &&
         match.scoreB !== null && match.scoreB !== undefined
-    },
-    formatTime(timeStr) {
-      if (!timeStr) return ''
-      var d = new Date(timeStr)
-      var m = (d.getMonth() + 1).toString().padStart(2, '0')
-      var day = d.getDate().toString().padStart(2, '0')
-      var h = d.getHours().toString().padStart(2, '0')
-      var min = d.getMinutes().toString().padStart(2, '0')
-      return m + '-' + day + ' ' + h + ':' + min
     },
     getAccuracy(row) {
       if (!row.totalBets || row.totalBets === 0) return 0
@@ -436,7 +415,7 @@ export default {
     // ===== 游戏筛选 =====
     fetchGames() {
       request.get('/game/list').then(function (res) {
-        this.games = this.extractList(res)
+        this.games = extractList(res.data || res)
       }.bind(this)).catch(function () {
         this.games = []
       }.bind(this))
@@ -463,7 +442,7 @@ export default {
       var params = { limit: 12 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/hot', { params: params }).then(function (res) {
-        this.hotMatches = this.filterTBD(this.extractList(res))
+        this.hotMatches = this.filterTBD(extractList(res.data || res))
         this.updateHero()
       }.bind(this)).catch(function () {
         this.hotMatches = []
@@ -482,7 +461,7 @@ export default {
       var params = { page: 1, size: 20, status: 1 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/list', { params: params }).then(function (res) {
-        this.liveMatches = this.filterTBD(this.extractList(res))
+        this.liveMatches = this.filterTBD(extractList(res.data || res))
         if (!this.heroMatch) this.updateHero()
       }.bind(this)).catch(function () {
         this.liveMatches = []
@@ -494,7 +473,7 @@ export default {
       var params = { page: 1, size: 20, status: 0 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/list', { params: params }).then(function (res) {
-        this.upcomingMatches = this.filterTBD(this.extractList(res))
+        this.upcomingMatches = this.filterTBD(extractList(res.data || res))
         if (!this.heroMatch) this.updateHero()
         this.loaded = true
       }.bind(this)).catch(function () {
@@ -516,7 +495,7 @@ export default {
       var params2 = { page: 1, size: 10 }
       if (this.selectedGameId) params2.gameId = this.selectedGameId
       request.get('/leaderboard/points', { params: params2 }).then(function (res) {
-        this.leaderboard = this.extractList(res)
+        this.leaderboard = extractList(res.data || res)
       }.bind(this)).catch(function () {
         this.leaderboard = []
       }.bind(this)).finally(function () {

@@ -18,7 +18,7 @@ egg-esports 当前有 3 款游戏的数据源：
 
 **缺失**: 平台完全没有 **CS2（Counter-Strike 2）** 的赛事数据。CS2 是全球第二大电竞项目，缺失严重影响平台内容完整性。
 
-GRID Open Access 已获批（API Key: `${GRID_API_KEY}`），覆盖 CS2 + Dota 2 共 87,000+ 场官方比赛数据。
+GRID Open Access 已获批（API Key 通过环境变量 ${GRID_API_KEY} 注入，不入库），覆盖 CS2 + Dota 2 共 87,000+ 场官方比赛数据。
 
 ---
 

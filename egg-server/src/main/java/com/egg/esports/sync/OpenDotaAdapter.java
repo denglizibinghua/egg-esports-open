@@ -1,9 +1,12 @@
 package com.egg.esports.sync;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
@@ -38,33 +41,40 @@ public class OpenDotaAdapter implements GameSourceAdapter {
     }
 
     @Override
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public List<RawMatch> fetchMatches() {
         List<RawMatch> result = new ArrayList<>();
+        log.info("正在从 OpenDota 获取 Dota2 职业赛事数据: {}", OPENDOTA_URL);
+        // restTemplate.getForEntity 抛出 RestClientException（运行时异常），直接向上传播触发 @Retryable 重试
+        ResponseEntity<String> response = restTemplate.getForEntity(OPENDOTA_URL, String.class);
+
+        // JsonProcessingException 为检查异常，包装为 RuntimeException 向上抛出
+        JsonNode root;
         try {
-            log.info("正在从 OpenDota 获取 Dota2 职业赛事数据: {}", OPENDOTA_URL);
-            ResponseEntity<String> response = restTemplate.getForEntity(OPENDOTA_URL, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-
-            if (!root.isArray()) {
-                log.warn("OpenDota 响应不是数组");
-                return result;
-            }
-
-            for (JsonNode node : root) {
-                try {
-                    RawMatch raw = mapToRawMatch(node);
-                    if (raw != null) {
-                        result.add(raw);
-                    }
-                } catch (Exception e) {
-                    log.error("映射 OpenDota 赛事失败: {}", e.getMessage(), e);
-                }
-            }
-
-            log.info("OpenDota 同步完成，共 {} 场赛事", result.size());
-        } catch (Exception e) {
-            log.error("获取 OpenDota 数据失败: {}", e.getMessage(), e);
+            root = objectMapper.readTree(response.getBody());
+        } catch (JsonProcessingException e) {
+            log.error("解析 OpenDota 响应 JSON 失败: {}", e.getMessage(), e);
+            throw new RuntimeException("解析 OpenDota 响应 JSON 失败", e);
         }
+
+        if (!root.isArray()) {
+            log.warn("OpenDota 响应不是数组");
+            return result;
+        }
+
+        for (JsonNode node : root) {
+            try {
+                RawMatch raw = mapToRawMatch(node);
+                if (raw != null) {
+                    result.add(raw);
+                }
+            } catch (Exception e) {
+                // 单条数据映射异常为业务异常，不影响整体同步
+                log.error("映射 OpenDota 赛事失败: {}", e.getMessage(), e);
+            }
+        }
+
+        log.info("OpenDota 同步完成，共 {} 场赛事", result.size());
         return result;
     }
 

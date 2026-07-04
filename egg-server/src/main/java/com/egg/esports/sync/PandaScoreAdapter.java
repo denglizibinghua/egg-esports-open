@@ -1,5 +1,6 @@
 package com.egg.esports.sync;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -70,12 +73,15 @@ public class PandaScoreAdapter implements GameSourceAdapter {
     }
 
     @Override
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
     public List<RawMatch> fetchMatches() {
         List<RawMatch> result = new ArrayList<>();
         // 按 externalId 去重（upcoming/running/past 可能存在重叠）
         Set<String> seen = new HashSet<>();
 
         // 三个端点聚合：即将开始、进行中、已结束
+        // 任一端点网络失败会向上抛出，触发 @Retryable 整体重试
+        // 已成功端点在重试时会被重复拉取，由 seen 去重保证最终结果不重复
         // per_page 上限 100，running 数据量小用 50
         fetchFromEndpoint("/csgo/matches/upcoming?per_page=100", seen, result);
         sleep(REQUEST_INTERVAL_MS);
@@ -89,6 +95,8 @@ public class PandaScoreAdapter implements GameSourceAdapter {
 
     /**
      * 拉取单个端点并映射为 RawMatch（追加到 result，按 externalId 去重）
+     * <p>网络异常向上抛出，由 fetchMatches 的 @Retryable 触发整体重试。
+     * <p>401（无效 Key）视为配置错误，requestJson 返回 null，本方法跳过该端点。
      *
      * @param path   端点路径（含 query string）
      * @param seen   已处理的 externalId 集合（去重）
@@ -96,40 +104,40 @@ public class PandaScoreAdapter implements GameSourceAdapter {
      */
     private void fetchFromEndpoint(String path, Set<String> seen, List<RawMatch> result) {
         String url = baseUrl + path;
-        try {
-            JsonNode root = requestJson(url);
-            if (root == null || !root.isArray()) {
-                log.warn("PandaScore 端点 {} 响应非数组，跳过", path);
-                return;
-            }
-
-            int mapped = 0;
-            for (JsonNode node : root) {
-                try {
-                    RawMatch raw = mapToRawMatch(node);
-                    if (raw == null) {
-                        continue;
-                    }
-                    // 去重：三端点可能返回同一场比赛
-                    if (seen.add(raw.getExternalId())) {
-                        result.add(raw);
-                        mapped++;
-                    }
-                } catch (Exception e) {
-                    log.error("映射 PandaScore 赛事失败: {}", e.getMessage(), e);
-                }
-            }
-            log.info("PandaScore 端点 {} 处理完成，本端点新增 {} 场，累计 {} 场",
-                    path, mapped, result.size());
-        } catch (Exception e) {
-            log.error("PandaScore 端点 {} 拉取失败: {}", path, e.getMessage(), e);
+        // 不再 catch Exception：网络异常向上抛出触发 @Retryable
+        JsonNode root = requestJson(url);
+        if (root == null || !root.isArray()) {
+            // requestJson 返回 null 仅为 401（无效 Key）场景，跳过该端点
+            log.warn("PandaScore 端点 {} 响应非数组，跳过", path);
+            return;
         }
+
+        int mapped = 0;
+        for (JsonNode node : root) {
+            try {
+                RawMatch raw = mapToRawMatch(node);
+                if (raw == null) {
+                    continue;
+                }
+                // 去重：三端点可能返回同一场比赛
+                if (seen.add(raw.getExternalId())) {
+                    result.add(raw);
+                    mapped++;
+                }
+            } catch (Exception e) {
+                // 单条数据映射异常为业务异常，不影响整体同步
+                log.error("映射 PandaScore 赛事失败: {}", e.getMessage(), e);
+            }
+        }
+        log.info("PandaScore 端点 {} 处理完成，本端点新增 {} 场，累计 {} 场",
+                path, mapped, result.size());
     }
 
     /**
      * 发送带 Bearer 认证的 GET 请求并返回 JSON 根节点
-     * <p>HTTP 401（无效 Key）→ 记录错误并返回 null
-     * <p>HTTP 429（超限）→ 等待后重试一次
+     * <p>HTTP 401（无效 Key）→ 记录错误并返回 null（配置错误，不重试）
+     * <p>HTTP 429（超限）→ 等待后重试一次；重试仍失败则向上抛出触发 @Retryable
+     * <p>其他网络异常（超时、连接拒绝等）→ 直接向上抛出触发 @Retryable
      */
     private JsonNode requestJson(String url) {
         HttpHeaders headers = new HttpHeaders();
@@ -140,26 +148,37 @@ public class PandaScoreAdapter implements GameSourceAdapter {
         try {
             ResponseEntity<String> response = restTemplate.exchange(
                     url, HttpMethod.GET, entity, String.class);
-            return objectMapper.readTree(response.getBody());
+            return readTree(response.getBody(), url);
         } catch (HttpClientErrorException.TooManyRequests e) {
-            // 429 超限：等待后重试一次
+            // 429 超限：等待后重试一次（单端点级重试，与 @Retryable 整体重试独立）
             log.warn("PandaScore 触发限流(429)，等待 {}ms 后重试: {}", RATE_LIMIT_WAIT_MS, url);
             sleep(RATE_LIMIT_WAIT_MS);
-            try {
-                ResponseEntity<String> retry = restTemplate.exchange(
-                        url, HttpMethod.GET, entity, String.class);
-                return objectMapper.readTree(retry.getBody());
-            } catch (Exception re) {
-                log.error("PandaScore 重试仍失败: {}", re.getMessage(), re);
-                return null;
-            }
+            // 429 重试：网络异常和 JSON 解析异常均向上抛出，由 fetchMatches 的 @Retryable 兜底
+            ResponseEntity<String> retry = restTemplate.exchange(
+                    url, HttpMethod.GET, entity, String.class);
+            return readTree(retry.getBody(), url);
         } catch (HttpClientErrorException.Unauthorized e) {
-            // 401 无效 Key：直接跳过，不重试
+            // 401 无效 Key：配置错误，重试无意义，返回 null 跳过该端点
             log.error("PandaScore API Key 无效(401)，请检查配置 egg.sync.adapters.pandascore-cs2.api-key");
             return null;
-        } catch (Exception e) {
-            log.error("PandaScore 请求异常: {} - {}", url, e.getMessage());
-            return null;
+        }
+        // 注意：不再有 catch Exception，其他网络异常（超时、连接拒绝等）向上抛出触发 @Retryable
+    }
+
+    /**
+     * 解析 JSON 响应为 JsonNode
+     * <p>JsonProcessingException 为检查异常，包装为 RuntimeException 向上抛出，触发 @Retryable
+     *
+     * @param body 响应体
+     * @param url  请求 URL（日志用）
+     * @return JsonNode 根节点
+     */
+    private JsonNode readTree(String body, String url) {
+        try {
+            return objectMapper.readTree(body);
+        } catch (JsonProcessingException e) {
+            log.error("PandaScore 解析响应 JSON 失败: {} - {}", url, e.getMessage(), e);
+            throw new RuntimeException("解析 PandaScore 响应 JSON 失败: " + url, e);
         }
     }
 

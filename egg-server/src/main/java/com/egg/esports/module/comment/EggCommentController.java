@@ -2,6 +2,7 @@ package com.egg.esports.module.comment;
 
 import com.egg.esports.common.RateLimit;
 import com.egg.esports.common.Result;
+import com.egg.esports.common.annotation.RequireAdmin;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -65,13 +66,9 @@ public class EggCommentController {
      * 隐藏评论（管理员）
      */
     @RateLimit(window = 10, maxRequests = 5, message = "操作过于频繁，请10秒后再试")
+    @RequireAdmin
     @PutMapping("/hide/{id:\\d+}")
-    public Result<Void> hide(@PathVariable Long id, HttpServletRequest request) {
-        // 管理员角色校验，防止越权隐藏评论
-        Integer role = (Integer) request.getAttribute("role");
-        if (role == null || role != 1) {
-            return Result.error(403, "无权限");
-        }
+    public Result<Void> hide(@PathVariable Long id) {
         commentService.hideComment(id);
         return Result.success();
     }

@@ -43,7 +43,7 @@ public class MatchSyncScheduler {
 
     /**
      * 每10分钟执行数据同步
-     * 同步时会自动结算新获得结果的赛事（在 upsertByExternalId 中处理）
+     * 同步时只 upsert 不结算，结算由 autoSettlePending 定时完成
      */
     @Scheduled(cron = "0 */10 * * * ?")
     public void scheduledSync() {
