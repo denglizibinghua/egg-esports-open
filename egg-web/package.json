@@ -7,13 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext .vue,.js --fix"
+    "type-check": "vue-tsc --noEmit",
+    "lint": "eslint src --ext .vue,.js,.ts --fix"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.6.8",
     "dompurify": "^3.0.0",
     "element-plus": "^2.7.0",
+    "pinia": "^2.1.7",
     "sockjs-client": "^1.6.1",
     "stompjs": "^2.3.3",
     "vue": "^3.4.21",
@@ -21,13 +23,16 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@types/node": "^20.12.7",
     "@vitejs/plugin-vue": "^5.0.4",
     "eslint": "^8.57.0",
     "eslint-plugin-vue": "^9.24.0",
     "sass": "^1.101.0",
+    "typescript": "^5.4.5",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.1.0",
-    "vite": "^5.2.8"
+    "vite": "^5.2.8",
+    "vue-tsc": "^2.0.21"
   },
   "eslintConfig": {
     "root": true,

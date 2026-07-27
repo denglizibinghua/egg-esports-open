@@ -57,7 +57,10 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/user/register",
                         "/api/announcement/active",
                         "/api/game/list",
-                        "/api/game/{id}"
+                        "/api/game/{id}",
+                        "/api/leaderboard/**",
+                        "/api/matches/**",
+                        "/api/health"
                 );
 
         // 限流拦截（扫描所有 /api/**，方法上有 @RateLimit 注解才生效）

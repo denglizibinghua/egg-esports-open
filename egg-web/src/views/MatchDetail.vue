@@ -1,20 +1,65 @@
 <template>
   <div class="match-detail" v-loading="loading">
+    <!-- Skeleton loading screen -->
+    <div v-if="loading" class="detail-skeleton">
+      <!-- Match Info Skeleton -->
+      <div class="skeleton-section">
+        <div class="skeleton-line skeleton-line--lg"></div>
+        <div class="skeleton-hero">
+          <div class="skeleton-line skeleton-line--avatar-lg"></div>
+          <div class="skeleton-line skeleton-line--score"></div>
+          <div class="skeleton-line skeleton-line--avatar-lg"></div>
+        </div>
+        <div class="skeleton-line skeleton-line--md"></div>
+      </div>
+      <!-- Bet Panel Skeleton -->
+      <div class="skeleton-section">
+        <div class="skeleton-line skeleton-line--title"></div>
+        <div class="skeleton-bet-cards">
+          <div class="skeleton-line skeleton-line--card"></div>
+          <div class="skeleton-line skeleton-line--vs"></div>
+          <div class="skeleton-line skeleton-line--card"></div>
+        </div>
+        <div class="skeleton-line skeleton-line--slider"></div>
+        <div class="skeleton-line skeleton-line--btn"></div>
+      </div>
+      <!-- Comments Skeleton -->
+      <div class="skeleton-section">
+        <div class="skeleton-line skeleton-line--title"></div>
+        <div v-for="i in 3" :key="'sk-comment-'+i" class="skeleton-comment">
+          <div class="skeleton-line skeleton-line--avatar-sm"></div>
+          <div class="skeleton-comment-body">
+            <div class="skeleton-line skeleton-line--md"></div>
+            <div class="skeleton-line skeleton-line--sm"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="match" class="detail-content">
+      <!-- 锚点导航 -->
+      <nav class="detail-nav">
+        <a class="detail-nav-link" href="#match-info" @click.prevent="scrollToSection('match-info')">比赛信息</a>
+        <a class="detail-nav-link" v-if="match.status === 0 || match.status === 1" href="#bet-panel" @click.prevent="scrollToSection('bet-panel')">押注</a>
+        <a class="detail-nav-link" href="#comments" @click.prevent="scrollToSection('comments')">评论</a>
+      </nav>
+
       <!-- 比赛基本信息面板：队伍、logo、比分、时间、状态、联赛、结果 -->
-      <MatchInfoPanel :match="match" />
+      <div id="match-info"><MatchInfoPanel :match="match" /></div>
 
       <!-- 押注面板：押注表单、确认弹窗、修改弹窗、押注统计（仅未开始/进行中显示） -->
-      <BetPanel
-        v-if="match.status === 0 || match.status === 1"
-        :match="match"
-        :user-points="userPoints"
-        :my-bet="myBet"
-        :bet-count="betCount"
-        @place-bet="onBetPlaced"
-        @modify-bet="onBetModified"
-        @broke-trigger="showBrokeModal = true"
-      />
+      <div id="bet-panel">
+        <BetPanel
+          v-if="match.status === 0 || match.status === 1"
+          :match="match"
+          :user-points="userPoints"
+          :my-bet="myBet"
+          :bet-count="betCount"
+          @place-bet="onBetPlaced"
+          @modify-bet="onBetModified"
+          @broke-trigger="showBrokeModal = true"
+        />
+      </div>
 
       <!-- BrokeModal - 积分耗尽救济贷款弹窗 -->
       <BrokeModal
@@ -24,7 +69,7 @@
       />
 
       <!-- 评论区：评论列表、发表评论、回复、WebSocket 实时推送 -->
-      <CommentSection :match-id="$route.params.id" :current-user="user" />
+      <div id="comments"><CommentSection :match-id="$route.params.id" :current-user="user" /></div>
     </div>
 
     <el-empty v-if="!loading && !match" description="赛事不存在" />
@@ -86,6 +131,11 @@ export default {
     // WebSocket 取消订阅由 CommentSection 自行处理
   },
   methods: {
+    // 锚点导航：平滑滚动到指定区域
+    scrollToSection(id) {
+      var el = document.getElementById(id)
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+    },
     // 启动定时轮询比赛状态（每 30s 静默刷新）
     startPolling() {
       var self = this
@@ -169,3 +219,170 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* ── Skeleton Loading ── */
+.detail-skeleton {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.skeleton-section {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-line--lg {
+  height: 32px;
+  width: 80%;
+  margin-bottom: 16px;
+}
+
+.skeleton-line--md {
+  height: 20px;
+  width: 60%;
+  margin-bottom: 12px;
+}
+
+.skeleton-line--sm {
+  height: 14px;
+  width: 40%;
+}
+
+.skeleton-line--title {
+  height: 24px;
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.skeleton-line--btn {
+  height: 44px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+}
+
+.skeleton-line--slider {
+  height: 36px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin: 16px 0;
+}
+
+.skeleton-line--card {
+  height: 120px;
+  flex: 1;
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-line--vs {
+  width: 32px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.skeleton-line--avatar-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.skeleton-line--avatar-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-line--score {
+  width: 80px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.skeleton-bet-cards {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.skeleton-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.skeleton-comment-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Anchor Navigation */
+.detail-nav {
+  position: sticky;
+  top: 56px;
+  z-index: 50;
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  margin-bottom: 16px;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.detail-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-nav-link {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.detail-nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-1);
+}
+
+.detail-nav-link:active {
+  color: var(--accent-primary);
+}
+</style>
+

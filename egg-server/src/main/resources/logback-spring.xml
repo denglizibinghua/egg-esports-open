@@ -23,10 +23,6 @@
         <encoder><pattern>${PATTERN}</pattern></encoder>
     </appender>
 
-    <!-- 默认兜底：profile 不匹配时用 INFO + 控制台，避免日志全丢 -->
-    <root level="INFO"><appender-ref ref="CONSOLE"/></root>
-    <logger name="com.egg.esports" level="INFO"/>
-
     <!-- 开发环境：DEBUG 级别，仅控制台 -->
     <springProfile name="dev">
         <root level="DEBUG"><appender-ref ref="CONSOLE"/></root>

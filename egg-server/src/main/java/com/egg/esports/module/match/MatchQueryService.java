@@ -49,15 +49,30 @@ public class MatchQueryService {
             wrapper.eq(EggMatch::getGameId, gameId);
         }
 
-        Page<EggMatch> pageParam = new Page<>(page, size);
+        // 全部(status=null)：不限制条数，按 tournament + match_time 排序，前端按赛事分组折叠
+        // 未开始(status=0)：按比赛时间升序
+        // 已结束/进行中：按比赛时间降序
         if (status == null) {
-            // 全部：按联赛+时间排序，前端按赛事分组折叠
             wrapper.orderByAsc(EggMatch::getTournament).orderByDesc(EggMatch::getMatchTime);
-        } else if (status == 0) {
-            // 未开始：按比赛时间升序
+            List<EggMatch> allMatches = matchMapper.selectList(wrapper);
+            // 填充赔率
+            for (EggMatch m : allMatches) {
+                long pa = m.getPoolA() != null ? m.getPoolA() : 0L;
+                long pb = m.getPoolB() != null ? m.getPoolB() : 0L;
+                Map<String, BigDecimal> odds = oddsService.calculate(pa, pb);
+                m.setOddsA(odds.get("oddsA"));
+                m.setOddsB(odds.get("oddsB"));
+            }
+            Page<EggMatch> fakePage = new Page<>(1, allMatches.size());
+            fakePage.setRecords(allMatches);
+            fakePage.setTotal(allMatches.size());
+            return fakePage;
+        }
+
+        Page<EggMatch> pageParam = new Page<>(page, size);
+        if (status == 0) {
             wrapper.orderByAsc(EggMatch::getMatchTime);
         } else {
-            // 已结束/进行中：按比赛时间降序
             wrapper.orderByDesc(EggMatch::getMatchTime);
         }
 

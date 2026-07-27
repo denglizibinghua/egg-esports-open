@@ -1,7 +1,7 @@
 <template>
   <div class="profile-tab">
     <!-- User Info Card -->
-    <div class="user-info-card">
+    <div class="user-info-card profile-card">
       <div class="user-avatar-section">
         <el-avatar :size="80" :src="user.avatar" :icon="UserFilled" />
         <div class="user-meta">
@@ -53,25 +53,34 @@
         <div class="stat-value">{{ user.totalBets || 0 }}</div>
         <div class="stat-label">总押注</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ user.correctBets || 0 }}</div>
-        <div class="stat-label">猜中</div>
+      <div class="stat-card stat-card--wins">
+        <div class="stat-card-value">{{ user.correctBets || 0 }}</div>
+        <div class="stat-card-label">猜中</div>
+        <div class="stat-card-bar">
+          <div class="stat-card-bar-fill" :style="{ width: accuracy + '%', background: 'var(--accent-primary)' }"></div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--rate">
+        <div class="stat-card-value">{{ accuracy }}%</div>
+        <div class="stat-card-label">胜率</div>
+        <div class="stat-card-bar">
+          <div class="stat-card-bar-fill" :style="{ width: accuracy + '%', background: 'var(--accent-secondary)' }"></div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--streak">
+        <div class="stat-card-value">{{ user.winStreak || 0 }}</div>
+        <div class="stat-card-label">连胜</div>
+        <div class="stat-card-bar">
+          <div class="stat-card-bar-fill" :style="{ width: (user.maxWinStreak > 0 ? Math.min(100, Math.round((user.winStreak || 0) / user.maxWinStreak * 100)) : 0) + '%', background: 'var(--accent-warning)' }"></div>
+        </div>
+      </div>
+      <div class="stat-card stat-card--losses">
+        <div class="stat-card-value">{{ user.maxWinStreak || 0 }}</div>
+        <div class="stat-card-label">最高连胜</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">{{ accuracy }}%</div>
-        <div class="stat-label">胜率</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ user.winStreak || 0 }}</div>
-        <div class="stat-label">连胜</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ user.maxWinStreak || 0 }}</div>
-        <div class="stat-label">最高连胜</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">{{ user.points || 0 }}</div>
-        <div class="stat-label">总积分</div>
+        <div class="stat-card-value">{{ user.points || 0 }}</div>
+        <div class="stat-card-label">总积分</div>
       </div>
     </div>
 
@@ -342,10 +351,39 @@ export default {
   box-shadow: var(--shadow-md);
 }
 
+/* Profile Card - glass effect with gradient border */
+.profile-card {
+  background: linear-gradient(135deg, rgba(18, 18, 26, 0.8), rgba(26, 26, 38, 0.6));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 160, 0.15);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-primary), transparent 50%, var(--accent-secondary));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 .user-avatar-section {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.user-avatar-section :deep(.el-avatar) {
+  border: 3px solid var(--accent-primary);
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
 }
 
 .user-nickname-row {
@@ -357,8 +395,10 @@ export default {
 
 .user-nickname {
   color: var(--text-primary);
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 24px;
   font-weight: 600;
+  letter-spacing: 1px;
 }
 
 .user-join-date {
@@ -478,8 +518,8 @@ export default {
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
   margin-bottom: 24px;
 }
 
@@ -487,31 +527,74 @@ export default {
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 20px 16px;
+  padding: 20px;
   text-align: center;
-  transition: transform var(--duration-normal) var(--ease-out),
-              border-color var(--duration-normal) var(--ease-out);
+  transition: all 0.25s ease;
+  position: relative;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
-.stat-value {
-  color: var(--accent-primary);
+.stat-card--wins {
+  border-top: 3px solid var(--accent-primary);
+}
+
+.stat-card--losses {
+  border-top: 3px solid var(--accent-danger);
+}
+
+.stat-card--rate {
+  border-top: 3px solid var(--accent-secondary);
+}
+
+.stat-card--streak {
+  border-top: 3px solid var(--accent-warning);
+}
+
+.stat-card-value {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--accent-primary);
   font-variant-numeric: tabular-nums;
 }
 
-.stat-label {
-  color: var(--text-tertiary);
+.stat-card--losses .stat-card-value {
+  color: var(--accent-danger);
+}
+
+.stat-card--rate .stat-card-value {
+  color: var(--accent-secondary);
+}
+
+.stat-card--streak .stat-card-value {
+  color: var(--accent-warning);
+}
+
+.stat-card-label {
   font-size: 12px;
-  margin-top: 4px;
+  color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.5px;
+}
+
+.stat-card-bar {
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 8px;
+  background: var(--bg-surface-2);
+  overflow: hidden;
+}
+
+.stat-card-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease-out;
 }
 
 /* Public Profile Hint */
@@ -617,9 +700,15 @@ export default {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
   }
   .user-info-card {
     flex-direction: column;

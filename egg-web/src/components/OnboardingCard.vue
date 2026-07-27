@@ -74,8 +74,8 @@ export default {
   padding: 14px 20px; cursor: pointer; user-select: none;
   background: linear-gradient(90deg, rgba(0,229,160,0.06), transparent);
 }
-.onboarding-title { font-size: 16px; font-weight: 600; color: var(--accent-primary); }
-.onboarding-toggle { font-size: 12px; color: var(--text-tertiary); }
+.onboarding-title { font-size: 16px; font-weight: 600; color: var(--accent-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.onboarding-toggle { font-size: 12px; color: var(--text-tertiary); flex-shrink: 0; margin-left: 8px; }
 .onboarding-body { padding: 0 20px 20px; }
 .onboarding-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
 .onboarding-step { display: flex; gap: 14px; align-items: flex-start; }

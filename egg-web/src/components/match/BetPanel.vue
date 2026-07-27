@@ -51,7 +51,7 @@
               <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
                 {{ match.oddsA.toFixed(2) }}
                 <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                  <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
+                  <el-icon style="font-size:14px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                 </el-tooltip>
               </div>
               <div v-if="betForm.betSide === 0" class="team-card-check">&#10003;</div>
@@ -71,7 +71,7 @@
               <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
                 {{ match.oddsB.toFixed(2) }}
                 <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                  <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
+                  <el-icon style="font-size:14px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
                 </el-tooltip>
               </div>
               <div v-if="betForm.betSide === 1" class="team-card-check">&#10003;</div>
@@ -83,15 +83,23 @@
           <div class="bet-amount-label">
             押注积分
             <span class="current-points">当前积分: {{ userPoints }}</span>
+            <el-button class="all-in-btn" size="small" @click="betForm.betAmount = Math.max(1, userPoints)">全押</el-button>
           </div>
-          <el-slider
-            v-model="betForm.betAmount"
-            :min="1"
-            :max="Math.max(1, userPoints)"
-            :step="1"
-            show-input
-            :show-input-controls="false"
-          />
+          <div class="slider-desktop">
+            <el-slider
+              v-model="betForm.betAmount"
+              :min="1"
+              :max="Math.max(1, userPoints)"
+              :step="1"
+              show-input
+              :show-input-controls="false"
+            />
+          </div>
+          <div class="amount-stepper">
+            <button class="stepper-btn" @click="betForm.betAmount = Math.max(1, betForm.betAmount - 10)">−</button>
+            <span class="stepper-value">{{ betForm.betAmount }}</span>
+            <button class="stepper-btn" @click="betForm.betAmount = Math.min(userPoints, betForm.betAmount + 10)">+</button>
+          </div>
           <div class="estimated-return" v-if="betForm.betSide !== null && betForm.betAmount > 0 && match">
             <span class="est-label">预估返还</span>
             <span class="est-amount">{{ estimatedReturn }} 积分</span>
@@ -164,7 +172,7 @@
             <div class="team-card-odds" v-if="match && match.oddsA !== null && match.oddsA !== undefined">
               {{ match.oddsA.toFixed(2) }}
               <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
+                <el-icon style="font-size:14px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
               </el-tooltip>
             </div>
             <div v-if="modifyForm.betSide === 0" class="team-card-check">&#10003;</div>
@@ -184,7 +192,7 @@
             <div class="team-card-odds" v-if="match && match.oddsB !== null && match.oddsB !== undefined">
               {{ match.oddsB.toFixed(2) }}
               <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                <el-icon style="font-size:12px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
+                <el-icon style="font-size:14px;margin-left:4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
               </el-tooltip>
             </div>
             <div v-if="modifyForm.betSide === 1" class="team-card-check">&#10003;</div>
@@ -196,15 +204,23 @@
         <div class="bet-amount-label">
           押注积分
           <span class="current-points">可用积分: {{ modifyMaxAmount }}</span>
+          <el-button class="all-in-btn" size="small" @click="modifyForm.betAmount = Math.max(1, modifyMaxAmount)">全押</el-button>
         </div>
-        <el-slider
-          v-model="modifyForm.betAmount"
-          :min="1"
-          :max="Math.max(1, modifyMaxAmount)"
-          :step="1"
-          show-input
-          :show-input-controls="false"
-        />
+        <div class="slider-desktop">
+          <el-slider
+            v-model="modifyForm.betAmount"
+            :min="1"
+            :max="Math.max(1, modifyMaxAmount)"
+            :step="1"
+            show-input
+            :show-input-controls="false"
+          />
+        </div>
+        <div class="amount-stepper">
+          <button class="stepper-btn" @click="modifyForm.betAmount = Math.max(1, modifyForm.betAmount - 10)">−</button>
+          <span class="stepper-value">{{ modifyForm.betAmount }}</span>
+          <button class="stepper-btn" @click="modifyForm.betAmount = Math.min(modifyMaxAmount, modifyForm.betAmount + 10)">+</button>
+        </div>
         <div class="estimated-return" v-if="modifyForm.betSide !== null && modifyForm.betAmount > 0 && match">
           <span class="est-label">预估返还</span>
           <span class="est-amount">{{ modifyEstimatedReturn }} 积分</span>
@@ -465,13 +481,28 @@ export default {
 }
 
 .team-card--selected {
-  background: #151a17;
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), transparent);
   border-color: #3d5a40;
-  box-shadow: 0 0 24px rgba(60,100,65,0.20);
+  box-shadow: 0 0 24px rgba(0,229,160,0.15);
+}
+
+.team-card--selected::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid rgba(0,229,160,0.4);
+  animation: selected-border-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes selected-border-pulse {
+  0%, 100% { border-color: rgba(0,229,160,0.4); }
+  50% { border-color: rgba(0,229,160,0.8); }
 }
 
 .team-card--selected:hover {
-  background: #151a17;
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), transparent);
   border-color: #3d5a40;
 }
 
@@ -515,7 +546,7 @@ export default {
   width: 20px;
   height: 20px;
   border-radius: var(--radius-full);
-  background: #5b8c5a;
+  background: var(--accent-primary);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
@@ -523,6 +554,7 @@ export default {
   align-items: center;
   justify-content: center;
   line-height: 1;
+  box-shadow: 0 0 8px rgba(0,229,160,0.4);
 }
 
 .team-card-vs {
@@ -562,6 +594,7 @@ export default {
   color: #0a0a0f !important;
   font-size: 15px;
   font-weight: 600;
+  letter-spacing: 1px;
   border-radius: var(--radius-md) !important;
   box-shadow: 0 0 20px rgba(0,229,160,0.20);
   transition: transform var(--duration-fast) var(--ease-out),
@@ -577,7 +610,7 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
   transition: left 0.5s ease;
 }
 
@@ -739,11 +772,12 @@ export default {
 /* Team Card Odds */
 .team-card-odds {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--accent-primary);
   margin-top: 4px;
   letter-spacing: 0.5px;
+  text-shadow: 0 0 12px rgba(0,229,160,0.3);
 }
 
 /* Estimated Return */
@@ -795,7 +829,77 @@ export default {
   color: var(--accent-danger);
 }
 
+/* Gradient Slider */
+:deep(.el-slider__bar) {
+  background: linear-gradient(90deg, var(--bg-surface-3), var(--accent-primary)) !important;
+  height: 6px !important;
+}
+:deep(.el-slider__runway) {
+  background: var(--bg-surface-3) !important;
+  height: 6px !important;
+}
+:deep(.el-slider__button) {
+  border-color: var(--accent-primary) !important;
+  width: 18px;
+  height: 18px;
+  box-shadow: 0 0 8px rgba(0,229,160,0.3);
+  transition: transform 0.15s ease;
+}
+:deep(.el-slider__button:hover) {
+  transform: scale(1.15);
+}
+
+/* All-in Button */
+.all-in-btn {
+  background: transparent !important;
+  border: 1px solid var(--accent-primary) !important;
+  color: var(--accent-primary) !important;
+  font-size: 12px !important;
+  padding: 2px 10px !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all 0.15s ease;
+  margin-left: 8px;
+  line-height: 1.4;
+}
+.all-in-btn:hover {
+  background: rgba(0,229,160,0.1) !important;
+  transform: scale(1.05);
+}
+
+/* Confirm Dialog Animation */
+:deep(.bet-confirm-dialog) {
+  animation: dialog-pop 0.3s ease-out;
+}
+@keyframes dialog-pop {
+  from { opacity: 0; transform: scale(0.92) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.confirm-body {
+  background: rgba(0,0,0,0.15);
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.confirm-body .el-button--primary {
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+.confirm-body .el-button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,229,160,0.3);
+}
+
 /* ===== 移动端适配 ===== */
+
+/* Slider → stepper responsive */
+.slider-desktop {
+  display: block;
+}
+.amount-stepper {
+  display: none;
+}
+
 @media (max-width: 768px) {
   /* 押注面板：缩小内边距 */
   .bet-panel {
@@ -895,8 +999,45 @@ export default {
   }
 }
 
-/* 小屏手机进一步收紧 */
+/* 小屏手机：slider 替换为 stepper 按钮 */
 @media (max-width: 480px) {
+  .slider-desktop {
+    display: none;
+  }
+  .amount-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+  .stepper-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--accent-primary);
+    background: transparent;
+    color: var(--accent-primary);
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+  }
+  .stepper-btn:hover {
+    background: rgba(0,229,160,0.1);
+  }
+  .stepper-value {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 60px;
+    text-align: center;
+  }
+
   /* 队伍卡片名称占满，避免溢出 */
   .team-card-name {
     font-size: 12px;

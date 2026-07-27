@@ -1,0 +1,115 @@
+# ============================================================
+# Egg Esports 全栈编排
+# 启动：docker compose --env-file .env up -d
+# ============================================================
+
+services:
+  # ---------- 数据库 ----------
+  mysql:
+    image: mysql:8.0
+    container_name: egg-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: egg_esports
+      MYSQL_USER: egg
+      MYSQL_PASSWORD: ${DB_PASSWORD:-egg_password}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ---------- 缓存 ----------
+  redis:
+    image: redis:7-alpine
+    container_name: egg-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      # 若设置了 REDIS_PASSWORD 则启用认证
+      - ${REDIS_PASSWORD:+--requirepass}
+      - ${REDIS_PASSWORD:-}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------- 后端 ----------
+  backend:
+    build:
+      context: ./egg-server
+      dockerfile: Dockerfile
+    container_name: egg-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # 覆盖 .env 中的本地连接地址，使用容器内服务名
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/egg_esports?useUnicode=true&characterEncoding=utf8mb4&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: egg
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-egg_password}
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      SPRING_PROFILES_ACTIVE: prod
+      # 容器内监听所有网卡，由前端 Nginx 反代
+      SERVER_ADDRESS: 0.0.0.0
+      SERVER_PORT: 8088
+    ports:
+      - "8088:8088"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - uploads-data:/app/uploads
+
+  # ---------- 前端 ----------
+  frontend:
+    build:
+      context: ./egg-web
+      dockerfile: Dockerfile
+    container_name: egg-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+# ---------- 网络 ----------
+networks:
+  app-network:
+    driver: bridge
+
+# ---------- 持久化卷 ----------
+volumes:
+  mysql-data:
+  redis-data:
+  uploads-data:

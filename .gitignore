@@ -12,6 +12,7 @@ target/
 # Node
 node_modules/
 dist/
+.env
 .env.local
 .env.*.local
 *.log
@@ -30,6 +31,9 @@ Desktop.ini
 
 # Uploaded files
 uploads/
+
+# Dev artifacts
+screenshots/
 
 # Git
 *.orig

@@ -14,19 +14,20 @@ import {
   Loading, ChatDotSquare, User, SwitchButton, UserFilled, ArrowLeft,
   ZoomIn, ZoomOut, RefreshLeft, RefreshRight, Plus, Refresh
 } from '@element-plus/icons-vue'
+import type { Component } from 'vue'
 import App from './App.vue'
 import router from './router'
 
 const app = createApp(App)
 
 // 按需注册 Element Plus 图标为全局组件（仅项目实际使用的 26 个，避免全量注册 200+ 个）
-const icons = [
+const icons: Component[] = [
   Menu, Bell, ArrowDown, Close, Trophy, InfoFilled, Message,
   Edit, Lock, Link, Wallet, ArrowRight, QuestionFilled, Back,
   Loading, ChatDotSquare, User, SwitchButton, UserFilled, ArrowLeft,
   ZoomIn, ZoomOut, RefreshLeft, RefreshRight, Plus, Refresh
 ]
-icons.forEach(icon => app.component(icon.name, icon))
+icons.forEach(icon => app.component((icon as { name: string }).name, icon))
 
 // 注册服务式组件为全局属性（替代 app.use(ElementPlus)）
 app.config.globalProperties.$message = ElMessage

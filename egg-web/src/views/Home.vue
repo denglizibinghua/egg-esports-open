@@ -5,6 +5,7 @@
     <!-- 1. HERO 区域 -->
     <div class="hero" :class="heroThemeClass">
       <div class="grain-overlay-hero" aria-hidden="true"></div>
+      <div class="hero-particles" aria-hidden="true"></div>
       <div v-if="heroMatch" class="hero-content">
         <div class="hero-tournament">
           <span class="tournament-chip">{{ heroMatch.tournament || '常规赛事' }}</span>
@@ -43,6 +44,20 @@
           </div>
         </div>
         <div class="hero-footer">
+          <div class="hero-countdown" v-if="heroMatch && heroMatch.status === 0 && getCountdownSeconds(heroMatch) > 0">
+            <div class="hero-countdown-box">
+              <span class="hero-countdown-num">{{ Math.floor(getCountdownSeconds(heroMatch) / 86400) }}</span>
+              <span class="hero-countdown-label">天</span>
+            </div>
+            <div class="hero-countdown-box">
+              <span class="hero-countdown-num">{{ Math.floor((getCountdownSeconds(heroMatch) % 86400) / 3600) }}</span>
+              <span class="hero-countdown-label">时</span>
+            </div>
+            <div class="hero-countdown-box">
+              <span class="hero-countdown-num">{{ Math.floor((getCountdownSeconds(heroMatch) % 3600) / 60) }}</span>
+              <span class="hero-countdown-label">分</span>
+            </div>
+          </div>
           <div class="hero-odds" v-if="heroMatch.oddsA !== null && heroMatch.oddsA !== undefined">
             <span class="hero-odds-item">{{ heroMatch.oddsA.toFixed(2) }}</span>
             <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。最终按彩池制结算。">
@@ -51,7 +66,7 @@
             <span class="hero-odds-sep">/</span>
             <span class="hero-odds-item">{{ heroMatch.oddsB.toFixed(2) }}</span>
           </div>
-          <el-button class="hero-btn" @click="goDetail(heroMatch.id)">立即竞猜</el-button>
+          <el-button class="hero-btn btn-hover-lift" @click="goDetail(heroMatch.id)"><span>立即竞猜</span></el-button>
         </div>
       </div>
       <div v-else class="hero-empty">
@@ -107,6 +122,7 @@
               <span class="status-dot"></span>未开始
             </span>
             <span v-else class="status-badge status-badge--finished">已结束</span>
+            <span class="countdown-badge" v-if="match.status === 0 && getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
           </div>
           <div class="match-card-teams">
             <div class="match-card-team">
@@ -214,6 +230,7 @@
             <span class="status-badge status-badge--upcoming">
               <span class="status-dot"></span>未开始
             </span>
+            <span class="countdown-badge" v-if="getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
           </div>
           <div class="match-card-teams">
             <div class="match-card-team">
@@ -274,25 +291,26 @@
         <div v-if="top3.length > 0" class="podium">
           <div v-if="top3[1]" class="podium-item silver">
             <div class="podium-rank">2</div>
-            <div class="podium-avatar"><el-avatar :size="56" :icon="UserFilled" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :src="top3[1].avatar" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
             <div class="podium-points">{{ top3[1].points }} 积分</div>
           </div>
           <div v-if="top3[0]" class="podium-item gold">
             <div class="podium-crown">👑</div>
             <div class="podium-rank">1</div>
-            <div class="podium-avatar"><el-avatar :size="72" :icon="UserFilled" /></div>
+            <div class="podium-avatar"><el-avatar :size="72" :src="top3[0].avatar" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
             <div class="podium-points">{{ top3[0].points }} 积分</div>
           </div>
           <div v-if="top3[2]" class="podium-item bronze">
             <div class="podium-rank">3</div>
-            <div class="podium-avatar"><el-avatar :size="56" :icon="UserFilled" /></div>
+            <div class="podium-avatar"><el-avatar :size="56" :src="top3[2].avatar" :icon="UserFilled" /></div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
             <div class="podium-points">{{ top3[2].points }} 积分</div>
           </div>
         </div>
-        <el-table v-if="leaderboard.length > 0" :data="leaderboard" style="width: 100%" class="rank-table">
+        <div class="rank-table-wrapper">
+        <el-table v-if="leaderboard.length > 0" :data="leaderboard" style="width: 100%" class="rank-table" :row-class-name="getTableRowClass">
           <el-table-column label="排名" width="80" align="center">
             <template #default="scope">
               <span :class="getRankClass(scope.$index + 1)">{{ scope.$index + 1 }}</span>
@@ -304,17 +322,20 @@
             </template>
           </el-table-column>
           <el-table-column label="积分" width="100" align="center" prop="points" />
-          <el-table-column label="胜率" width="100" align="center">
-            <template #default="scope">{{ getAccuracy(scope.row) }}%</template>
+          <el-table-column label="胜率" width="160" align="center">
+            <template #default="scope">
+              <div class="mini-progress"><div class="mini-progress-bar" :style="{ width: getAccuracy(scope.row) + '%' }"></div><span class="mini-progress-text">{{ getAccuracy(scope.row) }}%</span></div>
+            </template>
           </el-table-column>
           <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
         </el-table>
+        </div>
       </template>
     </div>
 
     <!-- 加载骨架（全空时） -->
     <div v-if="!loaded && hotMatches.length === 0 && liveMatches.length === 0" class="loading-full">
-      <div v-for="i in 4" :key="'sk-'+i" class="match-card skeleton">
+      <div v-for="i in 4" :key="'sk-'+i" class="match-card skeleton card-entrance">
         <div class="skeleton-line skeleton-line--lg"></div>
         <div class="skeleton-line skeleton-line--md"></div>
         <div class="skeleton-line skeleton-line--sm"></div>
@@ -342,6 +363,7 @@ import { QuestionFilled, UserFilled } from '@element-plus/icons-vue'
 import { formatTime } from '@/utils/format'
 // 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
 import { extractList } from '@/utils/pagination'
+import { getUser } from '@/utils/auth'
 
 export default {
   name: 'HomePage',
@@ -408,8 +430,32 @@ export default {
       if (rank === 3) return 'rank-bronze'
       return ''
     },
+    getTableRowClass({ row }) {
+      var user = getUser()
+      if (user && row && (row.userId === user.id || row.username === user.username)) {
+        return 'current-user-row'
+      }
+      return ''
+    },
     goDetail(id) {
       this.$router.push('/match/' + id)
+    },
+
+    // ===== 倒计时工具 =====
+    getCountdownSeconds(match) {
+      if (!match.matchTime) return 0
+      var diff = new Date(match.matchTime).getTime() - Date.now()
+      return Math.max(0, Math.floor(diff / 1000))
+    },
+    formatCountdown(match) {
+      var seconds = this.getCountdownSeconds(match)
+      if (seconds <= 0) return ''
+      var days = Math.floor(seconds / 86400)
+      var hours = Math.floor((seconds % 86400) / 3600)
+      var mins = Math.floor((seconds % 3600) / 60)
+      if (days > 0) return days + '天' + hours + '时'
+      if (hours > 0) return hours + '时' + mins + '分'
+      return mins + '分'
     },
 
     // ===== 游戏筛选 =====
@@ -539,7 +585,7 @@ export default {
 <style scoped>
 /* ===== HERO 区域 ===== */
 .hero {
-  height: 240px;
+  height: 320px;
   width: 100%;
   border-radius: var(--radius-xl);
   position: relative;
@@ -553,46 +599,48 @@ export default {
     0 0 60px rgba(0, 229, 160, 0.06),
     0 8px 32px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  background-size: 200% 200%;
+  animation: hero-gradient-shift 8s ease infinite;
 }
 
 .hero--valorant {
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(255,77,109,0.30) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(255,181,71,0.18) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(255,77,109,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(255,77,109,0.36) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(255,181,71,0.22) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(255,77,109,0.12) 0%, transparent 60%),
     #0d0d14;
 }
 
 .hero--lol {
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(91,140,255,0.30) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(212,168,67,0.20) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(0,229,160,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(91,140,255,0.36) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(212,168,67,0.24) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(0,229,160,0.12) 0%, transparent 60%),
     #0a0d18;
 }
 
 .hero--dota {
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(140,91,255,0.30) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(255,77,109,0.20) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(140,91,255,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(140,91,255,0.36) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(255,77,109,0.24) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(140,91,255,0.14) 0%, transparent 60%),
     #0d0a14;
 }
 
 /* CS2 主题：橙金/暗色底（经典 CS 配色） */
 .hero--cs2 {
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(222,155,40,0.30) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(235,179,52,0.20) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(222,155,40,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(222,155,40,0.36) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(235,179,52,0.24) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(222,155,40,0.12) 0%, transparent 60%),
     #0d0c09;
 }
 
 .hero--default {
   background:
-    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(0,229,160,0.25) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(91,140,255,0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(0,229,160,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 100% at 20% 50%, rgba(0,229,160,0.30) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 80% at 85% 30%, rgba(91,140,255,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 60% at 50% 80%, rgba(0,229,160,0.10) 0%, transparent 60%),
     var(--bg-page);
 }
 
@@ -603,6 +651,58 @@ export default {
   opacity: 0.04;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.hero-particles::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 10% 20%, rgba(0,229,160,0.3), transparent),
+    radial-gradient(2px 2px at 30% 60%, rgba(0,229,160,0.2), transparent),
+    radial-gradient(1.5px 1.5px at 50% 40%, rgba(0,229,160,0.25), transparent),
+    radial-gradient(2px 2px at 70% 80%, rgba(0,229,160,0.2), transparent),
+    radial-gradient(1.5px 1.5px at 90% 30%, rgba(0,229,160,0.3), transparent),
+    radial-gradient(2px 2px at 20% 90%, rgba(91,140,255,0.2), transparent),
+    radial-gradient(1.5px 1.5px at 60% 10%, rgba(91,140,255,0.25), transparent),
+    radial-gradient(2px 2px at 80% 55%, rgba(0,229,160,0.2), transparent);
+  background-size: 200px 200px;
+  animation: particle-float 12s linear infinite;
+}
+.hero-particles::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 15% 45%, rgba(0,229,160,0.2), transparent),
+    radial-gradient(2px 2px at 45% 75%, rgba(0,229,160,0.25), transparent),
+    radial-gradient(1.5px 1.5px at 75% 25%, rgba(91,140,255,0.2), transparent),
+    radial-gradient(2px 2px at 55% 95%, rgba(0,229,160,0.2), transparent),
+    radial-gradient(1.5px 1.5px at 85% 65%, rgba(0,229,160,0.3), transparent),
+    radial-gradient(2px 2px at 35% 15%, rgba(91,140,255,0.2), transparent);
+  background-size: 250px 250px;
+  animation: particle-float 16s linear infinite reverse, particle-drift 8s ease-in-out infinite;
+}
+
+@keyframes particle-float {
+  from { transform: translateY(0); opacity: 0.8; }
+  to { transform: translateY(-100%); opacity: 0.2; }
+}
+@keyframes particle-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(12px); }
+}
+@keyframes hero-gradient-shift {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
 }
 
 .hero-content {
@@ -640,11 +740,11 @@ export default {
 
 .hero-team-name {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 32px;
   color: var(--text-primary);
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   white-space: nowrap;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.12), 0 0 40px rgba(0, 229, 160, 0.08);
 }
 
 .hero-center {
@@ -656,7 +756,7 @@ export default {
 
 .hero-score {
   font-family: var(--font-mono);
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 800;
   color: var(--text-primary);
   display: flex;
@@ -668,13 +768,13 @@ export default {
 
 .hero-score.score--live {
   color: var(--accent-primary);
-  text-shadow: 0 0 24px rgba(0, 229, 160, 0.5), 0 0 60px rgba(0, 229, 160, 0.15);
+  text-shadow: 0 0 32px rgba(0, 229, 160, 0.6), 0 0 80px rgba(0, 229, 160, 0.2);
   animation: score-glow 3s ease-in-out infinite;
 }
 
 @keyframes score-glow {
-  0%, 100% { text-shadow: 0 0 24px rgba(0, 229, 160, 0.5), 0 0 60px rgba(0, 229, 160, 0.15); }
-  50% { text-shadow: 0 0 36px rgba(0, 229, 160, 0.7), 0 0 80px rgba(0, 229, 160, 0.25); }
+  0%, 100% { text-shadow: 0 0 32px rgba(0, 229, 160, 0.6), 0 0 80px rgba(0, 229, 160, 0.2); }
+  50% { text-shadow: 0 0 48px rgba(0, 229, 160, 0.8), 0 0 100px rgba(0, 229, 160, 0.3); }
 }
 
 .hero-score-sep {
@@ -684,10 +784,16 @@ export default {
 
 .hero-vs {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 42px;
   color: var(--accent-primary);
   letter-spacing: 4px;
-  text-shadow: 0 0 16px rgba(0, 229, 160, 0.3);
+  text-shadow: 0 0 20px rgba(0, 229, 160, 0.4);
+  animation: hero-vs-pulse 4s ease-in-out infinite;
+}
+
+@keyframes hero-vs-pulse {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(0, 229, 160, 0.4); }
+  50% { transform: scale(1.05); text-shadow: 0 0 30px rgba(0, 229, 160, 0.6); }
 }
 
 .hero-time {
@@ -730,18 +836,49 @@ export default {
   border-color: var(--accent-primary) !important;
   color: #0a0a0f !important;
   font-weight: 700;
-  font-size: 14px !important;
+  font-size: 16px !important;
   border-radius: var(--radius-md) !important;
-  padding: 10px 24px !important;
+  padding: 12px 32px !important;
   box-shadow: 0 0 24px rgba(0, 229, 160, 0.25);
   transition: all 0.2s var(--ease-out);
   letter-spacing: 0.5px;
 }
 
 .hero-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 36px rgba(0, 229, 160, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(0, 229, 160, 0.45);
   opacity: 1;
+}
+
+.hero-countdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hero-countdown-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  min-width: 44px;
+}
+.hero-countdown-num {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  color: var(--accent-primary);
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.hero-countdown-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1;
 }
 
 .hero-empty {
@@ -878,7 +1015,7 @@ export default {
 .match-card:nth-child(8) { animation-delay: 210ms; }
 
 @keyframes card-rise {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -891,15 +1028,27 @@ export default {
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-.match-card:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: var(--shadow-lg); }
+.match-card:hover { transform: translateY(-4px); border-color: rgba(0, 229, 160, 0.3); box-shadow: 0 0 20px rgba(0,229,160,0.15), var(--shadow-lg); }
 .match-card:hover::before { opacity: 1; }
 
 .match-card--live {
-  border-left: 3px solid var(--accent-primary);
-  background: linear-gradient(135deg, rgba(0,229,160,0.05) 0%, var(--bg-surface-1) 40%);
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.04);
+  border-left: 4px solid var(--accent-primary);
+  background: linear-gradient(135deg, rgba(0,229,160,0.07) 0%, var(--bg-surface-1) 40%);
+  box-shadow: 0 0 20px rgba(0, 229, 160, 0.06);
 }
-.match-card--live:hover { box-shadow: 0 0 32px rgba(0, 229, 160, 0.08), var(--shadow-lg); }
+.match-card--live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: card-live-glow 3s ease-in-out infinite;
+}
+@keyframes card-live-glow {
+  0%, 100% { box-shadow: inset 0 0 12px rgba(0, 229, 160, 0.04); }
+  50% { box-shadow: inset 0 0 20px rgba(0, 229, 160, 0.08); }
+}
+.match-card--live:hover { box-shadow: 0 0 36px rgba(0, 229, 160, 0.12), var(--shadow-lg); }
 
 .match-card-top {
   display: flex;
@@ -922,8 +1071,8 @@ export default {
   min-width: 0;
 }
 .match-card-team-name {
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -955,7 +1104,7 @@ export default {
 
 .match-card-vs {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 22px;
   color: var(--accent-primary);
   letter-spacing: 2px;
   flex-shrink: 0;
@@ -987,9 +1136,25 @@ export default {
   font-size: 13px;
 }
 
+/* ===== Countdown Badge ===== */
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-warning, #ffb547);
+  background: rgba(255,181,71,0.1);
+  border: 1px solid rgba(255,181,71,0.2);
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
 /* ===== team-logo ===== */
 .team-logo {
-  width: 32px; height: 32px;
+  width: 48px; height: 48px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--bg-surface-3);
@@ -997,6 +1162,8 @@ export default {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid var(--border-default);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 .team-logo img {
   width: 100%; height: 100%;
@@ -1027,37 +1194,95 @@ export default {
   transition: transform var(--duration-normal) var(--ease-out), box-shadow var(--duration-normal) var(--ease-out);
 }
 .podium-item:hover { transform: translateY(-4px); }
+.podium-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  opacity: 0;
+}
 .podium-item.gold {
   border: 2px solid #d4a843;
   padding-bottom: 28px;
   min-width: 160px;
-  box-shadow: 0 0 24px rgba(212,168,67,0.15), 0 8px 24px rgba(0,0,0,0.4);
+  background: linear-gradient(180deg, rgba(212,168,67,0.12) 0%, rgba(212,168,67,0.04) 60%, transparent 100%), var(--bg-surface-1);
+  box-shadow: 0 0 40px rgba(212,168,67,0.12), 0 0 80px rgba(212,168,67,0.05), 0 8px 24px rgba(0,0,0,0.4);
+}
+.podium-item.gold::after {
+  opacity: 1;
+  animation: podium-shine 3s ease-in-out infinite;
 }
 .podium-item.silver {
   border: 2px solid #a0a0a0;
-  box-shadow: 0 0 16px rgba(160,160,160,0.10), 0 4px 16px rgba(0,0,0,0.35);
+  background: linear-gradient(180deg, rgba(192,192,192,0.10) 0%, rgba(192,192,192,0.03) 60%, transparent 100%), var(--bg-surface-1);
+  box-shadow: 0 0 30px rgba(192,192,192,0.08), 0 4px 16px rgba(0,0,0,0.35);
 }
 .podium-item.bronze {
   border: 2px solid #c47a3a;
-  box-shadow: 0 0 16px rgba(196,122,58,0.10), 0 4px 16px rgba(0,0,0,0.35);
+  background: linear-gradient(180deg, rgba(196,122,58,0.10) 0%, rgba(196,122,58,0.03) 60%, transparent 100%), var(--bg-surface-1);
+  box-shadow: 0 0 30px rgba(196,122,58,0.08), 0 4px 16px rgba(0,0,0,0.35);
 }
-.podium-crown { font-size: 28px; margin-bottom: 4px; }
+@keyframes podium-shine {
+  0% { background-position: 100% 0; }
+  50% { background-position: -100% 0; }
+  100% { background-position: -100% 0; }
+}
+.podium-crown { font-size: 32px; margin-bottom: 4px; filter: drop-shadow(0 2px 8px rgba(212,168,67,0.4)); }
 .podium-rank { font-family: var(--font-display); font-size: 24px; margin-bottom: 8px; }
 .gold .podium-rank { color: #d4a843; }
 .silver .podium-rank { color: #a0a0a0; }
 .bronze .podium-rank { color: #c47a3a; }
-.podium-name { color: var(--text-primary); font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.podium-name { color: var(--text-primary); font-family: var(--font-display); font-size: 15px; font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
 .podium-points {
   color: var(--accent-primary);
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.rank-gold { color: #d4a843; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-.rank-silver { color: #a0a0a0; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-.rank-bronze { color: #c47a3a; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+.podium-avatar { margin-bottom: 8px; }
+.podium-item.gold .podium-avatar :deep(.el-avatar) { border: 2px solid #d4a843; }
+.podium-item.silver .podium-avatar :deep(.el-avatar) { border: 2px solid #a0a0a0; }
+.podium-item.bronze .podium-avatar :deep(.el-avatar) { border: 2px solid #c47a3a; }
+.rank-gold { color: #d4a843; font-family: var(--font-display); font-size: 22px; font-weight: 700; text-shadow: 0 0 8px rgba(212,168,67,0.5); }
+.rank-silver { color: #a0a0a0; font-family: var(--font-display); font-size: 22px; font-weight: 700; text-shadow: 0 0 8px rgba(192,192,192,0.4); }
+.rank-bronze { color: #c47a3a; font-family: var(--font-display); font-size: 22px; font-weight: 700; text-shadow: 0 0 8px rgba(196,122,58,0.4); }
 .rank-table { margin-top: 8px; }
+.rank-table :deep(.el-table__body tr.current-user-row) {
+  background: rgba(0,229,160,0.06) !important;
+  border-left: 3px solid var(--accent-primary);
+}
+.rank-table :deep(.el-table__body tr:hover) {
+  background: var(--bg-surface-2) !important;
+}
+.mini-progress {
+  width: 100%;
+  height: 18px;
+  background: var(--bg-surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.mini-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), #00ffb3);
+  border-radius: 4px;
+  transition: width 0.6s ease-out;
+}
+.mini-progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
 /* ===== 空态 ===== */
 .empty-state {
@@ -1065,12 +1290,21 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 64px 24px;
   text-align: center;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
 }
-.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
-.empty-title { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
-.empty-desc { font-size: 14px; color: var(--text-tertiary); max-width: 300px; }
+.empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.6; }
+.empty-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+.empty-desc {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  max-width: 300px;
+  background: rgba(0,229,160,0.05);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+}
 
 /* ===== Skeleton 加载 ===== */
 @keyframes shimmer {
@@ -1128,20 +1362,31 @@ export default {
 }
 
 /* ===== 响应式 ===== */
+@media (min-width: 1401px) {
+  .card-list { grid-template-columns: repeat(5, 1fr); }
+}
+
+.rank-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (max-width: 1200px) {
   .card-list, .loading-full { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
   .card-list, .loading-full { grid-template-columns: repeat(2, 1fr); }
-  .hero { height: 200px; }
+  .hero { height: 260px; }
   .hero-content { padding: 14px 12px; gap: 10px; }
   .hero-teams { gap: 16px; }
-  .hero-team-name { font-size: 20px; }
-  .hero-score { font-size: 32px; }
-  .hero-vs { font-size: 28px; }
+  .hero-team-name { font-size: 22px; letter-spacing: 2px; }
+  .hero-score { font-size: 36px; }
+  .hero-vs { font-size: 30px; }
   /* hero 底部按钮区允许换行，避免溢出 */
   .hero-footer { gap: 12px; flex-wrap: wrap; }
-  .hero-btn { padding: 8px 18px !important; font-size: 13px !important; }
+  .hero-btn { padding: 10px 22px !important; font-size: 14px !important; }
+  .hero-countdown-num { font-size: 20px; }
+  .hero-countdown-box { padding: 6px 10px; min-width: 38px; }
   .podium { gap: 10px; }
   .podium-item { min-width: 100px; padding: 14px 12px; }
   .podium-item.gold { min-width: 120px; }
@@ -1152,17 +1397,18 @@ export default {
   .match-card { padding: 14px 14px; }
   .match-card-teams { gap: 12px; }
   .match-card-team-name { font-size: 14px; }
+  .team-logo { width: 40px; height: 40px; }
   /* 浮动导航缩小，避免遮挡内容 */
   .float-nav { right: 8px; bottom: 24px; }
   .float-nav-btn { width: 36px; height: 36px; font-size: 16px; }
 }
 @media (max-width: 480px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }
-  .hero { height: 170px; }
+  .hero { height: 220px; }
   .hero-teams { gap: 16px; }
-  .hero-team-name { font-size: 16px; }
-  .hero-score { font-size: 26px; }
-  .hero-vs { font-size: 22px; }
+  .hero-team-name { font-size: 18px; }
+  .hero-score { font-size: 28px; }
+  .hero-vs { font-size: 24px; }
   /* 长队名允许换行，避免横向溢出 */
   .hero-team-name { white-space: normal; text-align: center; line-height: 1.2; }
   .hero-team { gap: 8px; }

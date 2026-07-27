@@ -716,7 +716,12 @@ a {
   }
   /* touch-friendly：可点击元素最小高度 */
   .el-button {
-    min-height: 40px;
+    min-height: 44px;
+    padding: 10px 16px !important;
+  }
+  .el-button--small {
+    min-height: 36px;
+    padding: 6px 12px !important;
   }
   .el-input__inner {
     min-height: 40px;
@@ -795,8 +800,13 @@ a {
 
 @media (max-width: 480px) {
   .header-left .logo {
-    font-size: 18px;
+    font-size: 15px;
     letter-spacing: 1px;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
   }
   .app-main {
     padding: 10px !important;
@@ -841,4 +851,160 @@ a {
 
 .footer-icp a:hover {
   color: var(--text-secondary);
+}
+
+/* ===== Global Animation System ===== */
+/* GPU-composited animations only: transform, opacity, filter */
+/* All classes use existing CSS variables: --ease-out, --duration-fast, --duration-normal */
+
+/* --- Page Transitions (Vue Router <router-view>) --- */
+.page-enter-active {
+  transition: opacity var(--duration-normal) ease-out, transform var(--duration-normal) ease-out;
+}
+
+.page-leave-active {
+  transition: opacity var(--duration-normal) ease-out, transform var(--duration-normal) ease-out;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* --- Button Interaction Classes --- */
+.btn-press {
+  transition: transform var(--duration-fast) ease, filter var(--duration-fast) ease;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+.btn-hover-lift {
+  transition: transform 0.2s ease-out, filter 0.2s ease-out;
+}
+
+.btn-hover-lift:hover {
+  transform: scale(1.02) translateY(-1px);
+}
+
+/* Global el-button press feedback (non-text buttons only) */
+.el-button:not(.el-button--text):active {
+  transform: scale(0.97);
+  filter: brightness(0.9);
+}
+
+/* --- Card Entrance Stagger System --- */
+@keyframes card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-entrance {
+  animation: card-rise 0.5s ease-out both;
+}
+
+.card-entrance:nth-child(1) { animation-delay: 0ms; }
+.card-entrance:nth-child(2) { animation-delay: 30ms; }
+.card-entrance:nth-child(3) { animation-delay: 60ms; }
+.card-entrance:nth-child(4) { animation-delay: 90ms; }
+.card-entrance:nth-child(5) { animation-delay: 120ms; }
+.card-entrance:nth-child(6) { animation-delay: 150ms; }
+.card-entrance:nth-child(7) { animation-delay: 180ms; }
+.card-entrance:nth-child(8) { animation-delay: 210ms; }
+
+/* --- Notification/Toast Slide-in --- */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.slide-in-right {
+  animation: slide-in-right var(--duration-normal) var(--ease-out) both;
+}
+
+.slide-out-right {
+  animation: slide-out-right var(--duration-normal) var(--ease-out) both;
+}
+
+/* --- Shimmer Loading Background Utility --- */
+/* Works with existing scoped @keyframes shimmer in components */
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-2) 0%,
+    var(--bg-surface-3) 50%,
+    var(--bg-surface-2) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* --- Live Pulse Glow (live match indicators) --- */
+@keyframes live-glow {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.live-pulse {
+  position: relative;
+}
+
+.live-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 12px var(--accent-primary);
+  animation: live-glow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* --- Accessibility: Disable all new animations for users who prefer reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .btn-press,
+  .btn-hover-lift,
+  .card-entrance,
+  .slide-in-right,
+  .slide-out-right,
+  .shimmer-bg,
+  .live-pulse::before {
+    animation: none !important;
+    transition: none !important;
+  }
 }

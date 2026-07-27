@@ -214,6 +214,11 @@ export default {
 </script>
 
 <style scoped>
+.user-center {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
 .page-header {
   margin-bottom: 24px;
 }
@@ -221,13 +226,33 @@ export default {
 .page-title {
   color: var(--text-primary);
   font-family: var(--font-display);
-  font-size: 32px;
-  letter-spacing: 1px;
+  font-size: 28px;
+  letter-spacing: 2px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 /* Tabs */
 .user-tabs {
   margin-top: 4px;
+}
+
+.user-tabs :deep(.el-tabs__item) {
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast) ease;
+}
+
+.user-tabs :deep(.el-tabs__item:hover) {
+  color: var(--text-primary);
+}
+
+.user-tabs :deep(.el-tabs__item.is-active) {
+  color: var(--accent-primary);
+}
+
+.user-tabs :deep(.el-tabs__active-bar) {
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-primary), #00ffb3);
 }
 
 /* Settlement Notification Badge */
@@ -237,12 +262,12 @@ export default {
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 5px;
+  padding: 0 6px;
   font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--accent-danger);
-  border-radius: var(--radius-full);
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: rgba(0, 229, 160, 0.15);
+  border-radius: 10px;
   margin-left: 6px;
   line-height: 1;
   vertical-align: middle;
@@ -341,12 +366,12 @@ export default {
   width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
   animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
 }
-.skeleton-line--nickname { width: 120px; height: 20px; margin-bottom: 6px; }
+.skeleton-line--nickname { width: 120px; height: 24px; margin-bottom: 6px; }
 .skeleton-line--date { width: 100px; height: 13px; }
-.skeleton-line--points { width: 64px; height: 32px; margin: 0 auto 4px; }
+.skeleton-line--points { width: 80px; height: 32px; margin: 0 auto 8px; }
 .skeleton-line--label { width: 40px; height: 13px; margin: 0 auto; }
-.skeleton-line--stat-val { width: 40px; height: 24px; margin: 0 auto 6px; }
-.skeleton-line--stat-lbl { width: 48px; height: 12px; margin: 0 auto; }
+.skeleton-line--stat-val { width: 60%; height: 28px; margin: 0 auto 8px; }
+.skeleton-line--stat-lbl { width: 40%; height: 12px; margin: 0 auto; }
 .skeleton-line--section-title { width: 100px; height: 22px; }
 
 .skeleton-table {

@@ -102,12 +102,14 @@
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button link class="nav-btn" @click="$router.push('/login')">登录</el-button>
+            <el-button link class="nav-btn btn-hover-lift" @click="$router.push('/login')">登录</el-button>
           </template>
         </div>
       </el-header>
       <el-main class="app-main">
-        <router-view />
+        <transition name="page" mode="out-in">
+          <router-view />
+        </transition>
       </el-main>
       <el-footer class="app-footer">
         <div class="footer-links">

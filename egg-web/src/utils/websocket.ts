@@ -1,15 +1,35 @@
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs/lib/stomp.js'
 
-let stompClient = null
+interface SubscriptionEntry {
+  subscription: { unsubscribe: () => void }
+  callback: (msg: unknown) => void
+}
+
+// stompjs 的 Client 类型未导出，这里用最小结构
+interface StompClient {
+  connected: boolean
+  connect: (
+    headers: Record<string, string>,
+    successCallback: () => void,
+    errorCallback: () => void
+  ) => void
+  subscribe: (
+    topic: string,
+    callback: (msg: { body: string }) => void
+  ) => { unsubscribe: () => void }
+  disconnect: () => void
+}
+
+let stompClient: StompClient | null = null
 // 订阅记录：topic -> { subscription, callback }
 // 保留 callback 用于断线重连后重新订阅
-const subscriptions = {}
+const subscriptions: Record<string, SubscriptionEntry> = {}
 
 // 重连控制：指数退避，最多重连 10 次
 let reconnectAttempts = 0
 const MAX_RECONNECT = 10
-let currentToken = null
+let currentToken: string | null = null
 let firstConnection = true
 
 /**
@@ -19,11 +39,11 @@ let firstConnection = true
  *
  * @param token JWT token
  */
-export function connect(token) {
+export function connect(token: string): Promise<void> {
   currentToken = token
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const socket = new SockJS('/ws')
-    stompClient = Stomp.over(socket)
+    stompClient = Stomp.over(socket) as StompClient
     stompClient.connect(
       { Authorization: `Bearer ${token}` },
       () => {
@@ -43,7 +63,7 @@ export function connect(token) {
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
           reconnectAttempts++
           console.warn(`[WS] 连接断开，${delay}ms 后重连（第 ${reconnectAttempts}/${MAX_RECONNECT} 次）`)
-          setTimeout(() => connect(currentToken).catch(() => {}), delay)
+          setTimeout(() => connect(currentToken as string).catch(() => {}), delay)
         } else {
           console.error('[WS] 达到最大重连次数，停止重连')
         }
@@ -62,7 +82,7 @@ export function connect(token) {
  * @param topic 主题路径
  * @param cb    消息回调（接收 JSON 解析后的对象）
  */
-export function subscribe(topic, cb) {
+export function subscribe(topic: string, cb: (msg: unknown) => void): void {
   if (!stompClient || !stompClient.connected) return
   // 已存在同名订阅：先取消旧的
   if (subscriptions[topic]) {
@@ -75,7 +95,7 @@ export function subscribe(topic, cb) {
 /**
  * 取消订阅
  */
-export function unsubscribe(topic) {
+export function unsubscribe(topic: string): void {
   if (subscriptions[topic]) {
     subscriptions[topic].subscription.unsubscribe()
     delete subscriptions[topic]
@@ -85,7 +105,7 @@ export function unsubscribe(topic) {
 /**
  * 断开连接
  */
-export function disconnect() {
+export function disconnect(): void {
   if (stompClient) stompClient.disconnect()
   Object.keys(subscriptions).forEach(t => delete subscriptions[t])
 }
@@ -93,11 +113,11 @@ export function disconnect() {
 /**
  * 重连后恢复之前的订阅（用保存的 callback 重新订阅所有 topic）
  */
-function resubscribeAll() {
+function resubscribeAll(): void {
   const topics = Object.keys(subscriptions)
   for (const topic of topics) {
     const cb = subscriptions[topic].callback
-    const subscription = stompClient.subscribe(topic, msg => cb(JSON.parse(msg.body)))
+    const subscription = stompClient!.subscribe(topic, msg => cb(JSON.parse(msg.body)))
     subscriptions[topic] = { subscription, callback: cb }
   }
 }
