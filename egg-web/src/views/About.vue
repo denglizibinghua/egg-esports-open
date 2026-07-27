@@ -76,7 +76,7 @@
           <div class="contact-item">
             <!-- Element Plus：字体图标改为 SVG 组件 -->
             <el-icon><Message /></el-icon>
-            <span>邮箱：contact@eggesports.com</span>
+            <span>邮箱：contact@example.com</span>
           </div>
         </div>
       </div>

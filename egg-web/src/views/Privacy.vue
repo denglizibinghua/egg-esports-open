@@ -25,7 +25,7 @@
       <div class="legal-section">
         <h3 class="legal-section-title">📬 联系我们</h3>
         <p class="legal-text">
-          如对本隐私政策有任何疑问，请联系：contact@eggesports.com
+          如对本隐私政策有任何疑问，请联系：contact@example.com
         </p>
       </div>
 
