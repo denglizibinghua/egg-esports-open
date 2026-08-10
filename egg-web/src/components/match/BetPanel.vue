@@ -17,7 +17,13 @@
     </div>
 
     <template v-else>
-      <div v-if="myBet" class="already-bet">
+      <!-- 比赛已开始/已结束，不可下注 -->
+      <div v-if="match.status !== 0" class="bet-closed-notice">
+        <div class="closed-icon">🔒</div>
+        <p class="closed-text">{{ match.status === 1 ? '比赛已开始，不可下注' : '比赛已结束，不可下注' }}</p>
+      </div>
+
+      <div v-else-if="myBet" class="already-bet">
         <el-alert
           :title="'你已押注 ' + (myBet.betSide === 0 ? match.teamA : match.teamB) + ' ' + myBet.betAmount + ' 积分'"
           type="warning"
@@ -710,6 +716,32 @@ export default {
   font-size: 15px;
   color: var(--text-tertiary);
   margin: 0;
+}
+
+/* Match Closed Notice */
+.bet-closed-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  background: rgba(230, 162, 60, 0.06);
+  border: 1px solid rgba(230, 162, 60, 0.2);
+  border-radius: var(--radius-md);
+}
+
+.closed-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.closed-text {
+  font-size: 15px;
+  color: #e6a23c;
+  margin: 0;
+  font-weight: 500;
 }
 
 /* Modify Bet Button */

@@ -50,8 +50,8 @@ public class BetPlaceService {
         if (match == null) {
             throw new BusinessException("赛事不存在");
         }
-        if (match.getStatus() != 0 && match.getStatus() != 1) {
-            throw new BusinessException("赛事已结束，无法下注");
+        if (match.getStatus() != 0) {
+            throw new BusinessException("赛事已开始或已结束，无法下注");
         }
         if (match.getResult() != null) {
             throw new BusinessException("赛事已结算，无法下注");
