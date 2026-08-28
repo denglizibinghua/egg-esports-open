@@ -52,7 +52,7 @@
           <div class="hot-card-teams">
             <div class="hot-team">
               <div class="team-logo">
-                <el-image :src="match.teamALogo" alt="" fit="contain" lazy>
+                <el-image :src="fixLogoUrl(match.teamALogo)" alt="" fit="contain" lazy>
                   <template #error><span class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -66,7 +66,7 @@
             <div v-else class="vs-badge vs-badge--sm">VS</div>
             <div class="hot-team hot-team--reverse">
               <div class="team-logo">
-                <el-image :src="match.teamBLogo" alt="" fit="contain" lazy>
+                <el-image :src="fixLogoUrl(match.teamBLogo)" alt="" fit="contain" lazy>
                   <template #error><span class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -174,7 +174,7 @@
               <div class="match-teams">
                 <div class="team team-a">
                   <div class="team-logo">
-                    <el-image :src="match.teamALogo" alt="" fit="contain" lazy>
+                    <el-image :src="fixLogoUrl(match.teamALogo)" alt="" fit="contain" lazy>
                       <template #error><span class="team-logo-placeholder">{{ match.teamA === 'TBD' ? '?' : match.teamA.charAt(0) }}</span></template>
                     </el-image>
                   </div>
@@ -190,7 +190,7 @@
 
                 <div class="team team-b">
                   <div class="team-logo">
-                    <el-image :src="match.teamBLogo" alt="" fit="contain" lazy>
+                    <el-image :src="fixLogoUrl(match.teamBLogo)" alt="" fit="contain" lazy>
                       <template #error><span class="team-logo-placeholder">{{ match.teamB === 'TBD' ? '?' : match.teamB.charAt(0) }}</span></template>
                     </el-image>
                   </div>
@@ -246,7 +246,7 @@ import { isAdmin } from '@/utils/auth'
 import AnnouncementBar from '@/components/AnnouncementBar.vue'
 import { QuestionFilled } from '@element-plus/icons-vue'
 // 时间格式化工具（MM-DD HH:mm），统一提取自 @/utils/format
-import { formatTime } from '@/utils/format'
+import { formatTime, fixLogoUrl } from '@/utils/format'
 // 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
 import { extractList } from '@/utils/pagination'
 
@@ -486,7 +486,8 @@ export default {
       this.$router.push('/match/' + id)
     },
     // formatTime 已外移到 @/utils/format，此处通过 ES6 简写暴露给模板
-    formatTime
+    formatTime,
+    fixLogoUrl
   }
 }
 </script>

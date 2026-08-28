@@ -54,7 +54,7 @@
               @click="betForm.betSide = 0"
             >
               <div class="team-card-logo">
-                <el-image :src="match.teamALogo" alt="" fit="contain">
+                <el-image :src="fixLogo(match.teamALogo)" alt="" fit="contain">
                   <template #error><span class="team-card-logo-placeholder">{{ (match.teamA || '').charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -74,7 +74,7 @@
               @click="betForm.betSide = 1"
             >
               <div class="team-card-logo">
-                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                <el-image :src="fixLogo(match.teamBLogo)" alt="" fit="contain">
                   <template #error><span class="team-card-logo-placeholder">{{ (match.teamB || '').charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -175,7 +175,7 @@
             @click="modifyForm.betSide = 0"
           >
             <div class="team-card-logo">
-              <el-image :src="match && match.teamALogo" alt="" fit="contain">
+              <el-image :src="fixLogo(match && match.teamALogo)" alt="" fit="contain">
                 <template #error><span class="team-card-logo-placeholder">{{ (match ? match.teamA : '').charAt(0) }}</span></template>
               </el-image>
             </div>
@@ -195,7 +195,7 @@
             @click="modifyForm.betSide = 1"
           >
             <div class="team-card-logo">
-              <el-image :src="match && match.teamBLogo" alt="" fit="contain">
+              <el-image :src="fixLogo(match && match.teamBLogo)" alt="" fit="contain">
                 <template #error><span class="team-card-logo-placeholder">{{ (match ? match.teamB : '').charAt(0) }}</span></template>
               </el-image>
             </div>
@@ -251,6 +251,7 @@
 import { markRaw } from 'vue'
 import request from '@/utils/request'
 import { getToken } from '@/utils/auth'
+import { fixLogoUrl } from '@/utils/format'
 // Element Plus SVG 图标（迁移自 Element UI 字体图标）
 import { QuestionFilled } from '@element-plus/icons-vue'
 
@@ -329,6 +330,7 @@ export default {
     }
   },
   methods: {
+    fixLogo(url) { return fixLogoUrl(url) },
     // 暴露给模板判断登录态
     getToken() {
       return getToken()

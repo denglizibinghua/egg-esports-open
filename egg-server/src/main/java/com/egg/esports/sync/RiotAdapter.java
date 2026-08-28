@@ -238,9 +238,9 @@ public class RiotAdapter implements GameSourceAdapter {
                 }
             }
 
-            // team logos
-            String teamALogo = team0.path("image").asText(null);
-            String teamBLogo = team1.path("image").asText(null);
+            // team logos - force HTTPS to avoid Mixed Content on https://eggesports.com
+            String teamALogo = toHttps(team0.path("image").asText(null));
+            String teamBLogo = toHttps(team1.path("image").asText(null));
 
             // 构建 RawMatch
             RawMatch raw = new RawMatch();
@@ -264,5 +264,15 @@ public class RiotAdapter implements GameSourceAdapter {
             log.error("映射赛事事件失败: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    private String toHttps(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+        if (url.startsWith("http://")) {
+            return "https://" + url.substring(7);
+        }
+        return url;
     }
 }

@@ -27,7 +27,7 @@
         <div class="hero-teams">
           <div class="hero-team">
             <div class="team-logo">
-              <el-image :src="heroMatch.teamALogo" alt="" fit="contain">
+              <el-image :src="fixLogoUrl(heroMatch.teamALogo)" alt="" fit="contain">
                 <template #error><span class="team-logo-placeholder">{{ heroMatch.teamA.charAt(0) }}</span></template>
               </el-image>
             </div>
@@ -44,7 +44,7 @@
           </div>
           <div class="hero-team">
             <div class="team-logo">
-              <el-image :src="heroMatch.teamBLogo" alt="" fit="contain">
+              <el-image :src="fixLogoUrl(heroMatch.teamBLogo)" alt="" fit="contain">
                 <template #error><span class="team-logo-placeholder">{{ heroMatch.teamB.charAt(0) }}</span></template>
               </el-image>
             </div>
@@ -138,7 +138,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <el-image :src="match.teamALogo" alt="" fit="contain">
+                <el-image :src="fixLogoUrl(match.teamALogo)" alt="" fit="contain">
                   <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -152,7 +152,7 @@
             <div v-else class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                <el-image :src="fixLogoUrl(match.teamBLogo)" alt="" fit="contain">
                   <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -200,7 +200,7 @@
           <div class="match-card-teams">
             <div class="match-card-team">
               <div class="team-logo">
-                <el-image :src="match.teamALogo" alt="" fit="contain">
+                <el-image :src="fixLogoUrl(match.teamALogo)" alt="" fit="contain">
                   <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -209,7 +209,7 @@
             <div class="match-card-vs">VS</div>
             <div class="match-card-team">
               <div class="team-logo">
-                <el-image :src="match.teamBLogo" alt="" fit="contain">
+                <el-image :src="fixLogoUrl(match.teamBLogo)" alt="" fit="contain">
                   <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
                 </el-image>
               </div>
@@ -316,7 +316,7 @@ import OnboardingCard from '@/components/OnboardingCard.vue'
 import { markRaw } from 'vue'
 import { QuestionFilled, UserFilled } from '@element-plus/icons-vue'
 // 时间格式化工具（MM-DD HH:mm），统一提取自 @/utils/format
-import { formatTime } from '@/utils/format'
+import { formatTime, fixLogoUrl } from '@/utils/format'
 // 分页数据提取工具（兼容 records/list/content），统一提取自 @/utils/pagination
 import { extractList } from '@/utils/pagination'
 import { getUser } from '@/utils/auth'
@@ -422,6 +422,7 @@ export default {
     // ===== 工具 =====
     // formatTime / extractList 已外移到 @/utils，此处通过 ES6 简写暴露 formatTime 给模板
     formatTime,
+    fixLogoUrl,
     filterTBD(list) {
       // 过滤所有 TBD 变体（TBD、TBD-1、TBD-2 等）
       return list.filter(function (m) {

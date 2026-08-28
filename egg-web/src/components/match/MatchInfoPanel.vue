@@ -19,7 +19,7 @@
     <div class="teams-display">
       <div class="team-display team-a-display">
         <div class="team-logo-large">
-          <el-image :src="match.teamALogo" alt="" fit="contain">
+          <el-image :src="fixLogo(match.teamALogo)" alt="" fit="contain">
             <template #error><span class="team-logo-placeholder-large">{{ match.teamA === 'TBD' ? '?' : (match.teamA || '').charAt(0) }}</span></template>
           </el-image>
         </div>
@@ -32,7 +32,7 @@
 
       <div class="team-display team-b-display">
         <div class="team-logo-large">
-          <el-image :src="match.teamBLogo" alt="" fit="contain">
+          <el-image :src="fixLogo(match.teamBLogo)" alt="" fit="contain">
             <template #error><span class="team-logo-placeholder-large">{{ match.teamB === 'TBD' ? '?' : (match.teamB || '').charAt(0) }}</span></template>
           </el-image>
         </div>
@@ -76,6 +76,7 @@
 import { markRaw } from 'vue'
 // Element Plus SVG 图标（迁移自 Element UI 字体图标）
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { fixLogoUrl } from '@/utils/format'
 
 export default {
   name: 'MatchInfoPanel',
@@ -102,6 +103,7 @@ export default {
     }
   },
   methods: {
+    fixLogo(url) { return fixLogoUrl(url) },
     // 判断是否有比分（进行中/已结束且双方比分都不为空）
     hasScore(match) {
       return (match.status === 1 || match.status === 2) &&

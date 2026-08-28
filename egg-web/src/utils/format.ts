@@ -15,3 +15,14 @@ export function formatTime(dateStr: string | number | Date): string {
   const pad = (n: number): string => String(n).padStart(2, '0')
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
+
+/**
+ * 队标 URL 防御：http → https，避免 https 页面 Mixed Content 被拦截
+ * null / 空 / generic 占位图返回空字符串，前端 el-image 会走 error slot 显示首字母
+ */
+export function fixLogoUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  if (url.includes('/generic')) return ''
+  if (url.startsWith('http://')) return 'https://' + url.slice(7)
+  return url
+}
