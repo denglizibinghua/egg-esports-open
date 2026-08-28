@@ -38,12 +38,13 @@ public class LeaderboardController {
             return Result.success(voPage);
         }
 
-        // 默认：全局积分榜
+        // 默认：全局积分榜（排除机器人）
         Page<EggUser> userPage = new Page<>(page, size);
         LambdaQueryWrapper<EggUser> wrapper = new LambdaQueryWrapper<EggUser>()
                 .select(EggUser::getId, EggUser::getNickname, EggUser::getAvatar,
                         EggUser::getPoints, EggUser::getCorrectBets, EggUser::getTotalBets,
                         EggUser::getWinStreak, EggUser::getMaxWinStreak)
+                .apply("username NOT LIKE 'bot_%'")
                 .orderByDesc(EggUser::getPoints);
 
         Page<EggUser> result = eggUserMapper.selectPage(userPage, wrapper);
@@ -70,11 +71,12 @@ public class LeaderboardController {
             return Result.success(records);
         }
 
-        // 默认：全局积分榜 Top N
+        // 默认：全局积分榜 Top N（排除机器人）
         LambdaQueryWrapper<EggUser> wrapper = new LambdaQueryWrapper<EggUser>()
                 .select(EggUser::getId, EggUser::getNickname, EggUser::getAvatar,
                         EggUser::getPoints, EggUser::getCorrectBets, EggUser::getTotalBets,
                         EggUser::getWinStreak, EggUser::getMaxWinStreak)
+                .apply("username NOT LIKE 'bot_%'")
                 .orderByDesc(EggUser::getPoints)
                 .last("LIMIT " + n);
 
@@ -115,11 +117,13 @@ public class LeaderboardController {
             result.put("total", 0);
             return Result.success(result);
         }
-        // 排名 = 比我积分高的人数 + 1（同分并列时排名一致，语义比内存遍历更准确）
+        // 排名 = 比我积分高的人数 + 1（排除机器人，同分并列时排名一致）
         Long rank = eggUserMapper.selectCount(
                 new LambdaQueryWrapper<EggUser>().gt(EggUser::getPoints, me.getPoints())
+                        .apply("username NOT LIKE 'bot_%'")
         ) + 1;
-        Long total = eggUserMapper.selectCount(null);
+        Long total = eggUserMapper.selectCount(
+                new LambdaQueryWrapper<EggUser>().apply("username NOT LIKE 'bot_%'"));
         result.put("rank", rank);
         result.put("total", total);
         return Result.success(result);

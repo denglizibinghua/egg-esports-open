@@ -25,7 +25,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "ORDER BY correct_bets DESC, total_bets DESC " +
             "LIMIT #{offset}, #{n}")
@@ -40,7 +40,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId}")
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%'")
     int countGameLeaderboard(@Param("gameId") Long gameId);
 
     /**
@@ -53,7 +53,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "ORDER BY correct_bets DESC, total_bets DESC " +
             "LIMIT #{n}")
@@ -62,7 +62,7 @@ public interface LeaderboardMapper {
 
     /**
      * 按游戏查询完整排行榜（用于「我的排名」定位）
-     */
+      */
     @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, " +
             "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
             "COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) as total_bets, " +
@@ -70,7 +70,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "ORDER BY correct_bets DESC, total_bets DESC")
     List<LeaderboardVO> selectGameLeaderboardAll(@Param("gameId") Long gameId);
@@ -89,7 +89,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 10 " +
             "ORDER BY accuracy DESC, correct_bets DESC " +
@@ -105,7 +105,7 @@ public interface LeaderboardMapper {
             "  SELECT u.id FROM egg_user u " +
             "  INNER JOIN egg_bet b ON u.id = b.user_id " +
             "  INNER JOIN egg_match m ON b.match_id = m.id " +
-            "  WHERE m.game_id = #{gameId} " +
+            "  WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "  GROUP BY u.id " +
             "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 10" +
             ") t")
@@ -122,7 +122,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 10 " +
             "ORDER BY accuracy DESC, correct_bets DESC " +
@@ -141,7 +141,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 10 " +
             "ORDER BY accuracy DESC, correct_bets DESC")
@@ -157,6 +157,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "WHERE u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 10 " +
             "ORDER BY accuracy DESC, correct_bets DESC " +
@@ -167,6 +168,7 @@ public interface LeaderboardMapper {
             "  SELECT u.id FROM egg_user u " +
             "  INNER JOIN egg_bet b ON u.id = b.user_id " +
             "  INNER JOIN egg_match m ON b.match_id = m.id " +
+            "  WHERE u.username NOT LIKE 'bot_%' " +
             "  GROUP BY u.id " +
             "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 10" +
             ") t")
@@ -180,6 +182,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "WHERE u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 10 " +
             "ORDER BY accuracy DESC, correct_bets DESC " +
@@ -195,6 +198,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "WHERE u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 1 " +
             "ORDER BY u.net_profit ASC " +
@@ -205,6 +209,7 @@ public interface LeaderboardMapper {
             "  SELECT u.id FROM egg_user u " +
             "  INNER JOIN egg_bet b ON u.id = b.user_id " +
             "  INNER JOIN egg_match m ON b.match_id = m.id " +
+            "  WHERE u.username NOT LIKE 'bot_%' " +
             "  GROUP BY u.id " +
             "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 1" +
             ") t")
@@ -217,6 +222,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
+            "WHERE u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 1 " +
             "ORDER BY u.net_profit ASC " +
@@ -233,7 +239,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 1 " +
             "ORDER BY u.net_profit ASC " +
@@ -249,7 +255,7 @@ public interface LeaderboardMapper {
             "  SELECT u.id FROM egg_user u " +
             "  INNER JOIN egg_bet b ON u.id = b.user_id " +
             "  INNER JOIN egg_match m ON b.match_id = m.id " +
-            "  WHERE m.game_id = #{gameId} " +
+            "  WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "  GROUP BY u.id " +
             "  HAVING COUNT(CASE WHEN b.status IN (1, 2) THEN 1 END) >= 1" +
             ") t")
@@ -265,7 +271,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 1 " +
             "ORDER BY u.net_profit ASC " +
@@ -283,7 +289,7 @@ public interface LeaderboardMapper {
             "FROM egg_user u " +
             "INNER JOIN egg_bet b ON u.id = b.user_id " +
             "INNER JOIN egg_match m ON b.match_id = m.id " +
-            "WHERE m.game_id = #{gameId} " +
+            "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
             "HAVING total_bets >= 1 " +
             "ORDER BY u.net_profit ASC")

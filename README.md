@@ -2,7 +2,31 @@
 
 > 非盈利电竞赛事预测平台 — 纯彩池制，0% 抽水，猜中全分。
 
-**线上地址**：[eggesports.com](https://eggesports.com)
+专注瓦洛兰特 · 0%抽水 · 演示站 [https://eggesports.com](https://eggesports.com) · [演示账号一键体验](#演示账号) · [案例墙](/showcase)
+
+[![Valorant](https://img.shields.io/badge/Valorant-专注-FF4655?style=flat-square)](#支持游戏) [![Parimutuel](https://img.shields.io/badge/Parimutuel-0%25抽水-00E5A0?style=flat-square)](#架构亮点) [![Demo](https://img.shields.io/badge/Demo-eggesports.com-1E90FF?style=flat-square)](https://eggesports.com)
+
+---
+
+## 作品集亮点
+
+- **首屏3秒讲清价值**：Hero 一行标题 + 一行副标题 + CTA，不滚动即知“瓦洛兰特预测社区”
+- **机器人托底**：未开始场次自动补 3-8 笔分散押注，赔率 1.40-2.80，避免空池尴尬
+- **一键演示数据**：`POST /api/seed/demo` 灌入 18 场瓦比赛 + 25 人榜单 + 每场 8-12 条评论，首页三区即满
+
+---
+
+## 演示账号
+
+一键体验三态，无需注册。密码均为 `demo123`：
+
+| 账号 | 昵称 | 权限 | 初始积分 | 用途 |
+|------|------|------|----------|------|
+| `demo_admin` | 等离子蛋花 | 管理员 role=1 | 10000 | 结算赛事、触发同步、灌演示数据 |
+| `demo_player` | 预言家001 | 普通用户 | 5000 | 押注、评论、冲榜 |
+| `demo_new` | 新用户 | 普通用户 | 100 | 体验低分/贷款流程 |
+
+> 灌演示数据（需管理员登录后）：`curl -X POST http://localhost:8088/api/seed/demo -H "Authorization: Bearer $TOKEN"`
 
 ---
 
@@ -23,10 +47,10 @@
 
 | 游戏 | 数据源 | 类型 |
 |------|--------|------|
-| 无畏契约 (Valorant) | Riot Esports API | 官方 |
-| 英雄联盟 (LoL) | Riot Esports API | 官方 |
-| Dota 2 | OpenDota | 免费 |
-| CS2 | GRID Open Access | 二线赛事 |
+| **当前演示：瓦洛兰特 (Valorant)** | Riot Esports API | 官方 |
+| 英雄联盟 / Dota 2 / CS2 | 后台保留 LoL / Dota2 / CS2 Adapter（前台瓦聚焦隐藏，`?gameId=2/3/4` 可验证） | 保留 |
+
+> 瓦聚焦：前台默认 `gameId=1`，Adapter 全部保留不删（见 `application.yml` `egg.sync.adapters.*`）
 
 ## 快速开始
 
@@ -70,9 +94,17 @@ npm run dev
 # 前端运行在 http://localhost:8080
 ```
 
-### 5. 登录
+### 5. 一键灌入演示数据
 
-默认管理员账号：`等离子蛋花`，密码见 `.env`。
+```bash
+# 先用 demo_admin/demo123 登录获取 TOKEN，再：
+curl -X POST http://localhost:8088/api/seed/demo -H "Authorization: Bearer $TOKEN"
+# 灌入后：首页三区 / 榜单前20 / 评论区均非空
+```
+
+### 6. 登录
+
+演示账号见上表，密码 `demo123`。或用 `.env` 中的管理员账号。
 
 ---
 
@@ -96,11 +128,13 @@ egg-esports/
 │       │   ├── loan/          # 贷款（救济、补贴、自动还款）
 │       │   ├── audit/         # 操作日志（AOP 审计）
 │       │   ├── odds/          # 动态赔率
+│       │   ├── bot/           # 机器人托底（BotUserService/BotBetService）
+│       │   ├── dev/           # 演示数据一键灌入（SeedController）
 │       │   └── sync/          # 外部数据同步（Adapter 模式）
 │       └── sync/              # 数据源适配器（Riot、OpenDota、GRID）
 ├── egg-web/                   # Vue 3 前端
 │   └── src/
-│       ├── views/             # 页面（首页、赛程、排行、用户中心等）
+│       ├── views/             # 页面（首页、赛程、排行、用户中心、案例墙等）
 │       ├── components/        # 组件（押注面板、评论区、管理后台等）
 │       ├── router/            # 路由配置
 │       ├── stores/            # Pinia 状态管理

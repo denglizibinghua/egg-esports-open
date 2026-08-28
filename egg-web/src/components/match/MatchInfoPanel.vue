@@ -59,6 +59,16 @@
         平局
       </template>
     </div>
+
+    <!-- 地图比分条 — THESPIKE -->
+    <div v-if="match.status === 2 && mapScores.length" class="map-chips">
+      <span
+        v-for="(m, idx) in mapScores"
+        :key="idx"
+        class="map-chip"
+        :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }"
+      >{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
+    </div>
   </div>
 </template>
 
@@ -77,6 +87,18 @@ export default {
     return {
       // 暴露图标组件供模板 :icon 绑定使用（markRaw 避免被响应式化）
       ArrowLeft: markRaw(ArrowLeft)
+    }
+  },
+  computed: {
+    mapScores() {
+      if (this.match.mapScores && Array.isArray(this.match.mapScores)) return this.match.mapScores
+      if (this.match.mapScoresJson) {
+        try {
+          var parsed = typeof this.match.mapScoresJson === 'string' ? JSON.parse(this.match.mapScoresJson) : this.match.mapScoresJson
+          if (Array.isArray(parsed)) return parsed
+        } catch (e) { /* ignore */ }
+      }
+      return []
     }
   },
   methods: {
@@ -251,6 +273,38 @@ export default {
 
 .winner-name {
   color: var(--accent-primary);
+}
+
+/* Map chips — THESPIKE */
+.map-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.map-chip--win {
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0,229,160,.35);
+  color: var(--accent-primary);
+  background: rgba(0,229,160,0.08);
 }
 
 /* TBD Team Name */

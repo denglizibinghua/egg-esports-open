@@ -8,7 +8,7 @@
       <div class="about-section">
         <h3 class="about-section-title">🎮 关于 Egg 赛事竞猜</h3>
         <p class="about-text">
-          Egg Esports 是一个独立的电竞赛事预测平台，覆盖无畏契约、英雄联盟、Dota 2、CS2 四大热门电竞项目。平台采用纯彩池制（Parimutuel），<strong>0% 抽水</strong>——不设庄家、不抽一分钱，赔率完全由玩家投注决定。你押的每一分都在奖池里，猜中按比例分账。积分永远是积分，不可变现——这不是博彩，是判断力的竞技场。
+          Egg Esports 是一个独立的电竞赛事预测平台，专注瓦洛兰特。平台采用纯彩池制（Parimutuel），<strong>0% 抽水</strong>——不设庄家、不抽一分钱，赔率完全由玩家投注决定。你押的每一分都在奖池里，猜中按比例分账。积分永远是积分，不可变现——这不是博彩，是判断力的竞技场。
         </p>
       </div>
 

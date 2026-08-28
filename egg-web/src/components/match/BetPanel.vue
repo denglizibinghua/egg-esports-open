@@ -9,11 +9,16 @@
       <p class="tbd-text">参赛队伍尚未确定，暂不支持押注</p>
     </div>
 
-    <!-- Not Logged In Prompt -->
+    <!-- Not Logged In Prompt — 放开浏览，押注时再转化 -->
     <div v-else-if="!getToken()" class="bet-login-prompt">
       <div class="prompt-icon">🔒</div>
       <p class="prompt-text">登录后即可参与竞猜</p>
-      <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
+      <p class="prompt-sub">先浏览赛程与赔率，已有 32 场演示案例可查看</p>
+      <div class="prompt-actions">
+        <el-button type="primary" class="prompt-btn" @click="$router.push({ name: 'Login', query: { redirect: $route.fullPath } })">去登录</el-button>
+        <el-button class="prompt-btn--ghost" @click="$router.push('/showcase')">查看案例</el-button>
+      </div>
+      <p class="prompt-hint">演示账号：demo_player / demo123 一键体验</p>
     </div>
 
     <template v-else>
@@ -691,6 +696,34 @@ export default {
   font-weight: 600;
   border-radius: var(--radius-md) !important;
   padding: 10px 32px;
+}
+
+.prompt-sub {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.prompt-btn--ghost {
+  border: 1px solid var(--border-default) !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 20px;
+}
+
+.prompt-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 10px;
+  font-family: var(--font-mono);
 }
 
 /* TBD Notice */

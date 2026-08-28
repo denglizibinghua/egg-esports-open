@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 赛事实体
@@ -83,4 +84,12 @@ public class EggMatch {
     /** 押注人数（实时统计，非DB字段） */
     @TableField(exist = false)
     private Integer betCount;
+
+    /** 地图比分（仅 status=2 时填充，非DB字段，不改表结构） */
+    @TableField(exist = false)
+    private List<MapScore> mapScores;
+
+    /** 地图比分 JSON 透传（兼容前端解析，exist=false） */
+    @TableField(exist = false)
+    private String mapScoresJson;
 }

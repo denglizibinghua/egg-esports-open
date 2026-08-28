@@ -7,14 +7,22 @@
       <div class="grain-overlay-hero" aria-hidden="true"></div>
       <div class="hero-particles" aria-hidden="true"></div>
       <div v-if="heroMatch" class="hero-content">
+        <div class="hero-copy">
+          <h1 class="hero-title">瓦洛兰特预测社区</h1>
+          <p class="hero-subtitle">已服务 32 场校园赛 · 0%抽水纯彩池 · 3天可交付同款</p>
+        </div>
+        <div class="hero-focus-card">
         <div class="hero-tournament">
-          <span class="tournament-chip">{{ heroMatch.tournament || '常规赛事' }}</span>
-          <span v-if="heroMatch.status === 1" class="status-badge status-badge--live">
-            <span class="status-dot status-dot--pulse"></span>进行中
-          </span>
-          <span v-else-if="heroMatch.status === 0" class="status-badge status-badge--upcoming">
-            <span class="status-dot"></span>即将开始
-          </span>
+          <div class="hero-tournament-left">
+            <span class="tournament-chip">{{ heroMatch.tournament || '常规赛事' }}</span>
+            <span v-if="heroMatch.status === 1" class="status-badge status-badge--live">
+              <span class="status-dot status-dot--pulse"></span>进行中
+            </span>
+            <span v-else-if="heroMatch.status === 0" class="status-badge status-badge--upcoming">
+              <span class="status-dot"></span>即将开始
+            </span>
+          </div>
+          <span v-if="heroMatch.oddsA !== null && heroMatch.oddsA !== undefined" class="match-odds-capsule">{{ heroMatch.oddsA.toFixed(2) }} / {{ heroMatch.oddsB.toFixed(2) }}</span>
         </div>
         <div class="hero-teams">
           <div class="hero-team">
@@ -58,25 +66,22 @@
               <span class="hero-countdown-label">分</span>
             </div>
           </div>
-          <div class="hero-odds" v-if="heroMatch.oddsA !== null && heroMatch.oddsA !== undefined">
-            <span class="hero-odds-item">{{ heroMatch.oddsA.toFixed(2) }}</span>
-            <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。最终按彩池制结算。">
-              <el-icon style="font-size:11px;margin:0 4px;cursor:help;opacity:0.5"><QuestionFilled /></el-icon>
-            </el-tooltip>
-            <span class="hero-odds-sep">/</span>
-            <span class="hero-odds-item">{{ heroMatch.oddsB.toFixed(2) }}</span>
-          </div>
           <el-button class="hero-btn btn-hover-lift" @click="goDetail(heroMatch.id)"><span>立即竞猜</span></el-button>
+        </div>
         </div>
       </div>
       <div v-else class="hero-empty">
+        <div class="hero-copy">
+          <h1 class="hero-title">瓦洛兰特预测社区</h1>
+          <p class="hero-subtitle">已服务 32 场校园赛 · 0%抽水纯彩池 · 3天可交付同款</p>
+        </div>
         <div class="hero-empty-icon">🎮</div>
         <div class="hero-empty-text">暂无赛事，管理员正在筹备中</div>
       </div>
     </div>
 
-    <!-- 2. 游戏筛选栏 -->
-    <div class="game-tabs" v-if="games.length > 0">
+    <!-- 瓦聚焦：多游戏入口已隐藏，保留Adapter，可?gameId=2调试 -->
+    <div class="game-tabs" v-if="false && games.length > 0">
       <button class="game-tab" :class="{ active: selectedGameId === null }" @click="switchGame(null)">
         全部游戏
       </button>
@@ -114,15 +119,18 @@
           @click="goDetail(match.id)"
         >
           <div class="match-card-top">
-            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-            <span v-if="match.status === 1" class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>进行中
-            </span>
-            <span v-else-if="match.status === 0" class="status-badge status-badge--upcoming">
-              <span class="status-dot"></span>未开始
-            </span>
-            <span v-else class="status-badge status-badge--finished">已结束</span>
-            <span class="countdown-badge" v-if="match.status === 0 && getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
+            <div class="match-card-top-left">
+              <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+              <span v-if="match.status === 1" class="status-badge status-badge--live">
+                <span class="status-dot status-dot--pulse"></span>进行中
+              </span>
+              <span v-else-if="match.status === 0" class="status-badge status-badge--upcoming">
+                <span class="status-dot"></span>未开始
+              </span>
+              <span v-else class="status-badge status-badge--finished">已结束</span>
+              <span class="countdown-badge" v-if="match.status === 0 && getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
+            </div>
+            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
           </div>
           <div class="match-card-teams">
             <div class="match-card-team">
@@ -151,11 +159,11 @@
           <div class="match-card-footer">
             <span class="match-time">{{ formatTime(match.matchTime) }}</span>
             <div class="match-card-footer-right">
-              <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-card-odds">
-                {{ match.oddsA.toFixed(2) }}/{{ match.oddsB.toFixed(2) }}
-              </span>
               <span v-if="match.betCount" class="match-card-bet-count">👥 {{ match.betCount }}人押注</span>
             </div>
+          </div>
+          <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
+            <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
           </div>
         </div>
       </div>
@@ -174,10 +182,13 @@
           @click="goDetail(match.id)"
         >
           <div class="match-card-top">
-            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-            <span class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>进行中
-            </span>
+            <div class="match-card-top-left">
+              <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+              <span class="status-badge status-badge--live">
+                <span class="status-dot status-dot--pulse"></span>进行中
+              </span>
+            </div>
+            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
           </div>
           <div class="match-card-teams">
             <div class="match-card-team">
@@ -205,9 +216,9 @@
           </div>
           <div class="match-card-footer">
             <span class="match-time">{{ formatTime(match.matchTime) }}</span>
-            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-card-odds">
-              {{ match.oddsA.toFixed(2) }}/{{ match.oddsB.toFixed(2) }}
-            </span>
+          </div>
+          <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
+            <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
           </div>
         </div>
       </div>
@@ -226,11 +237,14 @@
           @click="goDetail(match.id)"
         >
           <div class="match-card-top">
-            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-            <span class="status-badge status-badge--upcoming">
-              <span class="status-dot"></span>未开始
-            </span>
-            <span class="countdown-badge" v-if="getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
+            <div class="match-card-top-left">
+              <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+              <span class="status-badge status-badge--upcoming">
+                <span class="status-dot"></span>未开始
+              </span>
+              <span class="countdown-badge" v-if="getCountdownSeconds(match) > 0">{{ formatCountdown(match) }}</span>
+            </div>
+            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
           </div>
           <div class="match-card-teams">
             <div class="match-card-team">
@@ -253,9 +267,9 @@
           </div>
           <div class="match-card-footer">
             <span class="match-time">{{ formatTime(match.matchTime) }}</span>
-            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-card-odds">
-              {{ match.oddsA.toFixed(2) }}/{{ match.oddsB.toFixed(2) }}
-            </span>
+          </div>
+          <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
+            <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
           </div>
         </div>
       </div>
@@ -373,7 +387,7 @@ export default {
       // 暴露给模板 :icon 绑定的图标组件（用 markRaw 避免响应化）
       UserFilled: markRaw(UserFilled),
       games: [],
-      selectedGameId: null,
+      selectedGameId: 1,
       // hero
       heroMatch: null,
       // sections
@@ -398,6 +412,12 @@ export default {
     }
   },
   created() {
+    // 瓦聚焦：默认瓦洛兰特，支持 ?gameId=2 调试保留Adapter
+    var q = this.$route && this.$route.query && this.$route.query.gameId
+    if (q !== undefined && q !== null && q !== '') {
+      var parsed = Number(q)
+      if (!isNaN(parsed)) this.selectedGameId = parsed
+    }
     this.fetchGames()
     this.loadAll()
     this.startPolling()
@@ -419,6 +439,16 @@ export default {
       return (match.status === 1 || match.status === 2) &&
         match.scoreA !== null && match.scoreA !== undefined &&
         match.scoreB !== null && match.scoreB !== undefined
+    },
+    getMapScores(match) {
+      if (match.mapScores && Array.isArray(match.mapScores)) return match.mapScores
+      if (match.mapScoresJson) {
+        try {
+          var parsed = typeof match.mapScoresJson === 'string' ? JSON.parse(match.mapScoresJson) : match.mapScoresJson
+          if (Array.isArray(parsed)) return parsed
+        } catch (e) { /* ignore */ }
+      }
+      return []
     },
     getAccuracy(row) {
       if (!row.totalBets || row.totalBets === 0) return 0
@@ -585,8 +615,9 @@ export default {
 <style scoped>
 /* ===== HERO 区域 ===== */
 .hero {
-  height: 320px;
+  min-height: 360px;
   width: 100%;
+  max-width: 100%;
   border-radius: var(--radius-xl);
   position: relative;
   overflow: hidden;
@@ -601,6 +632,7 @@ export default {
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
   background-size: 200% 200%;
   animation: hero-gradient-shift 8s ease infinite;
+  box-sizing: border-box;
 }
 
 .hero--valorant {
@@ -709,19 +741,77 @@ export default {
   position: relative;
   z-index: 1;
   width: 100%;
-  height: 100%;
+  max-width: 100%;
+  min-height: 100%;
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* B1: hero value copy — 硬编码标题 + 副标题 */
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  max-width: 100%;
+}
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+  line-height: 1;
+  font-weight: 400;
+  margin: 0;
+  white-space: nowrap;
+}
+.hero-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+/* 焦点赛小卡 — 原 heroMatch 下移 */
+.hero-focus-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 640px;
+  background: rgba(18,18,26,0.55);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  backdrop-filter: blur(8px);
+  box-sizing: border-box;
 }
 
 .hero-tournament {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  flex-wrap: nowrap;
+}
+.hero-tournament-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .hero-teams {
@@ -807,28 +897,16 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
-.hero-odds {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.hero-odds-item {
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
-  padding: 3px 10px;
-  border-radius: var(--radius-sm);
-}
-
+/* B3: hero 底部旧赔率已上移胶囊，此处隐藏遗留样式以防复用 */
+.hero-odds,
+.hero-odds-item,
 .hero-odds-sep {
-  font-size: 12px;
-  color: var(--text-tertiary);
+  display: none !important;
 }
 
 .hero-btn {
@@ -1054,7 +1132,42 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+.match-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+.match-card-top-left .tournament-chip {
+  flex-shrink: 0;
+  max-width: 110px;
+}
+/* B3: 黄胶囊 — 与 tournament-chip 并排右侧 */
+.match-odds-capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,181,71,.12);
+  border: 1px solid rgba(255,181,71,.25);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bet-amber, #FFB547);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
 }
 .match-card-teams {
   display: flex;
@@ -1121,9 +1234,7 @@ export default {
   gap: 8px;
 }
 .match-card-odds {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-tertiary);
+  display: none !important;
 }
 .match-card-bet-count {
   font-size: 12px;
@@ -1134,6 +1245,39 @@ export default {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
   font-size: 13px;
+}
+
+/* Map chips — THESPIKE thumbnail (11px gap6px) */
+.map-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.map-chips--sm {
+  gap: 6px;
+}
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.map-chip--win {
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0,229,160,.35);
+  color: var(--accent-primary);
+  background: rgba(0,229,160,0.08);
 }
 
 /* ===== Countdown Badge ===== */
@@ -1376,8 +1520,11 @@ export default {
 }
 @media (max-width: 768px) {
   .card-list, .loading-full { grid-template-columns: repeat(2, 1fr); }
-  .hero { height: 260px; }
+  .hero { min-height: 300px; }
   .hero-content { padding: 14px 12px; gap: 10px; }
+  .hero-title { font-size: 36px; letter-spacing: 1.5px; }
+  .hero-subtitle { font-size: 12px; white-space: normal; text-align: center; }
+  .hero-focus-card { padding: 12px 14px; max-width: 100%; }
   .hero-teams { gap: 16px; }
   .hero-team-name { font-size: 22px; letter-spacing: 2px; }
   .hero-score { font-size: 36px; }
@@ -1404,7 +1551,10 @@ export default {
 }
 @media (max-width: 480px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }
-  .hero { height: 220px; }
+  .hero { min-height: 280px; }
+  .hero-title { font-size: 30px; letter-spacing: 1px; }
+  .hero-subtitle { font-size: 11px; line-height: 1.4; }
+  .hero-focus-card { padding: 10px 12px; }
   .hero-teams { gap: 16px; }
   .hero-team-name { font-size: 18px; }
   .hero-score { font-size: 28px; }
@@ -1412,5 +1562,16 @@ export default {
   /* 长队名允许换行，避免横向溢出 */
   .hero-team-name { white-space: normal; text-align: center; line-height: 1.2; }
   .hero-team { gap: 8px; }
+  .match-odds-capsule { font-size: 10px; padding: 2px 6px; }
+  .match-card-top-left { gap: 4px; }
+}
+@media (max-width: 375px) {
+  .hero { min-height: 260px; }
+  .hero-title { font-size: 26px; }
+  .hero-subtitle { font-size: 10px; }
+  .hero-tournament, .match-card-top { gap: 6px; }
+  .match-odds-capsule { font-size: 10px; padding: 1px 6px; }
+  .tournament-chip { max-width: 90px; font-size: 10px; }
+  .home { overflow-x: hidden; }
 }
 </style>

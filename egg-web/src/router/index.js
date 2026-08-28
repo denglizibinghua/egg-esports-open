@@ -75,6 +75,11 @@ const routes = [
     component: () => import('@/views/About.vue')
   },
   {
+    path: '/showcase',
+    name: 'Showcase',
+    component: () => import('@/views/Showcase.vue')
+  },
+  {
     // 隐私政策占位页面（法律合规要求）
     path: '/privacy',
     name: 'Privacy',

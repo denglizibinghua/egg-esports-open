@@ -72,8 +72,13 @@ egg:
     relief-amount: 500
     daily-stipend: 100
     auto-repay-ratio: 0.5
+  bot:
+    enabled: true
+    daily-limit: 80
+    per-match-limit: 500
   sync:
     enabled: true          # 是否启用定时同步
+    # 瓦聚焦：前台默认gameId=1，后台同步仍保留多游戏（Adapter 全部保留，显式传 gameId=2/3/4 仍可查）
     adapters:
       riot-valorant:
         enabled: true

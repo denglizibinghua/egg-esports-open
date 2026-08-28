@@ -17,15 +17,16 @@
             @click="switchTab('worst-profit')"
           >😈 亏损榜</span>
         </div>
-        <div class="game-filter">
+        <!-- 瓦聚焦：多游戏入口已隐藏，保留Adapter，可?gameId=2调试 -->
+        <div class="game-filter" v-if="false">
           <el-select
             v-model="selectedGameId"
-            placeholder="全部游戏"
+            placeholder="瓦洛兰特"
             clearable
             size="small"
             @change="handleGameChange"
           >
-            <el-option :value="''" label="全部游戏" />
+            <el-option :value="''" label="瓦洛兰特" />
             <el-option
               v-for="game in games"
               :key="game.id"
@@ -232,11 +233,15 @@ export default {
       pageSize: 20,
       total: 0,
       games: [],
-      selectedGameId: '',
+      selectedGameId: '1',
       leaderboardTab: 'points'
     }
   },
   created() {
+    var q = this.$route && this.$route.query && this.$route.query.gameId
+    if (q !== undefined && q !== null && q !== '') {
+      this.selectedGameId = String(q)
+    }
     this.fetchGames()
     this.fetchTop3()
     this.fetchLeaderboard()

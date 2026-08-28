@@ -16,6 +16,7 @@
             <el-badge v-if="isLoggedIn" :value="loanDebt > 0 ? loanDebt : 0" :hidden="loanDebt <= 0" class="nav-badge">
               <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/bank' }" @click="$router.push('/bank')">银行</el-button>
             </el-badge>
+            <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/showcase' }" @click="$router.push('/showcase')">案例</el-button>
             <!-- 关于按钮（公开） -->
             <el-button link class="nav-btn" :class="{ 'nav-btn--active': $route.path === '/about' }" @click="$router.push('/about')">关于</el-button>
             <el-button v-if="isAdmin" link class="nav-btn admin-btn" :class="{ 'nav-btn--active': $route.path.startsWith('/admin') }" @click="$router.push('/admin')">管理</el-button>
@@ -31,6 +32,7 @@
                 <el-dropdown-item command="/matches">赛程</el-dropdown-item>
                 <el-dropdown-item command="/leaderboard">排行</el-dropdown-item>
                 <el-dropdown-item v-if="isLoggedIn" command="/bank">银行<span v-if="loanDebt > 0" class="mobile-nav-debt">●</span></el-dropdown-item>
+                <el-dropdown-item command="/showcase">案例</el-dropdown-item>
                 <el-dropdown-item command="/about">关于</el-dropdown-item>
                 <el-dropdown-item v-if="isAdmin" command="/admin" divided>管理</el-dropdown-item>
               </el-dropdown-menu>
@@ -107,9 +109,11 @@
         </div>
       </el-header>
       <el-main class="app-main">
-        <transition name="page" mode="out-in">
-          <router-view />
-        </transition>
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </el-main>
       <el-footer class="app-footer">
         <div class="footer-links">

@@ -49,17 +49,22 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // 登录拦截
+        // 登录拦截 — 未登录可浏览，放开所有公开读接口
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
                         "/api/user/login",
                         "/api/user/register",
                         "/api/announcement/active",
-                        "/api/game/list",
-                        "/api/game/{id}",
+                        "/api/game/**",
                         "/api/leaderboard/**",
+                        "/api/match/**",
                         "/api/matches/**",
+                        "/api/bet/count/**",
+                        "/api/bet/odds/**",
+                        "/api/comment/list",
+                        "/api/comment/replies",
+                        "/api/comment/count/**",
                         "/api/health"
                 );
 

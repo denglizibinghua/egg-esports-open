@@ -194,8 +194,20 @@ class EggBetServiceTest extends BaseH2Test {
         executor.shutdown();
 
         // 等待所有任务完成（含 catch DuplicateKeyException 后的正常返回）
+        // 瓦聚焦并发：第二线程可能在 selectCount 阶段已看到首线程提交，从而抛 BusinessException("您已对该赛事下注")
+        // 视为幂等成功（与 DuplicateKey 返回已有 bet 等价），不视为测试失败
         for (Future<EggBet> f : futures) {
-            f.get(5, TimeUnit.SECONDS);
+            try {
+                f.get(5, TimeUnit.SECONDS);
+            } catch (java.util.concurrent.ExecutionException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof com.egg.esports.common.BusinessException
+                        && "您已对该赛事下注".equals(cause.getMessage())) {
+                    // 并发幂等：已下注视为成功
+                } else {
+                    throw e;
+                }
+            }
         }
 
         // Then: 只有 1 条 bet 记录

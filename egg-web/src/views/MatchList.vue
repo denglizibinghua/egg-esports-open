@@ -4,7 +4,8 @@
       <h2 class="page-title">赛事列表</h2>
     </div>
 
-    <div class="game-tabs" v-if="games.length > 0">
+    <!-- 瓦聚焦：多游戏入口已隐藏，保留Adapter，可?gameId=2调试 -->
+    <div class="game-tabs" v-if="false && games.length > 0">
       <button class="game-tab" :class="{ active: selectedGameId === null }" @click="switchGame(null)">
         全部游戏
       </button>
@@ -37,13 +38,16 @@
           @click="goDetail(match.id)"
         >
           <div class="hot-card-top">
-            <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-            <span v-if="match.status === 1" class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>进行中
-            </span>
-            <span v-else-if="match.status === 0" class="status-badge status-badge--upcoming">
-              <span class="status-dot"></span>未开始
-            </span>
+            <div class="hot-card-top-left">
+              <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+              <span v-if="match.status === 1" class="status-badge status-badge--live">
+                <span class="status-dot status-dot--pulse"></span>进行中
+              </span>
+              <span v-else-if="match.status === 0" class="status-badge status-badge--upcoming">
+                <span class="status-dot"></span>未开始
+              </span>
+            </div>
+            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
           </div>
           <div class="hot-card-teams">
             <div class="hot-team">
@@ -72,7 +76,10 @@
           <div class="hot-card-footer">
             <span class="match-time">{{ formatTime(match.matchTime) }}</span>
           </div>
-          <div class="hot-card-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
+          <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
+            <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
+          </div>
+          <div class="hot-card-odds" v-if="false && match.oddsA !== null && match.oddsA !== undefined">
             <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
             <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
               <el-icon style="font-size:10px;margin:0 4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
@@ -138,19 +145,18 @@
         <el-button v-else type="primary" class="empty-cta" @click="$router.push('/')">回首页看看</el-button>
       </div>
 
-      <!-- Tournament Groups -->
+      <!-- Date Groups — VLR calendar -->
       <template v-else>
         <div
-          v-for="group in tournamentGroups"
-          :key="'tg-' + group.name"
-          class="tournament-group"
+          v-for="group in dateGroups"
+          :key="'dg-' + group.date"
+          class="date-group"
         >
-          <div class="tournament-group-header" @click="toggleTournament(group.name)">
-            <span class="tournament-group-arrow" :class="{ 'is-expanded': isTournamentExpanded(group.name) }">&#9654;</span>
-            <span class="tournament-group-name">{{ group.name }}</span>
-            <span class="tournament-group-count">{{ group.matches.length }} 场</span>
+          <div class="date-group-header" :class="{ 'date-group-header--live': group.hasLive }">
+            <span class="date-group-date">{{ group.label }}</span>
+            <span class="date-group-count">{{ group.matches.length }} 场</span>
           </div>
-          <div v-show="isTournamentExpanded(group.name)" class="tournament-group-body">
+          <div class="date-group-body">
             <div
               v-for="match in group.matches"
               :key="match.id"
@@ -159,7 +165,10 @@
             >
               <div class="match-tournament">
                 <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-                <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+                <div class="match-tournament-right">
+                  <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+                  <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
+                </div>
               </div>
 
               <div class="match-teams">
@@ -205,13 +214,13 @@
                 </span>
               </div>
 
-              <div class="match-odds" v-if="match.oddsA !== null && match.oddsA !== undefined">
-                <span class="odds-item odds-item--a">{{ match.oddsA.toFixed(2) }}</span>
-                <el-tooltip effect="dark" placement="top" content="赔率=1/中奖概率。例：2.0表示市场认为胜率约50%。最终按彩池制(Parimutuel)结算，你的回报=押注积分×最终赔率。">
-                  <el-icon style="font-size:10px;margin:0 4px;cursor:help;color:var(--text-tertiary)"><QuestionFilled /></el-icon>
-                </el-tooltip>
-                <span class="odds-vs">-</span>
-                <span class="odds-item odds-item--b">{{ match.oddsB.toFixed(2) }}</span>
+              <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
+                <span
+                  v-for="(m, idx) in getMapScores(match)"
+                  :key="idx"
+                  class="map-chip"
+                  :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }"
+                >{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
               </div>
             </div>
           </div>
@@ -260,7 +269,7 @@ export default {
       pollTimer: null,
       collapsedTournaments: [],
       games: [],
-      selectedGameId: null,
+      selectedGameId: 1,
       gamesLoading: false
     }
   },
@@ -306,9 +315,44 @@ export default {
       return order.map(function (name) {
         return { name: name, matches: groups[name] }
       })
+    },
+    dateGroups() {
+      var groups = {}
+      var order = []
+      this.matches.forEach(function (match) {
+        var d = match.matchTime ? new Date(match.matchTime) : null
+        var key = d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '待定'
+        if (!groups[key]) {
+          groups[key] = []
+          order.push(key)
+        }
+        groups[key].push(match)
+      })
+      // 按日期倒序（近日期在前），待定沉底
+      order.sort(function (a, b) {
+        if (a === '待定') return 1
+        if (b === '待定') return -1
+        return b.localeCompare(a)
+      })
+      var self = this
+      return order.map(function (date) {
+        var list = groups[date].slice().sort(function (a, b) {
+          var ta = a.matchTime ? new Date(a.matchTime).getTime() : 0
+          var tb = b.matchTime ? new Date(b.matchTime).getTime() : 0
+          return tb - ta
+        })
+        var hasLive = list.some(function (m) { return m.status === 1 })
+        var label = date === '待定' ? '待定' : self.formatDateLabel(date)
+        return { date: date, label: label, matches: list, hasLive: hasLive }
+      })
     }
   },
   created() {
+    var q = this.$route && this.$route.query && this.$route.query.gameId
+    if (q !== undefined && q !== null && q !== '') {
+      var parsed = Number(q)
+      if (!isNaN(parsed)) this.selectedGameId = parsed
+    }
     this.fetchGames()
     this.fetchMatches()
     this.fetchHotMatches()
@@ -340,6 +384,24 @@ export default {
       return (match.status === 1 || match.status === 2) &&
         match.scoreA !== null && match.scoreA !== undefined &&
         match.scoreB !== null && match.scoreB !== undefined
+    },
+    getMapScores(match) {
+      if (match.mapScores && Array.isArray(match.mapScores)) return match.mapScores
+      if (match.mapScoresJson) {
+        try {
+          var parsed = typeof match.mapScoresJson === 'string' ? JSON.parse(match.mapScoresJson) : match.mapScoresJson
+          if (Array.isArray(parsed)) return parsed
+        } catch (e) { /* ignore */ }
+      }
+      return []
+    },
+    formatDateLabel(isoDate) {
+      // isoDate YYYY-MM-DD -> "MM-DD 周X" 保留年仅当跨年
+      var parts = isoDate.split('-')
+      var m = parts[1] + '-' + parts[2]
+      var d = new Date(isoDate + 'T00:00:00')
+      var week = ['周日','周一','周二','周三','周四','周五','周六']
+      return m + ' ' + week[d.getDay()]
     },
     isTournamentExpanded(name) {
       return this.collapsedTournaments.indexOf(name) === -1
@@ -376,8 +438,10 @@ export default {
       if (this.activeStatus !== 'all') {
         params.status = this.activeStatus
       }
-      if (this.selectedGameId) {
+      if (this.selectedGameId !== null && this.selectedGameId !== '' && this.selectedGameId !== undefined) {
         params.gameId = this.selectedGameId
+      } else {
+        params.gameId = 1
       }
       request.get('/match/list', { params }).then(function (res) {
         var data = res.data || res
@@ -405,8 +469,10 @@ export default {
     fetchHotMatches(silent) {
       if (!silent) this.hotLoading = true
       var params = { limit: 6 }
-      if (this.selectedGameId) {
+      if (this.selectedGameId !== null && this.selectedGameId !== '' && this.selectedGameId !== undefined) {
         params.gameId = this.selectedGameId
+      } else {
+        params.gameId = 1
       }
       request.get('/match/hot', { params: params }).then(function (res) {
         var data = res.data || res
@@ -500,7 +566,7 @@ export default {
   min-height: 200px;
 }
 
-/* Tournament Grouping */
+/* Tournament Grouping (legacy, keep for compat) */
 .tournament-group {
   margin-bottom: 20px;
 }
@@ -558,6 +624,53 @@ export default {
   /* body container */
 }
 
+/* Date Grouping — VLR */
+.date-group {
+  margin-bottom: 18px;
+}
+
+.date-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  user-select: none;
+}
+
+.date-group-header--live {
+  border-left: 3px solid var(--accent-primary);
+  background: linear-gradient(90deg, rgba(0,229,160,0.06) 0%, var(--bg-surface-2) 40%);
+}
+
+.date-group-date {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.date-group-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.date-group-body {
+  display: flex;
+  flex-direction: column;
+}
+
 /* Score Display */
 .score-display {
   display: flex;
@@ -597,14 +710,14 @@ export default {
 
 .match-card {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 88px 1fr auto;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  margin-bottom: 10px;
+  border-radius: var(--radius-row);
+  padding: 12px 14px;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: transform var(--duration-normal) var(--ease-out),
               border-color var(--duration-normal) var(--ease-out),
@@ -612,16 +725,26 @@ export default {
   animation: match-enter 0.4s var(--ease-out) both;
 }
 
-.tournament-group-body .match-card:nth-child(1) { animation-delay: 0ms; }
-.tournament-group-body .match-card:nth-child(2) { animation-delay: 20ms; }
-.tournament-group-body .match-card:nth-child(3) { animation-delay: 40ms; }
-.tournament-group-body .match-card:nth-child(4) { animation-delay: 60ms; }
-.tournament-group-body .match-card:nth-child(5) { animation-delay: 80ms; }
-.tournament-group-body .match-card:nth-child(6) { animation-delay: 100ms; }
-.tournament-group-body .match-card:nth-child(7) { animation-delay: 120ms; }
-.tournament-group-body .match-card:nth-child(8) { animation-delay: 140ms; }
-.tournament-group-body .match-card:nth-child(9) { animation-delay: 160ms; }
-.tournament-group-body .match-card:nth-child(10) { animation-delay: 180ms; }
+.tournament-group-body .match-card:nth-child(1),
+.date-group-body .match-card:nth-child(1) { animation-delay: 0ms; }
+.tournament-group-body .match-card:nth-child(2),
+.date-group-body .match-card:nth-child(2) { animation-delay: 20ms; }
+.tournament-group-body .match-card:nth-child(3),
+.date-group-body .match-card:nth-child(3) { animation-delay: 40ms; }
+.tournament-group-body .match-card:nth-child(4),
+.date-group-body .match-card:nth-child(4) { animation-delay: 60ms; }
+.tournament-group-body .match-card:nth-child(5),
+.date-group-body .match-card:nth-child(5) { animation-delay: 80ms; }
+.tournament-group-body .match-card:nth-child(6),
+.date-group-body .match-card:nth-child(6) { animation-delay: 100ms; }
+.tournament-group-body .match-card:nth-child(7),
+.date-group-body .match-card:nth-child(7) { animation-delay: 120ms; }
+.tournament-group-body .match-card:nth-child(8),
+.date-group-body .match-card:nth-child(8) { animation-delay: 140ms; }
+.tournament-group-body .match-card:nth-child(9),
+.date-group-body .match-card:nth-child(9) { animation-delay: 160ms; }
+.tournament-group-body .match-card:nth-child(10),
+.date-group-body .match-card:nth-child(10) { animation-delay: 180ms; }
 
 @keyframes match-enter {
   from {
@@ -650,7 +773,18 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+.match-tournament-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .match-time {
@@ -680,8 +814,8 @@ export default {
 }
 
 .team-logo {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--bg-surface-3);
@@ -872,6 +1006,40 @@ export default {
   margin-top: 8px;
 }
 
+/* Map chips — THESPIKE */
+.map-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  grid-column: 1 / -1;
+  margin-top: 6px;
+}
+
+.map-chips--sm {
+  gap: 6px;
+}
+
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.map-chip--win {
+  border: 1px solid var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0,229,160,.35);
+  color: var(--accent-primary);
+  background: rgba(0,229,160,0.06);
+}
+
 /* Hot Section */
 .hot-section {
   margin-bottom: 24px;
@@ -940,7 +1108,24 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+}
+.hot-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+.hot-card-top-left .tournament-chip {
+  flex-shrink: 0;
+  max-width: 110px;
 }
 
 .hot-card-teams {
@@ -1058,21 +1243,42 @@ export default {
   }
 }
 
-/* TBD Team Name */
+/* 375px 胶囊不换行兜底 */
+@media (max-width: 375px) {
+  .match-odds-capsule { font-size: 10px; padding: 1px 6px; }
+  .hot-card-top, .match-tournament { gap: 6px; }
+  .tournament-chip { max-width: 90px; font-size: 10px; }
+  .match-list { overflow-x: hidden; }
+}
+
+ /* TBD Team Name */
 .team-name-tbd {
   color: var(--text-tertiary) !important;
   font-style: italic;
 }
 
-/* Hot Card Odds */
-.hot-card-odds {
-  display: flex;
+/* B3: 黄胶囊 — HLTV 风格，与 tournament-chip 并排右侧 */
+.match-odds-capsule {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-subtle);
+  background: rgba(255,181,71,.12);
+  border: 1px solid rgba(255,181,71,.25);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bet-amber, #FFB547);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* Hot Card Odds — B3 已上移，隐藏底部旧赔率 */
+.hot-card-odds {
+  display: none !important;
 }
 
 .odds-item {
@@ -1094,15 +1300,8 @@ export default {
   color: var(--text-tertiary);
 }
 
-/* Match Card Odds */
+/* Match Card Odds — B3 已上移，隐藏底部旧赔率 */
 .match-odds {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-subtle);
+  display: none !important;
 }
 </style>

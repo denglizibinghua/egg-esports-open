@@ -21,9 +21,13 @@ public class EggGameController {
 
     /**
      * 游戏列表（公开）
+     * @param frontend 瓦聚焦：为 true 时只返回瓦洛兰特（gameId=1），后台/seed 传 false 或不传则返回全量
      */
     @GetMapping("/list")
-    public Result<List<EggGame>> list() {
+    public Result<List<EggGame>> list(@RequestParam(required = false, defaultValue = "false") boolean frontend) {
+        if (frontend) {
+            return Result.success(gameService.listActiveForFrontend());
+        }
         return Result.success(gameService.listActive());
     }
 

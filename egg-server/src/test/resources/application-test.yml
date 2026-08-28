@@ -29,6 +29,10 @@ mybatis-plus:
 
 # 关闭定时同步任务（避免测试期间触发外部 API 调用）
 egg:
+  bot:
+    enabled: false
+    daily-limit: 80
+    per-match-limit: 500
   sync:
     enabled: false
     # 覆盖 application.yml 里的 ${GRID_API_KEY} / ${PANDASCORE_API_KEY} 环境变量占位符
