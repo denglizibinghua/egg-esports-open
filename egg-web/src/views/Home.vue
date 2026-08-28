@@ -99,21 +99,24 @@
       </button>
     </div>
 
-    <!-- 3. 公告栏 -->
-    <AnnouncementBar :game-id="selectedGameId" />
+    <!-- 3. 公告栏 D1: 32px细条，首日隐藏由 prop 控制 -->
+    <AnnouncementBar :game-id="selectedGameId" :compact="true" :visible="announcementVisible" />
 
     <!-- ====== 堆叠分区 ====== -->
 
-    <!-- 🔥 热门赛事 -->
-    <div v-if="hotMatches.length > 0" ref="hotSection" class="home-section">
+    <!-- D2: 今日焦点6 — 合并 hot+live 去重取6，3列2行，无孤卡；空时隐藏整区 -->
+    <div v-if="focusMatches.length > 0" ref="focusSection" class="home-section">
       <div class="section-header">
-        <span class="section-header-title">🔥 热门赛事</span>
-        <span class="section-header-count">共 {{ hotMatches.length }} 场</span>
+        <div class="section-header-left">
+          <span class="section-header-title">⭐ 今日焦点</span>
+          <span class="section-header-sub">今日{{ focusMatches.length }}场<span v-if="focusLiveCount>0"> · {{ focusLiveCount }}进行中</span></span>
+        </div>
+        <span class="section-header-count">共 {{ focusMatches.length }} 场</span>
       </div>
       <div class="card-list">
         <div
-          v-for="match in hotMatches"
-          :key="'hot-'+match.id"
+          v-for="match in focusMatches"
+          :key="'focus-'+match.id"
           class="match-card"
           :class="{ 'match-card--live': match.status === 1 }"
           @click="goDetail(match.id)"
@@ -168,70 +171,18 @@
         </div>
       </div>
     </div>
-    <!-- 🔴 进行中 -->
-    <div v-if="liveMatches.length > 0" ref="liveSection" class="home-section">
-      <div class="section-header">
-        <span class="section-header-title">🔴 进行中的比赛</span>
-        <span class="section-header-count">共 {{ liveMatches.length }} 场</span>
-      </div>
-      <div class="card-list">
-        <div
-          v-for="match in liveMatches"
-          :key="'live-'+match.id"
-          class="match-card match-card--live"
-          @click="goDetail(match.id)"
-        >
-          <div class="match-card-top">
-            <div class="match-card-top-left">
-              <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-              <span class="status-badge status-badge--live">
-                <span class="status-dot status-dot--pulse"></span>进行中
-              </span>
-            </div>
-            <span v-if="match.oddsA !== null && match.oddsA !== undefined" class="match-odds-capsule">{{ match.oddsA.toFixed(2) }} / {{ match.oddsB.toFixed(2) }}</span>
-          </div>
-          <div class="match-card-teams">
-            <div class="match-card-team">
-              <div class="team-logo">
-                <el-image :src="match.teamALogo" alt="" fit="contain">
-                  <template #error><span class="team-logo-placeholder">{{ match.teamA.charAt(0) }}</span></template>
-                </el-image>
-              </div>
-              <span class="match-card-team-name">{{ match.teamA }}</span>
-            </div>
-            <div v-if="hasScore(match)" class="match-card-score score--live">
-              <span>{{ match.scoreA }}</span>
-              <span class="match-card-score-sep">:</span>
-              <span>{{ match.scoreB }}</span>
-            </div>
-            <div v-else class="match-card-vs">VS</div>
-            <div class="match-card-team">
-              <div class="team-logo">
-                <el-image :src="match.teamBLogo" alt="" fit="contain">
-                  <template #error><span class="team-logo-placeholder">{{ match.teamB.charAt(0) }}</span></template>
-                </el-image>
-              </div>
-              <span class="match-card-team-name">{{ match.teamB }}</span>
-            </div>
-          </div>
-          <div class="match-card-footer">
-            <span class="match-time">{{ formatTime(match.matchTime) }}</span>
-          </div>
-          <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
-            <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- ⏰ 即将开始 -->
+    <!-- D2: 全部赛程 — upcoming 8 → 默认6 + 展开/收起 + 分页点 -->
     <div v-if="upcomingMatches.length > 0" ref="upcomingSection" class="home-section">
       <div class="section-header">
-        <span class="section-header-title">⏰ 即将开始的比赛</span>
+        <div class="section-header-left">
+          <span class="section-header-title">📅 全部赛程</span>
+          <span class="section-header-sub" v-if="upcomingMatches.length>6">已展示{{ displayUpcoming.length }}/{{ upcomingMatches.length }}</span>
+        </div>
         <span class="section-header-count">共 {{ upcomingMatches.length }} 场</span>
       </div>
       <div class="card-list">
         <div
-          v-for="match in upcomingMatches"
+          v-for="match in displayUpcoming"
           :key="'up-'+match.id"
           class="match-card"
           @click="goDetail(match.id)"
@@ -271,6 +222,16 @@
           <div v-if="match.status === 2 && getMapScores(match).length" class="map-chips map-chips--sm">
             <span v-for="(m, idx) in getMapScores(match)" :key="idx" class="map-chip" :class="{ 'map-chip--win': m.winner !== null && m.winner !== undefined }">{{ m.map }} {{ m.scoreA }}-{{ m.scoreB }}</span>
           </div>
+        </div>
+      </div>
+      <div v-if="hasUpcomingMore" class="section-expand">
+        <button class="section-expand-btn" @click="toggleUpcoming">
+          <span v-if="!upcomingShowAll">展开{{ upcomingRemainCount }}场 ▾</span>
+          <span v-else>收起 ▴</span>
+        </button>
+        <div class="section-dots">
+          <span class="section-dot" :class="{ active: !upcomingShowAll }"></span>
+          <span class="section-dot" :class="{ active: upcomingShowAll }"></span>
         </div>
       </div>
     </div>
@@ -323,33 +284,15 @@
             <div class="podium-points">{{ top3[2].points }} 积分</div>
           </div>
         </div>
-        <div class="rank-table-wrapper">
-        <el-table v-if="leaderboard.length > 0" :data="leaderboard" style="width: 100%" class="rank-table" :row-class-name="getTableRowClass">
-          <el-table-column label="排名" width="80" align="center">
-            <template #default="scope">
-              <span :class="getRankClass(scope.$index + 1)">{{ scope.$index + 1 }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="昵称" min-width="150">
-            <template #default="scope">
-              <span>{{ scope.row.nickname || scope.row.username }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="积分" width="100" align="center" prop="points" />
-          <el-table-column label="胜率" width="160" align="center">
-            <template #default="scope">
-              <div class="mini-progress"><div class="mini-progress-bar" :style="{ width: getAccuracy(scope.row) + '%' }"></div><span class="mini-progress-text">{{ getAccuracy(scope.row) }}%</span></div>
-            </template>
-          </el-table-column>
-          <el-table-column label="连胜" width="80" align="center" prop="winStreak" />
-        </el-table>
+        <div v-if="top3.length > 0" class="rank-more">
+          <router-link to="/leaderboard" class="rank-more-link">查看完整榜单 →</router-link>
         </div>
       </template>
     </div>
 
     <!-- 加载骨架（全空时） -->
-    <div v-if="!loaded && hotMatches.length === 0 && liveMatches.length === 0" class="loading-full">
-      <div v-for="i in 4" :key="'sk-'+i" class="match-card skeleton card-entrance">
+    <div v-if="!loaded && focusMatches.length === 0 && upcomingMatches.length === 0" class="loading-full">
+      <div v-for="i in 6" :key="'sk-'+i" class="match-card skeleton card-entrance">
         <div class="skeleton-line skeleton-line--lg"></div>
         <div class="skeleton-line skeleton-line--md"></div>
         <div class="skeleton-line skeleton-line--sm"></div>
@@ -358,9 +301,8 @@
 
     <!-- 右侧浮动导航 -->
     <div class="float-nav">
-      <button v-if="hotMatches.length > 0" class="float-nav-btn" title="热门赛事" @click="scrollToSection('hot')">🔥</button>
-      <button v-if="liveMatches.length > 0" class="float-nav-btn" title="进行中" @click="scrollToSection('live')">🔴</button>
-      <button v-if="upcomingMatches.length > 0" class="float-nav-btn" title="即将开始" @click="scrollToSection('upcoming')">⏰</button>
+      <button v-if="focusMatches.length > 0" class="float-nav-btn" title="今日焦点" @click="scrollToSection('focus')">⭐</button>
+      <button v-if="upcomingMatches.length > 0" class="float-nav-btn" title="全部赛程" @click="scrollToSection('upcoming')">📅</button>
       <button v-if="top3.length > 0 || leaderboard.length > 0" class="float-nav-btn" title="排行榜" @click="scrollToSection('rank')">🏆</button>
       <button class="float-nav-btn" title="回顶部" @click="scrollToTop">⬆</button>
     </div>
@@ -399,7 +341,10 @@ export default {
       // state
       loaded: false,
       rankLoading: false,
-      pollTimer: null
+      pollTimer: null,
+      announcementVisible: true,
+      // D2: 全部赛程折叠状态
+      upcomingShowAll: false
     }
   },
   computed: {
@@ -409,6 +354,42 @@ export default {
       if (this.selectedGameId === 3) return 'hero--dota'
       if (this.selectedGameId === 4) return 'hero--cs2'
       return 'hero--default'
+    },
+    // D2: 合并 hot+live 去重取6，保证 3列×2行 无孤卡
+    focusMatches() {
+      var seen = {}
+      var merged = []
+      var live = this.liveMatches || []
+      var hot = this.hotMatches || []
+      for (var i = 0; i < live.length; i++) {
+        var m = live[i]
+        if (!seen[m.id]) { seen[m.id] = true; merged.push(m) }
+      }
+      for (var j = 0; j < hot.length; j++) {
+        var h = hot[j]
+        if (!seen[h.id]) { seen[h.id] = true; merged.push(h) }
+      }
+      return merged.slice(0, 6)
+    },
+    focusLiveCount() {
+      var c = 0
+      for (var i = 0; i < this.focusMatches.length; i++) if (this.focusMatches[i].status === 1) c++
+      return c
+    },
+    // D2: 全部赛程 默认6张 + 展开
+    displayUpcoming() {
+      if (this.upcomingShowAll) return this.upcomingMatches
+      return (this.upcomingMatches || []).slice(0, 6)
+    },
+    hasUpcomingMore() {
+      return (this.upcomingMatches || []).length > 6
+    },
+    upcomingRemainCount() {
+      return Math.max(0, (this.upcomingMatches || []).length - 6)
+    },
+    // 兼容旧命名：供模板过渡使用
+    displayHot6() {
+      return this.focusMatches
     }
   },
   created() {
@@ -418,6 +399,18 @@ export default {
       var parsed = Number(q)
       if (!isNaN(parsed)) this.selectedGameId = parsed
     }
+    // D1: 首日不显示公告栏（给 AnnouncementBar 传 visible prop 控制）
+    try {
+      var KEY = 'egg_home_first_seen'
+      var first = localStorage.getItem(KEY)
+      if (!first) {
+        localStorage.setItem(KEY, String(Date.now()))
+        this.announcementVisible = false
+      } else {
+        var elapsed = Date.now() - Number(first)
+        this.announcementVisible = elapsed > 86400000
+      }
+    } catch (e) { this.announcementVisible = true }
     this.fetchGames()
     this.loadAll()
     this.startPolling()
@@ -498,7 +491,11 @@ export default {
     },
     switchGame(gameId) {
       this.selectedGameId = gameId
+      this.upcomingShowAll = false
       this.loadAll()
+    },
+    toggleUpcoming() {
+      this.upcomingShowAll = !this.upcomingShowAll
     },
 
     // ===== 全量加载 =====
@@ -515,7 +512,7 @@ export default {
 
     // ===== 热门 =====
     fetchHot() {
-      var params = { limit: 12 }
+      var params = { limit: 6 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/hot', { params: params }).then(function (res) {
         this.hotMatches = this.filterTBD(extractList(res.data || res))
@@ -534,7 +531,7 @@ export default {
 
     // ===== 进行中 =====
     fetchLive() {
-      var params = { page: 1, size: 20, status: 1 }
+      var params = { page: 1, size: 6, status: 1 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/list', { params: params }).then(function (res) {
         this.liveMatches = this.filterTBD(extractList(res.data || res))
@@ -546,7 +543,7 @@ export default {
 
     // ===== 即将开始 =====
     fetchUpcoming() {
-      var params = { page: 1, size: 20, status: 0 }
+      var params = { page: 1, size: 8, status: 0 }
       if (this.selectedGameId) params.gameId = this.selectedGameId
       request.get('/match/list', { params: params }).then(function (res) {
         this.upcomingMatches = this.filterTBD(extractList(res.data || res))
@@ -558,7 +555,7 @@ export default {
       }.bind(this))
     },
 
-    // ===== 排行榜 =====
+    // ===== 排行榜 ===== D5: 首页仅 podium3，完整表格迁至 /leaderboard
     fetchRank() {
       this.rankLoading = true
       var self = this
@@ -567,16 +564,11 @@ export default {
       request.get('/leaderboard/top/3', { params: params }).then(function (res) {
         var data = res.data || res
         self.top3 = Array.isArray(data) ? data : []
-      }.bind(self)).catch(function () { self.top3 = [] }.bind(self))
-      var params2 = { page: 1, size: 10 }
-      if (this.selectedGameId) params2.gameId = this.selectedGameId
-      request.get('/leaderboard/points', { params: params2 }).then(function (res) {
-        this.leaderboard = extractList(res.data || res)
-      }.bind(this)).catch(function () {
-        this.leaderboard = []
-      }.bind(this)).finally(function () {
-        this.rankLoading = false
-      }.bind(this))
+      }.bind(self)).catch(function () { self.top3 = [] }.bind(self)).finally(function () {
+        self.rankLoading = false
+      }.bind(self))
+      // 保留 leaderboard 空数组以兼容模板，完整数据由 /leaderboard 页加载
+      self.leaderboard = []
     },
 
     // ===== 轮询 =====
@@ -599,7 +591,7 @@ export default {
 
     // ===== 浮动导航 =====
     scrollToSection(key) {
-      var refMap = { hot: 'hotSection', live: 'liveSection', upcoming: 'upcomingSection', rank: 'rankSection' }
+      var refMap = { focus: 'focusSection', hot: 'focusSection', live: 'focusSection', upcoming: 'upcomingSection', rank: 'rankSection' }
       var ref = refMap[key]
       if (ref && this.$refs[ref]) {
         this.$refs[ref].scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -615,13 +607,13 @@ export default {
 <style scoped>
 /* ===== HERO 区域 ===== */
 .hero {
-  min-height: 360px;
+  min-height: 240px;
   width: 100%;
   max-width: 100%;
   border-radius: var(--radius-xl);
   position: relative;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -691,6 +683,7 @@ export default {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  opacity: 0.45;
 }
 .hero-particles::before {
   content: '';
@@ -743,12 +736,12 @@ export default {
   width: 100%;
   max-width: 100%;
   min-height: 100%;
-  padding: 20px 24px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -764,8 +757,8 @@ export default {
 }
 .hero-title {
   font-family: var(--font-display);
-  font-size: 48px;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 1px;
   color: var(--text-primary);
   line-height: 1;
   font-weight: 400;
@@ -774,8 +767,9 @@ export default {
 }
 .hero-subtitle {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
+  opacity: 0.7;
   margin: 0;
   line-height: 1.5;
   white-space: nowrap;
@@ -785,13 +779,13 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  max-width: 640px;
+  max-width: 560px;
   background: rgba(18,18,26,0.55);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 14px 18px;
+  padding: 12px 16px;
   backdrop-filter: blur(8px);
   box-sizing: border-box;
 }
@@ -830,9 +824,9 @@ export default {
 
 .hero-team-name {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 22px;
   color: var(--text-primary);
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   white-space: nowrap;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.12), 0 0 40px rgba(0, 229, 160, 0.08);
 }
@@ -846,14 +840,14 @@ export default {
 
 .hero-score {
   font-family: var(--font-mono);
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 800;
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 
 .hero-score.score--live {
@@ -874,9 +868,9 @@ export default {
 
 .hero-vs {
   font-family: var(--font-display);
-  font-size: 42px;
+  font-size: 32px;
   color: var(--accent-primary);
-  letter-spacing: 4px;
+  letter-spacing: 3px;
   text-shadow: 0 0 20px rgba(0, 229, 160, 0.4);
   animation: hero-vs-pulse 4s ease-in-out infinite;
 }
@@ -1026,7 +1020,7 @@ export default {
 }
 
 .home-section {
-  margin-bottom: 36px;
+  margin-bottom: 48px;
   animation: fade-in 0.4s var(--ease-out);
 }
 @keyframes fade-in {
@@ -1039,8 +1033,8 @@ export default {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 14px;
-  margin-bottom: 20px;
+  padding-bottom: 12px;
+  margin-bottom: 28px;
   border-bottom: 1px solid var(--border-subtle);
   position: relative;
 }
@@ -1053,8 +1047,8 @@ export default {
   border-radius: 1px;
 }
 .section-header-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-primary);
   font-family: var(--font-display);
   letter-spacing: 1px;
@@ -1064,19 +1058,82 @@ export default {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
 }
+.section-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.section-header-sub {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  opacity: 0.65;
+  font-family: var(--font-body);
+  letter-spacing: 0.3px;
+}
+.section-expand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.section-expand-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+.section-expand-btn:hover {
+  color: var(--accent-primary);
+  border-color: rgba(0,229,160,0.3);
+  background: rgba(0,229,160,0.06);
+}
+.section-dots {
+  display: flex;
+  gap: 6px;
+}
+.section-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-default);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.section-dot.active {
+  background: var(--accent-primary);
+  transform: scale(1.2);
+}
+.section-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  opacity: 0.65;
+  font-family: var(--font-body);
+  margin: -20px 0 8px;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+}
 
-/* ===== 卡片列表 ===== */
+/* ===== 卡片列表 D3: 3列20px透气 ===== */
 .card-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
 .match-card {
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 16px;
+  min-height: 128px;
+  box-sizing: border-box;
   cursor: pointer;
   transition: transform 0.25s var(--ease-out), border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
   position: relative;
@@ -1106,7 +1163,7 @@ export default {
   opacity: 0;
   transition: opacity 0.25s ease;
 }
-.match-card:hover { transform: translateY(-4px); border-color: rgba(0, 229, 160, 0.3); box-shadow: 0 0 20px rgba(0,229,160,0.15), var(--shadow-lg); }
+.match-card:hover { transform: translateY(-2px); border-color: rgba(0, 229, 160, 0.24); background: rgba(0,229,160,0.04); box-shadow: 0 4px 16px rgba(0,229,160,0.10), var(--shadow-lg); }
 .match-card:hover::before { opacity: 1; }
 
 .match-card--live {
@@ -1161,13 +1218,14 @@ export default {
   border-radius: 999px;
   padding: 2px 8px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--bet-amber, #FFB547);
   white-space: nowrap;
   flex-shrink: 0;
   line-height: 1.4;
   letter-spacing: 0.02em;
+  opacity: 0.9;
 }
 .match-card-teams {
   display: flex;
@@ -1184,7 +1242,7 @@ export default {
   min-width: 0;
 }
 .match-card-team-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
@@ -1244,7 +1302,8 @@ export default {
 .match-time {
   color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12px;
+  opacity: 0.65;
 }
 
 /* Map chips — THESPIKE thumbnail (11px gap6px) */
@@ -1296,9 +1355,9 @@ export default {
   white-space: nowrap;
 }
 
-/* ===== team-logo ===== */
+/* ===== team-logo D3: 48→40 行式化 ===== */
 .team-logo {
-  width: 48px; height: 48px;
+  width: 40px; height: 40px;
   border-radius: var(--radius-full);
   overflow: hidden;
   background: var(--bg-surface-3);
@@ -1325,8 +1384,8 @@ export default {
   justify-content: center;
   align-items: flex-end;
   gap: 20px;
-  margin-bottom: 32px;
-  padding: 24px 0;
+  margin-bottom: 16px;
+  padding: 16px 0 8px;
 }
 .podium-item {
   background: var(--bg-surface-1);
@@ -1471,20 +1530,26 @@ export default {
 
 .loading-full {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 }
 
-/* ===== 右侧浮动导航 ===== */
+.rank-more {
+  text-align: center;
+  margin-top: 12px;
+}
+.rank-more-link {
+  font-size: 13px;
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-family: var(--font-body);
+  opacity: 0.9;
+}
+.rank-more-link:hover { opacity: 1; text-decoration: underline; }
+
+/* ===== 右侧浮动导航 ===== — D5 已下线，首屏减噪，保留DOM以备回滚 */
 .float-nav {
-  position: fixed;
-  right: 12px;
-  bottom: 40px;
-  width: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 200;
+  display: none !important;
 }
 .float-nav-btn {
   width: 40px; height: 40px;
@@ -1505,30 +1570,26 @@ export default {
   transform: translateY(-2px);
 }
 
-/* ===== 响应式 ===== */
-@media (min-width: 1401px) {
-  .card-list { grid-template-columns: repeat(5, 1fr); }
-}
-
+/* ===== 响应式 D3: 1280→3列 900→2列 600→1列 ===== */
 .rank-table-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .card-list, .loading-full { grid-template-columns: repeat(3, 1fr); }
 }
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .card-list, .loading-full { grid-template-columns: repeat(2, 1fr); }
-  .hero { min-height: 300px; }
-  .hero-content { padding: 14px 12px; gap: 10px; }
-  .hero-title { font-size: 36px; letter-spacing: 1.5px; }
+  .hero { min-height: 220px; }
+  .hero-content { padding: 12px 12px; gap: 8px; }
+  .hero-title { font-size: 22px; letter-spacing: 1px; }
   .hero-subtitle { font-size: 12px; white-space: normal; text-align: center; }
-  .hero-focus-card { padding: 12px 14px; max-width: 100%; }
+  .hero-focus-card { padding: 10px 14px; max-width: 100%; }
   .hero-teams { gap: 16px; }
-  .hero-team-name { font-size: 22px; letter-spacing: 2px; }
-  .hero-score { font-size: 36px; }
-  .hero-vs { font-size: 30px; }
+  .hero-team-name { font-size: 18px; letter-spacing: 1px; }
+  .hero-score { font-size: 28px; }
+  .hero-vs { font-size: 24px; }
   /* hero 底部按钮区允许换行，避免溢出 */
   .hero-footer { gap: 12px; flex-wrap: wrap; }
   .hero-btn { padding: 10px 22px !important; font-size: 14px !important; }
@@ -1549,16 +1610,16 @@ export default {
   .float-nav { right: 8px; bottom: 24px; }
   .float-nav-btn { width: 36px; height: 36px; font-size: 16px; }
 }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .card-list, .loading-full { grid-template-columns: 1fr; }
-  .hero { min-height: 280px; }
-  .hero-title { font-size: 30px; letter-spacing: 1px; }
+  .hero { min-height: 200px; }
+  .hero-title { font-size: 20px; letter-spacing: 1px; }
   .hero-subtitle { font-size: 11px; line-height: 1.4; }
   .hero-focus-card { padding: 10px 12px; }
-  .hero-teams { gap: 16px; }
-  .hero-team-name { font-size: 18px; }
-  .hero-score { font-size: 28px; }
-  .hero-vs { font-size: 24px; }
+  .hero-teams { gap: 14px; }
+  .hero-team-name { font-size: 16px; }
+  .hero-score { font-size: 24px; }
+  .hero-vs { font-size: 20px; }
   /* 长队名允许换行，避免横向溢出 */
   .hero-team-name { white-space: normal; text-align: center; line-height: 1.2; }
   .hero-team { gap: 8px; }
@@ -1566,8 +1627,8 @@ export default {
   .match-card-top-left { gap: 4px; }
 }
 @media (max-width: 375px) {
-  .hero { min-height: 260px; }
-  .hero-title { font-size: 26px; }
+  .hero { min-height: 190px; }
+  .hero-title { font-size: 18px; }
   .hero-subtitle { font-size: 10px; }
   .hero-tournament, .match-card-top { gap: 6px; }
   .match-odds-capsule { font-size: 10px; padding: 1px 6px; }

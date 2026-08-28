@@ -1,6 +1,6 @@
 <template>
   <div>
-  <div class="announcement-bar" v-if="announcements.length > 0 && !dismissed">
+  <div class="announcement-bar" :class="{ 'announcement-bar--compact': compact }" v-if="visible && announcements.length > 0 && !dismissed">
     <div class="announcement-accent"></div>
     <el-icon class="announcement-icon"><Bell /></el-icon>
     <div class="announcement-body" @click="showDetail(announcements.length === 1 ? announcements[0] : announcements[currentIndex])" style="cursor: pointer">
@@ -77,6 +77,14 @@ export default {
     gameId: {
       type: [Number, String],
       default: null
+    },
+    compact: {
+      type: Boolean,
+      default: false
+    },
+    visible: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
@@ -144,15 +152,22 @@ export default {
 .announcement-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
+  gap: 10px;
+  padding: 6px 14px;
+  min-height: 32px;
+  box-sizing: border-box;
   background: var(--bg-surface-2);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   position: relative;
   overflow: hidden;
   animation: announcement-enter 0.4s var(--ease-out) both;
+}
+.announcement-bar--compact {
+  padding: 4px 12px;
+  min-height: 28px;
+  margin-bottom: 10px;
 }
 
 @keyframes announcement-enter {
@@ -292,9 +307,10 @@ export default {
 
 @media (max-width: 767px) {
   .announcement-bar {
-    padding: 8px 12px;
+    padding: 5px 10px;
     gap: 8px;
     font-size: 12px;
+    min-height: 28px;
   }
 }
 

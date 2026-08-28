@@ -1,10 +1,11 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    width="480px"
+    width="360px"
     custom-class="popup-announcement-dialog"
     :append-to-body="true"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
+    :close-on-press-escape="true"
     @close="onClose"
   >
     <template #header>
@@ -31,7 +32,7 @@
       <span class="popup-dialog-footer">
         <label class="popup-dismiss-today">
           <input type="checkbox" v-model="dismissToday" />
-          <span>今日不再提醒</span>
+          <span>7天不再提醒</span>
         </label>
         <el-button class="popup-close-btn" @click="closeAndNext">关闭</el-button>
       </span>
@@ -84,8 +85,17 @@ export default {
       localStorage.setItem('egg_popup_dismissed', JSON.stringify(ids))
     },
     isDismissedToday() {
+      // 7天逻辑：egg_popup_dismissed_today 存过期时间戳
       var val = localStorage.getItem('egg_popup_dismissed_today')
-      return val === this.getTodayStr()
+      if (!val) return false
+      // 兼容旧版 "YYYY-MM-DD" 值：当日仍视为屏蔽
+      if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val === this.getTodayStr()
+      var ts = Number(val)
+      return !isNaN(ts) && Date.now() < ts
+    },
+    setDismissed7Days() {
+      var expire = Date.now() + 7 * 24 * 60 * 60 * 1000
+      localStorage.setItem('egg_popup_dismissed_today', String(expire))
     },
     fetchPopupAnnouncements() {
       if (this.isDismissedToday()) return
@@ -104,13 +114,18 @@ export default {
         if (filtered.length > 0) {
           self.queue = filtered
           self.currentIndex = 0
-          self.dialogVisible = true
+          // D5: 首绘不阻塞，3s 后再弹
+          setTimeout(function () {
+            // 若期间已被屏蔽则不再弹
+            if (self.isDismissedToday()) return
+            self.dialogVisible = true
+          }, 3000)
         }
       }).catch(function () {})
     },
     onClose() {
       if (this.dismissToday) {
-        localStorage.setItem('egg_popup_dismissed_today', this.getTodayStr())
+        this.setDismissed7Days()
       }
     },
     closeAndNext() {
@@ -123,7 +138,7 @@ export default {
       }
 
       if (this.dismissToday) {
-        localStorage.setItem('egg_popup_dismissed_today', this.getTodayStr())
+        this.setDismissed7Days()
         this.dialogVisible = false
         return
       }
