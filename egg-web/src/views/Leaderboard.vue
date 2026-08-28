@@ -102,8 +102,7 @@
             </div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[1].points }} 积分</template>
-            <template v-else-if="leaderboardTab === 'points'">{{ top3[1].correctBets || 0 }} 猜中</template>
+            <template v-if="leaderboardTab === 'points'">{{ top3[1].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[1]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[1].netProfit || 0 }}</template>
           </div>
@@ -117,8 +116,7 @@
             </div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[0].points }} 积分</template>
-            <template v-else-if="leaderboardTab === 'points'">{{ top3[0].correctBets || 0 }} 猜中</template>
+            <template v-if="leaderboardTab === 'points'">{{ top3[0].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[0]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[0].netProfit || 0 }}</template>
           </div>
@@ -131,8 +129,7 @@
             </div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
           <div class="podium-points">
-            <template v-if="leaderboardTab === 'points' && selectedGameId == ''">{{ top3[2].points }} 积分</template>
-            <template v-else-if="leaderboardTab === 'points'">{{ top3[2].correctBets || 0 }} 猜中</template>
+            <template v-if="leaderboardTab === 'points'">{{ top3[2].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[2]) }}%</template>
             <template v-else-if="leaderboardTab === 'worst-profit'">净收益 {{ top3[2].netProfit || 0 }}</template>
           </div>

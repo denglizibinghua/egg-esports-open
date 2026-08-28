@@ -16,7 +16,7 @@ public interface LeaderboardMapper {
 
     /**
      * 按游戏查询排行榜（分页）
-     * 排序：猜中次数 DESC，总押注数 DESC
+     * 排序：积分 DESC，猜中次数 DESC（与全局榜一致，积分是主排序）
      */
     @Select("SELECT u.id as user_id, u.nickname, u.avatar, u.points, " +
             "COUNT(CASE WHEN b.status = 1 AND m.result != 2 THEN 1 END) as correct_bets, " +
@@ -27,7 +27,7 @@ public interface LeaderboardMapper {
             "INNER JOIN egg_match m ON b.match_id = m.id " +
             "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
-            "ORDER BY correct_bets DESC, total_bets DESC " +
+            "ORDER BY u.points DESC, correct_bets DESC " +
             "LIMIT #{offset}, #{n}")
     List<LeaderboardVO> selectGameLeaderboardLimit(@Param("gameId") Long gameId,
                                                     @Param("offset") int offset,
@@ -55,7 +55,7 @@ public interface LeaderboardMapper {
             "INNER JOIN egg_match m ON b.match_id = m.id " +
             "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
-            "ORDER BY correct_bets DESC, total_bets DESC " +
+            "ORDER BY u.points DESC, correct_bets DESC " +
             "LIMIT #{n}")
     List<LeaderboardVO> selectGameLeaderboardTop(@Param("gameId") Long gameId,
                                                   @Param("n") int n);
@@ -72,7 +72,7 @@ public interface LeaderboardMapper {
             "INNER JOIN egg_match m ON b.match_id = m.id " +
             "WHERE m.game_id = #{gameId} AND u.username NOT LIKE 'bot_%' " +
             "GROUP BY u.id " +
-            "ORDER BY correct_bets DESC, total_bets DESC")
+            "ORDER BY u.points DESC, correct_bets DESC")
     List<LeaderboardVO> selectGameLeaderboardAll(@Param("gameId") Long gameId);
 
     // ==================== 胜率排行榜（≥10 场） ====================
