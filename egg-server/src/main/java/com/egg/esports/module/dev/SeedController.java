@@ -130,43 +130,22 @@ public class SeedController {
         // 3. 确保演示账号存在（D1）
         ensureDemoAccounts();
 
-        // 4. 插入18场瓦比赛：6已结束 + 6进行中 + 6未开始(未来24h)
+        // 4. 插入18场瓦比赛：全部直接已结束，不占今日焦点/热门，仅案例墙可见
         List<EggMatch> inserted = new ArrayList<>();
         List<Long> notStartedIds = new ArrayList<>();
         List<Long> finishedIds = new ArrayList<>();
 
-        // 6已结束：过去7天内
-        for (int i = 0; i < 6; i++) {
-            EggMatch m = buildMatch(rnd, now, -7 * 24 + i * 20, 2);
+        // 18已结束：过去7天内均匀分布，直接 settled
+        for (int i = 0; i < 18; i++) {
+            EggMatch m = buildMatch(rnd, now, -7 * 24 + i * 9, 2);
             int r = rnd.nextInt(0, 2); // 0=A胜 1=B胜
             m.setResult(r);
-            // score 2-0 or 2-1 style: use 2/1 or 2/0 map logic via MatchQueryService
             if (r == 0) { m.setScoreA(2); m.setScoreB(rnd.nextInt(0, 2)); }
             else { m.setScoreA(rnd.nextInt(0, 2)); m.setScoreB(2); }
-            m.setSettledAt(null); // 待 settle 流程写入
+            m.setSettledAt(null);
             matchMapper.insert(m);
             inserted.add(m);
             finishedIds.add(m.getId());
-        }
-        // 6进行中：过去3小时内开始
-        for (int i = 0; i < 6; i++) {
-            EggMatch m = buildMatch(rnd, now, -3 + i, 1);
-            m.setScoreA(rnd.nextInt(0, 10));
-            m.setScoreB(rnd.nextInt(0, 10));
-            matchMapper.insert(m);
-            inserted.add(m);
-        }
-        // 6未开始：未来24h内
-        for (int i = 0; i < 6; i++) {
-            int hoursAhead = 1 + rnd.nextInt(0, 24); // 1-24h
-            int minuteJitter = rnd.nextInt(0, 60);
-            EggMatch m = buildMatch(rnd, now, hoursAhead, 0);
-            // 微调分钟
-            m.setMatchTime(m.getMatchTime().plusMinutes(minuteJitter));
-            m.setBetDeadline(m.getMatchTime().minusMinutes(5));
-            matchMapper.insert(m);
-            inserted.add(m);
-            notStartedIds.add(m.getId());
         }
         result.put("insertedMatches", inserted.size());
         result.put("finishedIds", finishedIds.size());
