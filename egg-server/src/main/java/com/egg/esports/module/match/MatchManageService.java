@@ -182,8 +182,23 @@ public class MatchManageService {
                 existing.setMatchTime(match.getMatchTime());
                 changed = true;
             }
-            // 🔒 title 首次创建后不覆盖，防止同步翻转（实现已移除，保留注释说明策略）
-            // 🔒 队伍名首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
+            // 🔒 队伍名/标题首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
+            // 例外：TBD/TBA/? 占位符允许被真队名覆盖（否则线上永远待定）
+            if (isPlaceholder(existing.getTeamA()) && !isPlaceholder(match.getTeamA())
+                    && match.getTeamA() != null && !match.getTeamA().equals(existing.getTeamA())) {
+                existing.setTeamA(match.getTeamA());
+                changed = true;
+            }
+            if (isPlaceholder(existing.getTeamB()) && !isPlaceholder(match.getTeamB())
+                    && match.getTeamB() != null && !match.getTeamB().equals(existing.getTeamB())) {
+                existing.setTeamB(match.getTeamB());
+                changed = true;
+            }
+            if ((isPlaceholder(existing.getTeamA()) || isPlaceholder(existing.getTeamB()))
+                    && match.getTitle() != null && !match.getTitle().equals(existing.getTitle())) {
+                existing.setTitle(match.getTitle());
+                changed = true;
+            }
             // 队标可以安全更新——图片 URL 不存在翻转问题
             if (match.getTeamALogo() != null && !match.getTeamALogo().equals(existing.getTeamALogo())) {
                 existing.setTeamALogo(match.getTeamALogo());
@@ -216,5 +231,11 @@ public class MatchManageService {
             matchMapper.insert(match);
             return match;
         }
+    }
+
+    private boolean isPlaceholder(String s) {
+        if (s == null) return true;
+        String t = s.trim();
+        return t.isEmpty() || t.equalsIgnoreCase("TBD") || t.equalsIgnoreCase("TBA") || t.equals("?");
     }
 }
