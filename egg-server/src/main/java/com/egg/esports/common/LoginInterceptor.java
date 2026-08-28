@@ -20,6 +20,13 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        // 公开读接口：GET /api/match/{id} 详情页未登录可浏览（WebConfig 已放行 list/hot/tournaments，这里放行 detail）
+        String uri = request.getRequestURI();
+        String method = request.getMethod();
+        if ("GET".equalsIgnoreCase(method) && uri.matches("/api/match/\\d+")) {
+            return true;
+        }
+
         String token = request.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
             response.setContentType("application/json;charset=UTF-8");

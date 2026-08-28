@@ -102,33 +102,50 @@ public class RiotAdapter implements GameSourceAdapter {
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-api-key", apiKey);
 
-        String url = baseUrl + "?hl=en-US&sport=" + sport + "&leagueId=" + leagueId;
-        log.info("正在获取联赛 {} 的赛程数据: {}", leagueId, url);
-
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-        // restTemplate.exchange 抛出 RestClientException（运行时异常），直接向上传播触发重试
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-        // JsonProcessingException 为检查异常，包装为 RuntimeException 向上抛出
-        JsonNode root;
-        try {
-            root = objectMapper.readTree(response.getBody());
-        } catch (JsonProcessingException e) {
-            log.error("解析联赛 {} 响应 JSON 失败: {}", leagueId, e.getMessage(), e);
-            throw new RuntimeException("解析 Riot 联赛 " + leagueId + " 响应 JSON 失败", e);
-        }
-
-        JsonNode events = root.at("/data/schedule/events");
-
-        if (events.isMissingNode() || !events.isArray()) {
-            log.warn("联赛 {} 响应中未找到 events 数组", leagueId);
-            return List.of();
-        }
-
         List<JsonNode> result = new ArrayList<>();
-        for (JsonNode event : events) {
-            result.add(event);
+        String pageToken = null;
+        int pageCount = 0;
+        final int MAX_PAGES = 10;
+
+        while (pageCount < MAX_PAGES) {
+            pageCount++;
+            String url = baseUrl + "?hl=en-US&sport=" + sport + "&leagueId=" + leagueId;
+            if (pageToken != null) {
+                url += "&page=" + pageToken;
+            }
+            log.info("正在获取联赛 {} 的赛程数据: page {} url={}", leagueId, pageCount, url);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+            JsonNode root;
+            try {
+                root = objectMapper.readTree(response.getBody());
+            } catch (JsonProcessingException e) {
+                log.error("解析联赛 {} 响应 JSON 失败: {}", leagueId, e.getMessage(), e);
+                throw new RuntimeException("解析 Riot 联赛 " + leagueId + " 响应 JSON 失败", e);
+            }
+
+            JsonNode events = root.at("/data/schedule/events");
+            if (events.isMissingNode() || !events.isArray()) {
+                log.warn("联赛 {} 响应中未找到 events 数组", leagueId);
+                break;
+            }
+            for (JsonNode event : events) {
+                result.add(event);
+            }
+
+            // 分页：跟随 pages.older 直到为空（Riot 用 base64 的 older::id）
+            JsonNode older = root.at("/data/schedule/pages/older");
+            String nextToken = (older.isMissingNode() || older.isNull()) ? null : older.asText(null);
+            if (nextToken == null || nextToken.isEmpty()) {
+                break;
+            }
+            pageToken = nextToken;
+            // 避免对同一 token 死循环
+            try { Thread.sleep(400); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); break; }
         }
+        log.info("联赛 {} 共获取 {} 个事件 ({} 页)", leagueId, result.size(), pageCount);
         return result;
     }
 

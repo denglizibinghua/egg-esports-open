@@ -50,6 +50,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 登录拦截 — 未登录可浏览，放开所有公开读接口
+        // 注意：/api/match/** 不再全局放行，改为细粒度放行 list/hot/tournaments，detail 由 LoginInterceptor 按 GET 放行，sync 需管理员
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
@@ -58,7 +59,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/announcement/active",
                         "/api/game/**",
                         "/api/leaderboard/**",
-                        "/api/match/**",
+                        "/api/match/list",
+                        "/api/match/hot",
+                        "/api/match/tournaments",
                         "/api/matches/**",
                         "/api/bet/count/**",
                         "/api/bet/odds/**",
