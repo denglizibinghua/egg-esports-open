@@ -319,6 +319,19 @@ public class MatchManageService {
                     }
                 }
             }
+            // 标题与队名一致性自愈：队名已修正但标题仍残留 TBD（例：LOUD vs G2 标题仍 TBD vs G2）
+            // 即使两队已非占位，标题后缀也必须等于 teamA vs teamB
+            if (existing.getTitle() != null && existing.getTitle().contains(" — ")
+                    && existing.getTeamA() != null && existing.getTeamB() != null
+                    && !isPlaceholder(existing.getTeamA()) && !isPlaceholder(existing.getTeamB())) {
+                String suffix = existing.getTitle().substring(existing.getTitle().indexOf(" — ") + 3);
+                String expected = existing.getTeamA() + " vs " + existing.getTeamB();
+                if (!suffix.equals(expected)) {
+                    String prefix = existing.getTitle().substring(0, existing.getTitle().indexOf(" — ") + 3);
+                    existing.setTitle(prefix + expected);
+                    changed = true;
+                }
+            }
             if (match.getTournament() != null && !match.getTournament().equals(existing.getTournament())) {
                 existing.setTournament(match.getTournament());
                 changed = true;
