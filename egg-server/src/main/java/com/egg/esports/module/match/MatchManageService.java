@@ -182,31 +182,142 @@ public class MatchManageService {
                 existing.setMatchTime(match.getMatchTime());
                 changed = true;
             }
-            // 🔒 队伍名/标题首次创建后不覆盖，防止 Riot API teams[] 顺序翻转导致押注历史错乱
-            // 例外：TBD/TBA/? 占位符允许被真队名覆盖（否则线上永远待定）
-            if (isPlaceholder(existing.getTeamA()) && !isPlaceholder(match.getTeamA())
-                    && match.getTeamA() != null && !match.getTeamA().equals(existing.getTeamA())) {
-                existing.setTeamA(match.getTeamA());
-                changed = true;
+            // 🔒 队伍名/标题智能占位填充 — 修复 Riot teams[] 顺序翻转导致 LOUD vs LOUD 重复
+            // 场景：existing=TBD vs LOUD, 新数据翻转为 LOUD vs MIBR 时，旧逻辑会把 TBD 填成 LOUD 造成重复
+            // 策略：
+            //  1) 双占位 → 直接用新队名覆盖（需判重防 LOUD vs LOUD 源数据异常）
+            //  2) 单占位 → 检查新队名是否与已知队重复，若重复则取另一侧队名
+            //  3) 队标与队名联动更新，避免 logo 已翻转但队名仍旧导致 MIBR logo 配 LOUD 队名
+            boolean phA = isPlaceholder(existing.getTeamA());
+            boolean phB = isPlaceholder(existing.getTeamB());
+            boolean newPhA = isPlaceholder(match.getTeamA());
+            boolean newPhB = isPlaceholder(match.getTeamB());
+
+            if (phA || phB) {
+                String newA = match.getTeamA();
+                String newB = match.getTeamB();
+                String existA = existing.getTeamA();
+                String existB = existing.getTeamB();
+
+                if (phA && phB) {
+                    // 双占位：新数据双真实且不重复 → 直接覆盖
+                    if (!newPhA && !newPhB && newA != null && newB != null && !newA.equals(newB)) {
+                        if (!newA.equals(existA)) { existing.setTeamA(newA); changed = true; }
+                        if (!newB.equals(existB)) { existing.setTeamB(newB); changed = true; }
+                    } else if (!newPhA && newPhB && newA != null) {
+                        // 仅一侧真实（如 TBD vs LOUD）
+                        if (!newA.equals(existA) && !newA.equals(existB)) { existing.setTeamA(newA); changed = true; }
+                    } else if (newPhA && !newPhB && newB != null) {
+                        if (!newB.equals(existA) && !newB.equals(existB)) { existing.setTeamB(newB); changed = true; }
+                    }
+                } else if (phA && !phB) {
+                    // A 占位 B 已知（如 TBD vs LOUD）
+                    String knownB = existB;
+                    if (!newPhA && newA != null && !newA.equals(knownB) && !newA.equals(existA)) {
+                        existing.setTeamA(newA); changed = true;
+                    } else if (!newPhB && newB != null && !newB.equals(knownB) && !newB.equals(existA)) {
+                        // 翻转：newA==knownB，新 B 才是真实对手（LOUD vs MIBR → MIBR）
+                        existing.setTeamA(newB); changed = true;
+                    } else if (!newPhA && newA != null && newA.equals(knownB) && !newPhB && newB != null) {
+                        // 明确翻转场景，直接取对手
+                        if (!newB.equals(knownB)) { existing.setTeamA(newB); changed = true; }
+                    }
+                } else if (!phA && phB) {
+                    // B 占位 A 已知（如 LEV vs TBD）
+                    String knownA = existA;
+                    if (!newPhB && newB != null && !newB.equals(knownA) && !newB.equals(existB)) {
+                        existing.setTeamB(newB); changed = true;
+                    } else if (!newPhA && newA != null && !newA.equals(knownA) && !newA.equals(existB)) {
+                        existing.setTeamB(newA); changed = true;
+                    } else if (!newPhB && newB != null && newB.equals(knownA) && !newPhA && newA != null) {
+                        if (!newA.equals(knownA)) { existing.setTeamB(newA); changed = true; }
+                    }
+                }
+
+                // 标题随队名联动重算（避免 TBD vs LOUD 残留）
+                if (changed) {
+                    String correctedA = existing.getTeamA();
+                    String correctedB = existing.getTeamB();
+                    if (correctedA != null && correctedB != null && !correctedA.equals(correctedB)) {
+                        // 保留联赛前缀：若原标题含 " — " 则保留前缀，否则直接拼接
+                        String newTitle = correctedA + " vs " + correctedB;
+                        String oldTitle = existing.getTitle();
+                        if (oldTitle != null && oldTitle.contains(" — ")) {
+                            String prefix = oldTitle.substring(0, oldTitle.indexOf(" — ") + 3);
+                            newTitle = prefix + newTitle;
+                        } else if (match.getTitle() != null && match.getTitle().contains(" — ")) {
+                            String prefix = match.getTitle().substring(0, match.getTitle().indexOf(" — ") + 3);
+                            newTitle = prefix + newTitle;
+                        }
+                        if (!newTitle.equals(existing.getTitle())) {
+                            existing.setTitle(newTitle);
+                        }
+                    }
+                }
             }
-            if (isPlaceholder(existing.getTeamB()) && !isPlaceholder(match.getTeamB())
-                    && match.getTeamB() != null && !match.getTeamB().equals(existing.getTeamB())) {
-                existing.setTeamB(match.getTeamB());
-                changed = true;
+            // 自愈：已脏数据 LOUD vs LOUD / LEV vs LEV（两队非占位但重复），即使非占位也强制用新数据纠正
+            // 生产 3451/3452 已命中：logo 已正确但队名重复，下次同步自动自愈
+            if (!phA && !phB && existing.getTeamA() != null && existing.getTeamA().equals(existing.getTeamB())) {
+                String dup = existing.getTeamA();
+                String newA = match.getTeamA();
+                String newB = match.getTeamB();
+                if (!isPlaceholder(newA) && !isPlaceholder(newB) && newA != null && newB != null && !newA.equals(newB)) {
+                    // 新数据双真实且不重复 → 直接覆盖双侧（即使顺序翻转，也比重复正确；score/result 翻转由上方 teamFlipped 逻辑处理）
+                    if (!newA.equals(existing.getTeamA()) || !newB.equals(existing.getTeamB())) {
+                        existing.setTeamA(newA);
+                        existing.setTeamB(newB);
+                        changed = true;
+                        // 标题重算
+                        String oldTitle = existing.getTitle();
+                        String prefix = "";
+                        if (oldTitle != null && oldTitle.contains(" — ")) {
+                            prefix = oldTitle.substring(0, oldTitle.indexOf(" — ") + 3);
+                        } else if (match.getTitle() != null && match.getTitle().contains(" — ")) {
+                            prefix = match.getTitle().substring(0, match.getTitle().indexOf(" — ") + 3);
+                        }
+                        String newTitle = prefix + newA + " vs " + newB;
+                        if (!newTitle.equals(existing.getTitle())) existing.setTitle(newTitle);
+                    }
+                }
             }
-            if ((isPlaceholder(existing.getTeamA()) || isPlaceholder(existing.getTeamB()))
-                    && match.getTitle() != null && !match.getTitle().equals(existing.getTitle())) {
-                existing.setTitle(match.getTitle());
-                changed = true;
-            }
-            // 队标可以安全更新——图片 URL 不存在翻转问题
-            if (match.getTeamALogo() != null && !match.getTeamALogo().equals(existing.getTeamALogo())) {
-                existing.setTeamALogo(match.getTeamALogo());
-                changed = true;
-            }
-            if (match.getTeamBLogo() != null && !match.getTeamBLogo().equals(existing.getTeamBLogo())) {
-                existing.setTeamBLogo(match.getTeamBLogo());
-                changed = true;
+            // 队标与队名联动更新 — 仅当队名不重复时才更新，避免 MIBR logo 配 LOUD 名
+            // 若检测到队名翻转，logo 需同步翻转
+            {
+                String newLogoA = match.getTeamALogo();
+                String newLogoB = match.getTeamBLogo();
+                String existLogoA = existing.getTeamALogo();
+                String existLogoB = existing.getTeamBLogo();
+                // 常规更新：logo 不等即更新，但若队名已判定翻转则同步对调
+                boolean flipped = false;
+                if ((phA || phB) && match.getTeamA() != null && match.getTeamB() != null) {
+                    // 简单翻转检测：新 A 等于旧 B 且新 B 不等于旧 B
+                    if (!isPlaceholder(existing.getTeamB()) && match.getTeamA() != null
+                            && match.getTeamA().equals(existing.getTeamB())
+                            && !match.getTeamB().equals(existing.getTeamB())) {
+                        flipped = true;
+                    }
+                    if (!isPlaceholder(existing.getTeamA()) && match.getTeamB() != null
+                            && match.getTeamB().equals(existing.getTeamA())
+                            && !match.getTeamA().equals(existing.getTeamA())) {
+                        flipped = true;
+                    }
+                }
+                if (flipped) {
+                    // 翻转时对调 logo
+                    if (newLogoB != null && !newLogoB.equals(existLogoA)) {
+                        existing.setTeamALogo(newLogoB); changed = true;
+                    }
+                    if (newLogoA != null && !newLogoA.equals(existLogoB)) {
+                        existing.setTeamBLogo(newLogoA); changed = true;
+                    }
+                } else {
+                    if (newLogoA != null && !newLogoA.equals(existLogoA)) {
+                        existing.setTeamALogo(newLogoA); changed = true;
+                    }
+                    if (newLogoB != null && !newLogoB.equals(existLogoB)) {
+                        existing.setTeamBLogo(newLogoB); changed = true;
+                    }
+                }
             }
             if (match.getTournament() != null && !match.getTournament().equals(existing.getTournament())) {
                 existing.setTournament(match.getTournament());
