@@ -37,3 +37,8 @@ screenshots/
 
 # Git
 *.orig
+
+# OpenPaw sessions
+.omo/
+.trae/
+

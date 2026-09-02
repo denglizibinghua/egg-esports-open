@@ -101,6 +101,8 @@
               <el-avatar :size="56" :src="top3[1].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[1].nickname || top3[1].username }}</div>
+            <span class="level-badge" :style="{background:getLevelColor(getLevel(top3[1].points))}">Lv{{getLevel(top3[1].points)}}</span>
+            <div class="elo-bar"><div class="elo-fill" :style="{width:getEloProgress(top3[1].points)+'%'}"></div></div>
           <div class="podium-points">
             <template v-if="leaderboardTab === 'points'">{{ top3[1].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[1]) }}%</template>
@@ -115,6 +117,8 @@
               <el-avatar :size="72" :src="top3[0].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[0].nickname || top3[0].username }}</div>
+            <span class="level-badge" :style="{background:getLevelColor(getLevel(top3[0].points))}">Lv{{getLevel(top3[0].points)}}</span>
+            <div class="elo-bar"><div class="elo-fill" :style="{width:getEloProgress(top3[0].points)+'%'}"></div></div>
           <div class="podium-points">
             <template v-if="leaderboardTab === 'points'">{{ top3[0].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[0]) }}%</template>
@@ -128,6 +132,8 @@
               <el-avatar :size="56" :src="top3[2].avatar" :icon="UserFilled" />
             </div>
             <div class="podium-name">{{ top3[2].nickname || top3[2].username }}</div>
+            <span class="level-badge" :style="{background:getLevelColor(getLevel(top3[2].points))}">Lv{{getLevel(top3[2].points)}}</span>
+            <div class="elo-bar"><div class="elo-fill" :style="{width:getEloProgress(top3[2].points)+'%'}"></div></div>
           <div class="podium-points">
             <template v-if="leaderboardTab === 'points'">{{ top3[2].points }} 积分</template>
             <template v-else-if="leaderboardTab === 'accuracy'">胜率 {{ getAccuracy(top3[2]) }}%</template>
@@ -158,7 +164,17 @@
           </el-table-column>
           <!-- Points tab: 积分 + 胜率 + 连胜 -->
           <template v-if="leaderboardTab === 'points'">
-            <el-table-column label="积分" width="100" align="center" prop="points" />
+            <el-table-column label="积分" width="120" align="center">
+              <template #default="scope">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span>{{ scope.row.points }}</span>
+                    <span class="level-badge" :style="{background:getLevelColor(getLevel(scope.row.points))}">Lv{{getLevel(scope.row.points)}}</span>
+                  </div>
+                  <div class="elo-bar"><div class="elo-fill" :style="{width:getEloProgress(scope.row.points)+'%'}"></div></div>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column label="胜率" width="100" align="center">
               <template #default="scope">
                 {{ getAccuracy(scope.row) }}%
@@ -187,7 +203,17 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column label="积分" width="100" align="center" prop="points" />
+            <el-table-column label="积分" width="120" align="center">
+              <template #default="scope">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span>{{ scope.row.points }}</span>
+                    <span class="level-badge" :style="{background:getLevelColor(getLevel(scope.row.points))}">Lv{{getLevel(scope.row.points)}}</span>
+                  </div>
+                  <div class="elo-bar"><div class="elo-fill" :style="{width:getEloProgress(scope.row.points)+'%'}"></div></div>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column label="胜率" width="100" align="center">
               <template #default="scope">
                 {{ getAccuracy(scope.row) }}%
@@ -325,6 +351,9 @@ export default {
       if (!row.totalBets || row.totalBets === 0) return 0
       return Math.min(100, Math.round((row.correctBets / row.totalBets) * 100))
     },
+    getLevel(score) { return Math.min(10, Math.ceil((score || 0) / 200) + 1) },
+    getLevelColor(lv) { const c = ['#9e9e9e','#7cb342','#00bcd4','#ff9800','#ff1a1a']; return c[Math.floor(lv / 2)] },
+    getEloProgress(score) { return ((score || 0) % 200) / 2 },
     getRankClass(rank) {
       if (rank === 1) return 'rank-gold'
       if (rank === 2) return 'rank-silver'
@@ -790,6 +819,42 @@ export default {
   .leaderboard-table :deep(.el-table__body-wrapper) {
     overflow-x: auto;
   }
+}
+
+/* Level 徽章 + ELO 进度条 — 纯前端计算 */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.podium-item .level-badge {
+  margin: 4px auto 4px;
+}
+.elo-bar {
+  width: 60px;
+  height: 3px;
+  background: var(--bg-surface-3, rgba(255,255,255,0.08));
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0 auto 6px;
+}
+.leaderboard-table .elo-bar {
+  width: 80px;
+  margin: 0 auto;
+}
+.elo-fill {
+  height: 100%;
+  background: var(--accent-primary, #00e5a0);
+  border-radius: 999px;
+  transition: width 0.4s var(--ease-out);
 }
 
 /* 胜率榜门槛提示 */

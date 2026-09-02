@@ -6,6 +6,8 @@
 
 [![Valorant](https://img.shields.io/badge/Valorant-专注-FF4655?style=flat-square)](#支持游戏) [![Parimutuel](https://img.shields.io/badge/Parimutuel-0%25抽水-00E5A0?style=flat-square)](#架构亮点) [![Demo](https://img.shields.io/badge/Demo-eggesports.com-1E90FF?style=flat-square)](https://eggesports.com)
 
+> 🚀 **3天可交付同款演示站，支持二次定制** — 已交付 32 场瓦洛兰特演示赛 · 0%抽水纯彩池 · 定价见 `/pricing` · 邮箱 contact@example.com
+
 ---
 
 ## 作品集亮点

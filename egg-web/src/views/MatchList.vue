@@ -1246,10 +1246,31 @@ export default {
 
 /* 375px 胶囊不换行兜底 */
 @media (max-width: 375px) {
-  .match-odds-capsule { font-size: 10px; padding: 1px 6px; }
+  .match-odds-capsule { font-size: 10px !important; padding: 1px 6px !important; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
   .hot-card-top, .match-tournament { gap: 6px; }
-  .tournament-chip { max-width: 90px; font-size: 10px; }
+  .tournament-chip { max-width: 90px !important; font-size: 10px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .match-list { overflow-x: hidden; }
+}
+/* 审计补强：行式化同行不换行 + min-width:0 兜底 */
+.match-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+.match-tournament .tournament-chip,
+.hot-card-top-left .tournament-chip {
+  flex-shrink: 0;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 375px) {
+  .match-card-top-left .tournament-chip { max-width: 90px; font-size: 10px; }
 }
 
  /* TBD Team Name */

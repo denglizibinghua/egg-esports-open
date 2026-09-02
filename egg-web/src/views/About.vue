@@ -68,6 +68,39 @@
       </div>
 
       <div class="about-section">
+        <h3 class="about-section-title">💼 接单说明 · 3天可交付同款</h3>
+        <p class="about-text" style="margin-bottom:12px">
+          本站为<strong>可复刻的瓦洛兰特预测社区演示站</strong>（已交付 32 场 · 0%抽水纯彩池），支持二次定制，<strong>3天可交付同款</strong>。价格与 <router-link to="/pricing" style="color:var(--accent-primary);text-decoration:none;font-weight:600">/pricing</router-link> 一致：
+        </p>
+        <div class="order-list">
+          <div class="order-item">
+            <span class="order-dot"></span>
+            <div class="order-body">
+              <strong>复刻演示站 · 8000 元起</strong>
+              <span>含部署 + 域名 + 首季赛程导入 + 机器人托底，不含菠菜/现金兑付定制</span>
+            </div>
+          </div>
+          <div class="order-item">
+            <span class="order-dot"></span>
+            <div class="order-body">
+              <strong>单场代办 · 800–2000 元 / 场</strong>
+              <span>含海报 + 赛程录入 + 榜单结算 + 战报图 9 张，不含线下执行/裁判差旅</span>
+            </div>
+          </div>
+          <div class="order-item">
+            <span class="order-dot"></span>
+            <div class="order-body">
+              <strong>付款 4:5:1 · 3天交付</strong>
+              <span>定金 40% / 交付 50% / 质保 10%，常规需求 3 个工作日内上线演示站</span>
+            </div>
+          </div>
+        </div>
+        <p class="about-text" style="margin-top:10px;font-size:12px;color:var(--text-tertiary)">
+          演示账号 <code>demo_player/demo123</code> 可先体验全流程，再谈定制 → <a href="mailto:contact@example.com" style="color:var(--accent-primary);text-decoration:none">contact@example.com</a>
+        </p>
+      </div>
+
+      <div class="about-section">
         <h3 class="about-section-title">📬 联系我们</h3>
         <p class="about-text">
           Egg Esports 由独立开发者维护。如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：
@@ -192,6 +225,47 @@ export default {
   color: var(--text-tertiary);
   font-size: 13px;
   margin-top: 4px;
+}
+
+/* ── 接单说明 ── */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.order-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.order-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  margin-top: 7px;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(0, 229, 160, 0.5);
+}
+.order-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.order-body strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.order-body span {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .contact-list {

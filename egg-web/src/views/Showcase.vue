@@ -2,7 +2,7 @@
   <div class="about-page showcase-page">
     <div class="page-header">
       <h2 class="page-title">案例墙 · 已交付</h2>
-      <p class="page-subtitle">专注瓦洛兰特 · 下一站交付你的校园赛</p>
+      <p class="page-subtitle">已交付 32 场瓦洛兰特演示赛 · 0%抽水纯彩池 · 3天可交付同款</p>
     </div>
 
     <!-- 顶部数字 -->
@@ -14,11 +14,11 @@
       </div>
       <div class="showcase-hero-right">
         <p class="about-text">
-          已为校社团与小赛事主办累计交付 <strong>{{ deliveredCount }} 场</strong> 瓦洛兰特赛事预测，含报名-预测-榜单-结算全链路，3天可交付同款演示站。
+          已为校社团与小赛事主办累计交付 <strong>{{ deliveredCount }} 场</strong> 瓦洛兰特演示赛，<strong>0%抽水纯彩池</strong>，含报名-预测-榜单-结算全链路，<strong>3天可交付同款</strong>。
         </p>
         <div class="showcase-cta-row">
           <el-button type="primary" class="btn-hover-lift" @click="$router.push('/login')">查看演示账号</el-button>
-          <el-button @click="$router.push('/')">回到首页</el-button>
+          <el-button @click="$router.push('/pricing')">查看定价</el-button>
         </div>
       </div>
     </div>
@@ -69,9 +69,10 @@
     <!-- CTA -->
     <div class="about-card showcase-cta">
       <h3 class="about-section-title">🚀 想办一场同款赛事？</h3>
-      <p class="about-text">3天交付演示站，含赛程、押注、排行榜、评论区。先用演示账号体验全流程。</p>
+      <p class="about-text">3天交付演示站，含赛程、押注、排行榜、评论区。先用演示账号体验全流程 — 账号 <strong>demo_player</strong> / 密码 <strong>demo123</strong></p>
       <div class="showcase-cta-row" style="margin-top: 12px">
-        <el-button type="primary" size="large" class="btn-hover-lift" @click="$router.push('/login')">去登录 · 一键体验</el-button>
+        <el-button type="primary" size="large" class="btn-hover-lift" @click="$router.push('/login')">demo_player / demo123 去体验</el-button>
+        <el-button @click="$router.push('/pricing')">查看定价</el-button>
         <a href="mailto:contact@example.com" class="contact-link" style="margin-left: 12px">定制咨询 → contact@example.com</a>
       </div>
     </div>
@@ -90,12 +91,12 @@ export default {
       imgFailed: {},
       // 占位渐变：不依赖 /uploads/case-*.png，首屏零404；cover 置空，img 通过 v-if 容错
       cases: [
-        { id: 1, title: 'EDG vs FPX · 决赛', tournament: 'VCT CN 演示赛', score: '2-1 · Haven 13-4', time: '2026-08-20', desc: '校内总决赛，120人押注，彩池破万', cover: '', gradient: 'linear-gradient(135deg, #FF4655 0%, #7A1F2E 100%)', emblem: 'EDG · FPX' },
-        { id: 2, title: 'TE vs JDG · 半决赛', tournament: 'EGG杯', score: '2-0 · Bind 13-7', time: '2026-08-18', desc: '战术拉满，烟位封点教科书', cover: '', gradient: 'linear-gradient(135deg, #00E5A0 0%, #0A4A3A 100%)', emblem: 'TE · JDG' },
-        { id: 3, title: 'BLG vs WOL · 小组赛', tournament: 'EGG杯·校园冠军赛', score: '2-1 · Ascent 13-10', time: '2026-08-15', desc: '让一追二，残局 1v2 翻盘', cover: '', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #1E1B4B 100%)', emblem: 'BLG · WOL' },
-        { id: 4, title: 'DRG vs NOVA · 揭幕战', tournament: 'VCT CN 演示赛·季后赛', score: '2-0 · Lotus 13-6', time: '2026-08-12', desc: '新人枪猛，敢打敢拼', cover: '', gradient: 'linear-gradient(135deg, #F59E0B 0%, #7C2D12 100%)', emblem: 'DRG · NOVA' },
-        { id: 5, title: 'TYLOO vs AG · 季军赛', tournament: 'EGG杯', score: '2-1 · Split 13-9', time: '2026-08-10', desc: '老牌劲旅经验制胜', cover: '', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0C4A6E 100%)', emblem: 'TYLOO · AG' },
-        { id: 6, title: 'EDG vs TE · 表演赛', tournament: 'EGG杯·瓦洛兰特邀请赛', score: '2-0 · Sunset 13-8', time: '2026-08-08', desc: '全场高能，弹幕刷屏', cover: '', gradient: 'linear-gradient(135deg, #EC4899 0%, #4A044E 100%)', emblem: 'EDG · TE' }
+        { id: 1, title: 'EDG vs FPX · 决赛', tournament: 'VCT CN 演示赛', score: '2-1 · Haven 13-4', time: '2026-08-20', desc: '校内总决赛，120人押注，彩池破万｜交付物：海报1张+战报图9张+榜单结算', cover: '', gradient: 'linear-gradient(135deg, #FF4655 0%, #7A1F2E 100%)', emblem: 'EDG · FPX' },
+        { id: 2, title: 'TE vs JDG · 半决赛', tournament: 'EGG杯', score: '2-0 · Bind 13-7', time: '2026-08-18', desc: '战术拉满，烟位封点教科书｜交付物：赛程录入+比分直播+榜单', cover: '', gradient: 'linear-gradient(135deg, #00E5A0 0%, #0A4A3A 100%)', emblem: 'TE · JDG' },
+        { id: 3, title: 'BLG vs WOL · 小组赛', tournament: 'EGG杯·校园冠军赛', score: '2-1 · Ascent 13-10', time: '2026-08-15', desc: '让一追二，残局 1v2 翻盘｜交付物：海报+榜单结算+战报图9张', cover: '', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #1E1B4B 100%)', emblem: 'BLG · WOL' },
+        { id: 4, title: 'DRG vs NOVA · 揭幕战', tournament: 'VCT CN 演示赛·季后赛', score: '2-0 · Lotus 13-6', time: '2026-08-12', desc: '新人枪猛，敢打敢拼｜交付物：赛程录入+榜单+战报图', cover: '', gradient: 'linear-gradient(135deg, #F59E0B 0%, #7C2D12 100%)', emblem: 'DRG · NOVA' },
+        { id: 5, title: 'TYLOO vs AG · 季军赛', tournament: 'EGG杯', score: '2-1 · Split 13-9', time: '2026-08-10', desc: '老牌劲旅经验制胜｜交付物：海报+赛程+榜单结算', cover: '', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0C4A6E 100%)', emblem: 'TYLOO · AG' },
+        { id: 6, title: 'EDG vs TE · 表演赛', tournament: 'EGG杯·瓦洛兰特邀请赛', score: '2-0 · Sunset 13-8', time: '2026-08-08', desc: '全场高能，弹幕刷屏｜交付物：战报图9张+弹幕托底演示', cover: '', gradient: 'linear-gradient(135deg, #EC4899 0%, #4A044E 100%)', emblem: 'EDG · TE' }
       ],
       stacks: ['Spring Boot 3', 'Vue 3 + Element Plus', 'MySQL + MyBatis-Plus', 'Redis + Lua 限流', 'Adapter 多数据源', 'WebSocket 实时评论']
     }

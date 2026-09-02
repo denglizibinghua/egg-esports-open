@@ -1632,8 +1632,18 @@ export default {
   .hero-title { font-size: 18px; }
   .hero-subtitle { font-size: 10px; }
   .hero-tournament, .match-card-top { gap: 6px; }
-  .match-odds-capsule { font-size: 10px; padding: 1px 6px; }
-  .tournament-chip { max-width: 90px; font-size: 10px; }
+  .match-odds-capsule { font-size: 10px !important; padding: 1px 6px !important; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+  .tournament-chip { max-width: 90px !important; font-size: 10px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home { overflow-x: hidden; }
+}
+/* 审计补强：确保同行不换行 + min-width:0 兜底（与 MatchList 对齐） */
+.match-card-top-left {
+  min-width: 0;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+.hero-tournament-left {
+  min-width: 0;
+  overflow: hidden;
 }
 </style>

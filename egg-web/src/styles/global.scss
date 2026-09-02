@@ -38,6 +38,8 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 150ms;
   --duration-normal: 250ms;
+  --radius-sharp: 2px;
+  --valorant-angled: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
 }
 
 * {
