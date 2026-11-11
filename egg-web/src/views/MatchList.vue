@@ -177,7 +177,7 @@
         <!-- Date Groups — VLR calendar -->
         <template v-else>
           <div
-            v-for="group in dateGroups"
+            v-for="group in visibleDateGroups"
             :key="'dg-' + group.date"
             class="date-group"
           >
@@ -261,6 +261,13 @@
           </div>
         </template>
       </div>
+
+      <div v-if="hasMoreDateGroups" class="load-more">
+        <button class="load-more-btn" type="button" @click="showMoreGroups">
+          <span class="load-more-main">加载更早赛程</span>
+          <span class="load-more-sub">还剩 {{ remainingGroupCount }} 个比赛日</span>
+        </button>
+      </div>
     </section>
 
     <el-pagination
@@ -301,6 +308,8 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      // “全部”标签默认渲染最近 18 个比赛日，避免一次性渲染数百场
+      visibleGroupCount: 18,
       pollTimer: null,
       collapsedTournaments: [],
       games: [],
@@ -311,6 +320,16 @@ export default {
   computed: {
     isAdminUser() {
       return isAdmin()
+    },
+    visibleDateGroups() {
+      if (this.activeStatus !== 'all') return this.dateGroups
+      return this.dateGroups.slice(0, this.visibleGroupCount)
+    },
+    hasMoreDateGroups() {
+      return this.activeStatus === 'all' && this.dateGroups.length > this.visibleGroupCount
+    },
+    remainingGroupCount() {
+      return Math.max(0, this.dateGroups.length - this.visibleGroupCount)
     },
     emptyTitle() {
       const map = {
@@ -412,6 +431,7 @@ export default {
     switchGame(gameId) {
       this.selectedGameId = gameId
       this.currentPage = 1
+      this.visibleGroupCount = 18
       this.fetchMatches()
       this.fetchHotMatches()
     },
@@ -496,10 +516,14 @@ export default {
     handleTabChange(tab) {
       this.currentPage = 1
       this.matches = []
+      this.visibleGroupCount = 18
       // tab.paneName 是点击的 tab 的 name 值，比 this.activeStatus 更可靠
       // 因为 @tab-click 可能在 v-model 更新前触发，直接用事件参数避免读到旧值
       this.activeStatus = tab.paneName
       this.fetchMatches()
+    },
+    showMoreGroups() {
+      this.visibleGroupCount += 18
     },
     fetchHotMatches(silent) {
       if (!silent) this.hotLoading = true
@@ -958,6 +982,52 @@ export default {
 
 .match-cards {
   min-height: 200px;
+}
+
+/* “全部”分批加载 */
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.load-more-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 28px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.load-more-main {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  transition: color var(--duration-fast) ease;
+}
+
+.load-more-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.load-more-btn:hover {
+  background: var(--bg-surface-2);
+  border-color: var(--brand-line);
+}
+
+.load-more-btn:hover .load-more-main {
+  color: var(--brand);
 }
 
 .date-group {
