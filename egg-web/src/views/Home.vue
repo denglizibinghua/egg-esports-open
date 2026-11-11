@@ -58,6 +58,7 @@
             <span v-else-if="heroMatch.status === 0" class="status-badge status-badge--upcoming">
               <span class="status-dot"></span>即将开始
             </span>
+            <span v-else class="status-badge status-badge--finished">已结束</span>
           </div>
 
           <div class="hero-matchup">
@@ -173,9 +174,9 @@
       <div class="section-head">
         <div class="section-head-main">
           <span class="section-index">01</span>
-          <h2 class="section-title">今日焦点</h2>
+          <h2 class="section-title">焦点赛事</h2>
           <span class="section-meta">
-            今日 {{ focusMatches.length }} 场<span v-if="focusLiveCount > 0"> · {{ focusLiveCount }} 进行中</span>
+            共 {{ focusMatches.length }} 场<span v-if="focusLiveCount > 0"> · {{ focusLiveCount }} 进行中</span>
           </span>
         </div>
         <span class="section-count">TOTAL {{ ('0' + focusMatches.length).slice(-2) }}</span>
