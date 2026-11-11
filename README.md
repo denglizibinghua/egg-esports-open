@@ -1,4 +1,4 @@
-# 🥚 Egg Esports
+﻿# 🥚 Egg Esports
 
 > 非盈利电竞赛事预测平台 — 纯彩池制，0% 抽水，猜中全分。
 
@@ -8,6 +8,8 @@
 
 > 🚀 **3天可交付同款演示站，支持二次定制** — 已交付 32 场瓦洛兰特演示赛 · 0%抽水纯彩池 · 定价见 `/pricing` · 邮箱 contact@example.com
 
+> 🎨 **2026-11 UI v2** — 全站暗黑电竞风改版，桌面 / 移动端双端适配 · [界面预览](#界面预览)
+
 ---
 
 ## 作品集亮点
@@ -15,6 +17,31 @@
 - **首屏3秒讲清价值**：Hero 一行标题 + 一行副标题 + CTA，不滚动即知“瓦洛兰特预测社区”
 - **机器人托底**：未开始场次自动补 3-8 笔分散押注，赔率 1.40-2.80，避免空池尴尬
 - **一键演示数据**：`POST /api/seed/demo` 灌入 18 场瓦比赛 + 25 人榜单 + 每场 8-12 条评论，首页三区即满
+- **全站暗黑电竞风 v2**：统一设计 tokens（`#07090E` / `#FF4655` / `#00E5A0`）、Element Plus 主题、战术网格与发丝线面板
+- **移动端可用**：320–430px 实测无横向溢出；抽屉菜单、单列卡片、排行榜名单卡、44px 触控目标
+- **700+ 场赛程不卡**：`全部` 标签默认只渲染最近 18 个比赛日，按需「加载更早」
+
+---
+
+## 界面预览
+
+> 2026-11 全站 UI v2 · 桌面 1440 / 移动端 390 实测 · 320–430px 无横向溢出
+
+| 首页 · Hero / 焦点赛 | 赛程 · 日期分组 / 赔率 |
+| --- | --- |
+| ![首页](docs/preview/home-desktop.jpg) | ![赛程](docs/preview/matches-desktop.jpg) |
+
+| 比赛详情 · 记分牌 / 评论区 | 排行榜 · 三榜 / Level |
+| --- | --- |
+| ![比赛详情](docs/preview/detail-desktop.jpg) | ![排行榜](docs/preview/leaderboard-desktop.jpg) |
+
+| 管理后台 · Control Room | 案例墙 · 已交付 |
+| --- | --- |
+| ![管理后台](docs/preview/admin-desktop.jpg) | ![案例墙](docs/preview/showcase-desktop.jpg) |
+
+| 移动端 · 首页 | 移动端 · 抽屉导航 |
+| --- | --- |
+| ![移动端首页](docs/preview/mobile-home.jpg) | ![移动端导航](docs/preview/mobile-drawer.jpg) |
 
 ---
 
@@ -41,7 +68,7 @@
 | 数据库 | MySQL 8.0 | InnoDB，utf8mb4 |
 | 缓存 | Redis 7 | Lua 限流 + 内存降级 |
 | 鉴权 | JJWT 0.11.5 | HS256，7 天过期 |
-| 前端 | Vue 3.4 + Element Plus 2.7 | 暗黑电竞风 |
+| 前端 | Vue 3.4 + Element Plus 2.7 | 暗黑电竞风 v2，响应式 320–430px |
 | 构建 | Vite 5 | 按需引入，Gzip |
 | 部署 | Nginx + systemd | HTTPS，限流，反向代理 |
 
@@ -143,7 +170,8 @@ egg-esports/
 │       ├── utils/             # 工具（Axios、WebSocket、格式化）
 │       └── styles/            # 全局样式（暗黑主题）
 ├── deploy/                    # 部署文件（systemd、nginx、备份脚本）
-├── docs/                      # 设计文档
+├── docs/                      # 设计文档 + 界面截图
+│   ├── screenshots/           # 界面预览（桌面 / 移动端）
 │   ├── 设计分析文档.md         # 架构、数据库、API、类图
 │   ├── 需求说明文档.md         # 用户故事、功能需求
 │   └── 上线计划书_v2.md        # 版本路线图
