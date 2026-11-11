@@ -25,7 +25,7 @@
               type="primary"
               class="hero-primary btn-hover-lift"
               @click="goDetail(heroMatch.id)"
-            >立即竞猜</el-button>
+            >{{ heroMatch.status === 0 ? '立即竞猜' : heroMatch.status === 1 ? '查看实况' : '查看战报' }}</el-button>
             <router-link to="/matches" class="hero-ghost">查看赛程</router-link>
           </div>
 
