@@ -1,113 +1,145 @@
 <template>
   <div class="profile-tab">
-    <!-- User Info Card -->
-    <div class="user-info-card profile-card">
-      <div class="user-avatar-section">
-        <el-avatar :size="80" :src="user.avatar" :icon="UserFilled" />
-        <div class="user-meta">
+    <!-- Identity card -->
+    <section class="identity-card u-panel card-entrance">
+      <div class="identity-main">
+        <button type="button" class="avatar-frame" title="更换头像" @click="showCropper = true">
+          <el-avatar :size="96" :src="user.avatar" :icon="UserFilled" />
+          <span class="avatar-overlay">
+            <el-icon><Edit /></el-icon>
+            <span>更换头像</span>
+          </span>
+        </button>
+
+        <div class="identity-meta">
+          <div class="identity-eyebrow">// OPERATOR</div>
           <div class="user-nickname-row">
-            <span class="user-nickname">{{ user.nickname || user.username }}</span>
+            <h2 class="user-nickname" :title="user.nickname || user.username">{{ user.nickname || user.username }}</h2>
             <!-- Rank Badge -->
-            <span v-if="myRank && myRank.rank > 0"
-                  :class="['rank-badge', rankBadgeClass]"
-                  @click="$emit('cycle-rank')"
-                  style="cursor: pointer"
-                  :title="'点击切换排行维度: ' + rankDimensionLabel">
-              <span v-if="myRank.rank === 1 && rankDimension === 'points'" class="rank-crown">👑</span>
-              <span v-else-if="myRank.rank === 1">🥇</span>
-              <span v-else-if="myRank.rank === 2">🥈</span>
-              <span v-else-if="myRank.rank === 3">🥉</span>
-              #{{ myRank.rank }}
+            <button
+              v-if="myRank && myRank.rank > 0"
+              type="button"
+              :class="['rank-badge', rankBadgeClass]"
+              :title="'点击切换排行维度: ' + rankDimensionLabel"
+              @click="$emit('cycle-rank')"
+            >
+              <span class="rank-num">#{{ myRank.rank }}</span>
               <span class="rank-dim-label">{{ rankDimensionLabel }}</span>
-            </span>
-            <span v-else class="rank-badge rank-badge--none"
-                  @click="$emit('cycle-rank')"
-                  style="cursor: pointer"
-                  :title="'点击切换排行维度'">
-              {{ rankDimensionLabel }}暂无
-            </span>
+              <span class="rank-cycle" aria-hidden="true">↻</span>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="rank-badge rank-badge--none"
+              title="点击切换排行维度"
+              @click="$emit('cycle-rank')"
+            >
+              <span class="rank-dim-label">{{ rankDimensionLabel }}</span>
+              <span class="rank-none-text">暂无排名</span>
+              <span class="rank-cycle" aria-hidden="true">↻</span>
+            </button>
           </div>
-          <div class="user-join-date">加入于 {{ formatDate(user.createTime) }}</div>
+
+          <div class="identity-sub">
+            <span class="identity-date">加入于 {{ formatDate(user.createTime) }}</span>
+            <span class="identity-sep">/</span>
+            <span class="identity-uid">BETTOR PROFILE</span>
+          </div>
+
+          <div class="identity-level-row">
+            <span class="level-caption">LEVEL</span>
+            <LevelBadge :count="user.totalBets || 0" />
+          </div>
         </div>
       </div>
-      <div class="user-info-right">
-        <div class="user-points">
-          <div class="points-value">{{ user.points }}</div>
-          <div class="points-label">积分</div>
-          <div class="points-sub" v-if="loanStatus && loanStatus.rankingScore !== undefined">
-            排名分 {{ loanStatus.rankingScore }}
-          </div>
+
+      <div class="identity-side">
+        <div class="rank-score" v-if="loanStatus && loanStatus.rankingScore !== undefined">
+          <span class="rank-score-label">RANK SCORE</span>
+          <span class="rank-score-value">{{ loanStatus.rankingScore }}</span>
         </div>
-        <el-button class="edit-profile-btn" size="small" @click="openEditDialog">
-          <el-icon><Edit /></el-icon> 编辑资料
-        </el-button>
-        <el-button class="edit-profile-btn" size="small" @click="passwordDialogVisible = true" style="margin-left: 8px;">
-          <el-icon><Lock /></el-icon> 修改密码
-        </el-button>
+        <div class="identity-actions">
+          <el-button class="ghost-action" size="small" @click="openEditDialog">
+            <el-icon><Edit /></el-icon> 编辑资料
+          </el-button>
+          <el-button class="ghost-action" size="small" @click="passwordDialogVisible = true">
+            <el-icon><Lock /></el-icon> 修改密码
+          </el-button>
+        </div>
       </div>
+    </section>
+
+    <!-- Stat grid -->
+    <div class="stats-grid">
+      <article class="stat-cell stat-cell--points card-entrance">
+        <span class="stat-kicker">POINTS</span>
+        <span class="stat-value stat-value--mint">{{ user.points || 0 }}</span>
+        <span class="stat-label">总积分</span>
+      </article>
+      <article class="stat-cell card-entrance">
+        <span class="stat-kicker">NET PROFIT</span>
+        <span class="stat-value" :class="netProfitClass">{{ netProfitDisplay }}</span>
+        <span class="stat-label">净收益</span>
+      </article>
+      <article class="stat-cell card-entrance">
+        <span class="stat-kicker">WIN RATE</span>
+        <span class="stat-value">{{ accuracy }}<em>%</em></span>
+        <span class="stat-label">胜率</span>
+        <span class="stat-track">
+          <span class="stat-fill" :style="{ width: accuracy + '%' }"></span>
+        </span>
+      </article>
+      <article class="stat-cell card-entrance">
+        <span class="stat-kicker">BETS</span>
+        <span class="stat-value">{{ user.totalBets || 0 }}</span>
+        <span class="stat-label">总押注</span>
+      </article>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-value">{{ user.totalBets || 0 }}</div>
-        <div class="stat-label">总押注</div>
+    <!-- Secondary micro stats -->
+    <div class="micro-strip card-entrance">
+      <div class="micro-item">
+        <span class="micro-label">猜中</span>
+        <span class="micro-value">{{ user.correctBets || 0 }}</span>
       </div>
-      <div class="stat-card stat-card--wins">
-        <div class="stat-card-value">{{ user.correctBets || 0 }}</div>
-        <div class="stat-card-label">猜中</div>
-        <div class="stat-card-bar">
-          <div class="stat-card-bar-fill" :style="{ width: accuracy + '%', background: 'var(--accent-primary)' }"></div>
-        </div>
+      <div class="micro-item">
+        <span class="micro-label">当前连胜</span>
+        <span class="micro-value">{{ user.winStreak || 0 }}</span>
       </div>
-      <div class="stat-card stat-card--rate">
-        <div class="stat-card-value">{{ accuracy }}%</div>
-        <div class="stat-card-label">胜率</div>
-        <div class="stat-card-bar">
-          <div class="stat-card-bar-fill" :style="{ width: accuracy + '%', background: 'var(--accent-secondary)' }"></div>
-        </div>
+      <div class="micro-item">
+        <span class="micro-label">最高连胜</span>
+        <span class="micro-value">{{ user.maxWinStreak || 0 }}</span>
       </div>
-      <div class="stat-card stat-card--streak">
-        <div class="stat-card-value">{{ user.winStreak || 0 }}</div>
-        <div class="stat-card-label">连胜</div>
-        <div class="stat-card-bar">
-          <div class="stat-card-bar-fill" :style="{ width: (user.maxWinStreak > 0 ? Math.min(100, Math.round((user.winStreak || 0) / user.maxWinStreak * 100)) : 0) + '%', background: 'var(--accent-warning)' }"></div>
-        </div>
-      </div>
-      <div class="stat-card stat-card--losses">
-        <div class="stat-card-value">{{ user.maxWinStreak || 0 }}</div>
-        <div class="stat-card-label">最高连胜</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-value">{{ user.points || 0 }}</div>
-        <div class="stat-card-label">总积分</div>
-      </div>
+      <span class="micro-note">DATA SYNCED AFTER SETTLEMENT</span>
     </div>
 
     <!-- Public Profile Link -->
     <div class="public-profile-hint" v-if="user.id">
-      <el-icon><LinkIcon /></el-icon>
-      <span>公开主页链接：</span>
-      <code class="profile-url">{{ profileUrl }}</code>
+      <span class="hint-mark">
+        <el-icon><LinkIcon /></el-icon>
+      </span>
+      <span class="hint-label">公开主页</span>
+      <code class="profile-url" :title="profileUrl">{{ profileUrl }}</code>
       <el-button link class="copy-url-btn" @click="copyProfileUrl">复制</el-button>
     </div>
 
     <!-- Bank Quick Link -->
-    <div class="bank-link-card" v-if="loanStatus">
-      <router-link to="/bank" class="bank-link">
-        <div class="bank-link-left">
-          <el-icon><Wallet /></el-icon>
-          <span>银行中心</span>
-        </div>
-        <div class="bank-link-right">
-          <span class="bank-link-debt" v-if="loanStatus.loanAmount < 0">
-            贷款 {{ formatLoanAmount(loanStatus.loanAmount) }}
-          </span>
-          <span class="bank-link-clean" v-else>无贷款</span>
-          <el-icon><ArrowRight /></el-icon>
-        </div>
-      </router-link>
-    </div>
+    <router-link v-if="loanStatus" to="/bank" class="bank-entry card-entrance">
+      <span class="bank-mark">
+        <el-icon><Wallet /></el-icon>
+      </span>
+      <span class="bank-text">
+        <strong>银行中心</strong>
+        <small>BANK · 存取积分 / 贷款管理</small>
+      </span>
+      <span class="bank-meta">
+        <span class="bank-debt" v-if="loanStatus.loanAmount < 0">
+          贷款 {{ formatLoanAmount(loanStatus.loanAmount) }}
+        </span>
+        <span class="bank-clean" v-else>无贷款</span>
+        <el-icon class="bank-arrow"><ArrowRight /></el-icon>
+      </span>
+    </router-link>
 
     <!-- Edit Profile Dialog -->
     <el-dialog
@@ -115,12 +147,16 @@
       v-model="editDialogVisible"
       width="420px"
       :close-on-click-modal="false"
+      class="uc-dialog"
     >
       <el-form :model="editForm" :rules="editRules" ref="editForm" label-width="80px">
         <el-form-item label="头像">
           <div class="avatar-upload">
             <el-avatar :size="64" :src="avatarPreview" :icon="UserFilled" />
-            <el-button size="small" link @click="showCropper = true">更换头像</el-button>
+            <div class="avatar-upload-meta">
+              <span class="avatar-upload-hint">1:1 方形 · 圆形展示</span>
+              <el-button size="small" link @click="showCropper = true">更换头像</el-button>
+            </div>
           </div>
         </el-form-item>
         <el-form-item label="昵称" prop="nickname">
@@ -139,7 +175,13 @@
     </el-dialog>
 
     <!-- Password Change Dialog -->
-    <el-dialog title="修改密码" v-model="passwordDialogVisible" width="420px" :close-on-click-modal="false">
+    <el-dialog
+      title="修改密码"
+      v-model="passwordDialogVisible"
+      width="420px"
+      :close-on-click-modal="false"
+      class="uc-dialog"
+    >
       <el-form ref="passwordForm" :model="passwordForm" :rules="passwordRules" label-width="80px">
         <el-form-item label="原密码" prop="oldPassword">
           <el-input v-model="passwordForm.oldPassword" type="password" placeholder="请输入原密码" show-password />
@@ -151,7 +193,7 @@
           <el-input v-model="passwordForm.confirmPassword" type="password" placeholder="再次输入新密码" show-password />
         </el-form-item>
       </el-form>
-      <template #footer><span>
+      <template #footer><span class="dialog-footer">
         <el-button @click="passwordDialogVisible = false" :disabled="passwordSaving">取消</el-button>
         <el-button type="primary" @click="submitPassword" :loading="passwordSaving">确认修改</el-button>
       </span></template>
@@ -166,13 +208,14 @@
 import { markRaw } from 'vue'
 import request from '@/utils/request'
 import AvatarCropper from '@/components/AvatarCropper.vue'
+import LevelBadge from '@/components/user/LevelBadge.vue'
 // Element Plus SVG 图标（迁移自 Element UI 字体图标）
 import { UserFilled, Edit, Lock, Link as LinkIcon, Wallet, ArrowRight } from '@element-plus/icons-vue'
 
 export default {
   name: 'ProfileTab',
   // UserFilled 仅作为 :icon 的 data 变量使用，无需注册为组件；Link 用别名避开 HTML 保留名
-  components: { AvatarCropper, Edit, Lock, LinkIcon, Wallet, ArrowRight },
+  components: { AvatarCropper, LevelBadge, Edit, Lock, LinkIcon, Wallet, ArrowRight },
   props: {
     // 当前登录用户信息
     user: { type: Object, required: true },
@@ -242,6 +285,16 @@ export default {
     rankDimensionLabel() {
       var labels = { 'points': '积分', 'accuracy': '胜率', 'worst-profit': '亏损' }
       return labels[this.rankDimension] || '积分'
+    },
+    netProfitDisplay() {
+      var v = (this.user && this.user.netProfit) || 0
+      return v > 0 ? '+' + v : '' + v
+    },
+    netProfitClass() {
+      var v = (this.user && this.user.netProfit) || 0
+      if (v > 0) return 'stat-value--mint'
+      if (v < 0) return 'stat-value--danger'
+      return ''
     },
     rankBadgeClass() {
       if (!this.myRank || this.myRank.rank <= 0) return 'rank-badge--none'
@@ -338,52 +391,129 @@ export default {
 </script>
 
 <style scoped>
-/* User Info Card */
-.user-info-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 28px;
+.profile-tab {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-md);
+  flex-direction: column;
 }
 
-/* Profile Card - glass effect with gradient border */
-.profile-card {
-  background: linear-gradient(135deg, rgba(18, 18, 26, 0.8), rgba(26, 26, 38, 0.6));
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 229, 160, 0.15);
-  border-radius: var(--radius-xl);
-  padding: 32px;
+/* ---------- Identity card ---------- */
+.identity-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 28px;
+  margin-bottom: 16px;
+}
+
+.identity-main {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* Avatar with ring + edit overlay */
+.avatar-frame {
   position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 104px;
+  height: 104px;
+  padding: 3px;
+  border: none;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg, var(--brand), var(--accent-primary) 58%, var(--brand));
+  cursor: pointer;
+  transition: box-shadow var(--duration-normal) var(--ease-out), transform var(--duration-normal) var(--ease-out);
+}
+
+.avatar-frame:hover,
+.avatar-frame:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-brand);
+}
+
+.avatar-frame :deep(.el-avatar) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-surface-3);
+  border-radius: 50%;
   overflow: hidden;
 }
 
-.profile-card::before {
-  content: '';
+.avatar-frame :deep(.el-avatar img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-overlay {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--accent-primary), transparent 50%, var(--accent-secondary));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  inset: 3px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding-bottom: 12px;
+  background: linear-gradient(180deg, transparent 30%, var(--bg-page) 100%);
+  color: var(--cream);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease;
   pointer-events: none;
 }
 
-.user-avatar-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.avatar-frame:hover .avatar-overlay,
+.avatar-frame:focus-visible .avatar-overlay {
+  opacity: 1;
 }
 
-.user-avatar-section :deep(.el-avatar) {
-  border: 3px solid var(--accent-primary);
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.2);
+.avatar-overlay .el-icon {
+  font-size: 14px;
+  color: var(--brand);
+}
+
+@media (hover: none) {
+  .avatar-overlay {
+    inset: auto 2px 2px auto;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-page);
+    border: 1px solid var(--brand-line);
+    border-radius: 50%;
+    opacity: 1;
+    font-size: 0;
+  }
+  .avatar-overlay span {
+    display: none;
+  }
+}
+
+.identity-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.identity-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand);
 }
 
 .user-nickname-row {
@@ -391,336 +521,651 @@ export default {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .user-nickname {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.user-join-date {
-  color: var(--text-tertiary);
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-.user-info-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.user-points {
-  text-align: center;
-}
-
-.points-value {
-  color: var(--accent-primary);
-  font-family: var(--font-mono);
-  font-size: 32px;
+  font-family: var(--font-body);
+  font-size: 26px;
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
-.points-label {
-  color: var(--text-tertiary);
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.points-sub {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-tertiary);
-  margin-top: 2px;
-}
-
-/* Rank Badge */
+/* Rank chip */
 .rank-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: var(--radius-full);
+  gap: 6px;
+  height: 24px;
+  padding: 0 9px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.rank-badge:hover {
+  border-color: var(--brand-line);
+  color: var(--text-primary);
 }
 
 .rank-badge--gold {
-  color: #1a1200;
-  background: linear-gradient(135deg, #ffd700, #ffb300);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  color: var(--gold);
+  border-color: var(--gold);
+  background: var(--bg-surface-2);
 }
 
 .rank-badge--silver {
-  color: #1a1a1a;
-  background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
-  box-shadow: 0 0 8px rgba(192, 192, 192, 0.3);
+  color: var(--silver);
+  border-color: var(--silver);
+  background: var(--bg-surface-2);
 }
 
 .rank-badge--bronze {
-  color: #1a0e00;
-  background: linear-gradient(135deg, #cd7f32, #a0522d);
-  box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+  color: var(--bronze);
+  border-color: var(--bronze);
+  background: var(--bg-surface-2);
 }
 
 .rank-badge--normal {
   color: var(--text-secondary);
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-default);
 }
 
 .rank-badge--none {
   color: var(--text-tertiary);
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  font-weight: 500;
-  font-family: var(--font-body);
+  font-weight: 600;
 }
 
-.rank-crown {
-  font-size: 14px;
-}
-
-.rank-total {
-  color: var(--text-tertiary);
+.rank-num {
+  font-size: 11px;
+  letter-spacing: 0.02em;
 }
 
 .rank-dim-label {
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   opacity: 0.7;
-  margin-left: 4px;
-  font-weight: 400;
 }
 
-/* Edit Profile Button */
-.edit-profile-btn {
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--border-default) !important;
-  color: var(--text-secondary) !important;
-  border-radius: var(--radius-md) !important;
-  font-weight: 500;
-  transition: all var(--duration-fast) ease;
+.rank-cycle {
+  font-size: 11px;
+  opacity: 0.45;
 }
 
-.edit-profile-btn:hover {
-  border-color: var(--accent-primary) !important;
-  color: var(--accent-primary) !important;
-  background: rgba(0, 229, 160, 0.06) !important;
+.rank-none-text {
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  text-align: center;
-  transition: all 0.25s ease;
-  position: relative;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-}
-
-.stat-card--wins {
-  border-top: 3px solid var(--accent-primary);
-}
-
-.stat-card--losses {
-  border-top: 3px solid var(--accent-danger);
-}
-
-.stat-card--rate {
-  border-top: 3px solid var(--accent-secondary);
-}
-
-.stat-card--streak {
-  border-top: 3px solid var(--accent-warning);
-}
-
-.stat-card-value {
-  font-family: var(--font-mono);
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: var(--accent-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-card--losses .stat-card-value {
-  color: var(--accent-danger);
-}
-
-.stat-card--rate .stat-card-value {
-  color: var(--accent-secondary);
-}
-
-.stat-card--streak .stat-card-value {
-  color: var(--accent-warning);
-}
-
-.stat-card-label {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-card-bar {
-  height: 3px;
-  border-radius: 2px;
-  margin-top: 8px;
-  background: var(--bg-surface-2);
-  overflow: hidden;
-}
-
-.stat-card-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.6s ease-out;
-}
-
-/* Public Profile Hint */
-.public-profile-hint {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
+.identity-sub {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-tertiary);
-  font-size: 13px;
-}
-
-.public-profile-hint i {
-  color: var(--accent-secondary);
-  font-size: 16px;
-}
-
-.profile-url {
-  color: var(--accent-secondary);
-  background: var(--bg-surface-2);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
   font-family: var(--font-mono);
-  font-size: 12px;
-  word-break: break-all;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
 }
 
-.copy-url-btn {
-  color: var(--accent-primary) !important;
-  font-size: 12px !important;
-  padding: 2px 8px !important;
-  flex-shrink: 0;
+.identity-sep {
+  color: var(--text-faint);
 }
 
-.avatar-upload {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.identity-uid {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
 }
 
-.avatar-uploader {
-  display: inline-block;
-}
-
-/* Dialog Footer */
-.dialog-footer .el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-}
-
-/* Bank Quick Link */
-.bank-link-card {
-  margin-top: 20px;
-}
-
-.bank-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  text-decoration: none;
-  transition: border-color var(--duration-fast) ease,
-              background var(--duration-fast) ease;
-}
-
-.bank-link:hover {
-  border-color: var(--accent-primary);
-  background: rgba(0, 229, 160, 0.04);
-}
-
-.bank-link-left {
+.identity-level-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  margin-top: 4px;
+}
+
+.level-caption {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+}
+
+.identity-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  padding-left: 24px;
+  border-left: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.rank-score {
+  text-align: right;
+}
+
+.rank-score-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+}
+
+.rank-score-value {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--cream);
+}
+
+.identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.identity-actions .el-button + .el-button {
+  margin-left: 0;
+}
+
+.ghost-action {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   font-weight: 600;
+}
+
+.ghost-action:hover {
+  border-color: var(--brand-line);
+  color: var(--brand);
+  background: var(--bg-surface-3);
+}
+
+/* ---------- Stat grid ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.stat-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 16px 16px 14px;
+  background:
+    linear-gradient(180deg, var(--bg-surface-2) 0%, transparent 52%),
+    var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform var(--duration-normal) var(--ease-out), border-color var(--duration-normal) var(--ease-out);
+}
+
+.stat-cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 22px;
+  height: 2px;
+  background: var(--border-strong);
+}
+
+.stat-cell:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+}
+
+.stat-cell--points {
+  background:
+    linear-gradient(180deg, var(--brand-soft) 0%, transparent 60%),
+    var(--bg-surface-1);
+  border-color: var(--brand-line);
+}
+
+.stat-cell--points::before {
+  width: 34px;
+  background: var(--brand);
+}
+
+.stat-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   color: var(--text-primary);
 }
 
-.bank-link-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.stat-value em {
+  font-style: normal;
+  font-size: 13px;
   color: var(--text-tertiary);
-  font-size: 14px;
+  margin-left: 2px;
 }
 
-.bank-link-debt {
-  font-family: var(--font-mono);
-  color: #f56c6c;
-}
-
-.bank-link-clean {
+.stat-value--mint {
   color: var(--accent-primary);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
+.stat-value--danger {
+  color: var(--accent-danger);
+}
+
+.stat-cell--points .stat-value {
+  font-size: 32px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.stat-track {
+  height: 3px;
+  margin-top: 9px;
+  background: var(--bg-surface-3);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent-primary);
+  transition: width 0.6s var(--ease-out);
+}
+
+/* ---------- Micro strip ---------- */
+.micro-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.micro-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-right: 16px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.micro-item:last-of-type {
+  padding-right: 0;
+  border-right: none;
+}
+
+.micro-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.micro-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.micro-note {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+/* ---------- Public profile ---------- */
+.public-profile-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  min-width: 0;
+}
+
+.hint-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  color: var(--accent-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.hint-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.profile-url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-secondary);
+  background: transparent;
+  padding: 0;
+}
+
+.copy-url-btn {
+  flex-shrink: 0;
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Bank entry ---------- */
+.bank-entry {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  background:
+    linear-gradient(90deg, var(--brand-soft) 0%, transparent 46%),
+    var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  transition: transform var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.bank-entry:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-line);
+  box-shadow: var(--shadow-md);
+}
+
+.bank-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-md);
+  font-size: 18px;
+}
+
+.bank-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bank-text strong {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.bank-text small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.bank-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.bank-debt {
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-warning);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.bank-clean {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent-primary);
+}
+
+.bank-arrow {
+  color: var(--text-tertiary);
+  transition: transform var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.bank-entry:hover .bank-arrow {
+  color: var(--brand);
+  transform: translateX(3px);
+}
+
+/* ---------- Dialogs ---------- */
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar-upload :deep(.el-avatar) {
+  border: 1px solid var(--brand-line);
+  background: var(--bg-surface-3);
+}
+
+.avatar-upload-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.avatar-upload-hint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .user-info-card {
+  .identity-card {
     flex-direction: column;
-    gap: 16px;
-    text-align: center;
+    align-items: stretch;
+    gap: 18px;
+    padding: 20px;
   }
-  .user-avatar-section {
-    flex-direction: column;
+
+  .identity-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 0;
+    padding-top: 16px;
+    border-left: none;
+    border-top: 1px solid var(--border-subtle);
   }
-  .user-info-right {
-    flex-direction: column;
+
+  .rank-score {
+    text-align: left;
+  }
+
+  .identity-actions {
+    justify-content: flex-end;
+  }
+
+  .micro-note {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .identity-main {
+    gap: 14px;
+  }
+
+  .avatar-frame {
+    width: 84px;
+    height: 84px;
+  }
+
+  .user-nickname {
+    font-size: 21px;
+  }
+
+  .identity-card {
+    padding: 16px;
+  }
+
+  .identity-side {
+    flex-wrap: wrap;
     gap: 12px;
+  }
+
+  .identity-actions {
+    width: 100%;
+  }
+
+  .identity-actions .el-button {
+    flex: 1;
+    margin-left: 0;
+  }
+
+  .stat-cell {
+    padding: 14px 13px 12px;
+  }
+
+  .stat-cell--points .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .micro-strip {
+    gap: 0 14px;
+    padding: 10px 13px;
+  }
+
+  .micro-item {
+    padding-right: 14px;
+  }
+
+  .micro-item:last-of-type {
+    padding-right: 0;
+  }
+
+  .public-profile-hint {
+    flex-wrap: wrap;
+  }
+
+  .profile-url {
+    flex-basis: 100%;
+    order: 4;
+  }
+
+  .bank-entry {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .bank-text small {
+    letter-spacing: 0.08em;
+  }
+
+  .bank-meta {
+    gap: 6px;
   }
 }
 </style>

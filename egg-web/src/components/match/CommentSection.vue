@@ -1,16 +1,25 @@
 <template>
   <!-- 评论区：评论列表、发表评论框、加载更多回复、WebSocket 实时推送 -->
-  <div class="comments-panel">
-    <h3 class="panel-title">
-      <el-icon><ChatDotSquare /></el-icon>
-      <span>评论</span>
-      <span class="comment-count">{{ commentTotal }}</span>
-    </h3>
+  <div class="comments-panel u-panel card-entrance">
+    <header class="comments-head">
+      <div class="comments-head-main">
+        <span class="u-eyebrow">COMMENTS</span>
+        <h3 class="comments-title">
+          <el-icon class="comments-icon"><ChatDotSquare /></el-icon>
+          <span>评论</span>
+          <span class="comment-count">{{ commentTotal }}</span>
+        </h3>
+      </div>
+      <span class="comments-meta">实时讨论</span>
+    </header>
 
     <!-- Not Logged In -->
-    <div v-if="!getToken()" class="bet-login-prompt">
-      <div class="prompt-icon">🔒</div>
-      <p class="prompt-text">登录后参与评论</p>
+    <div v-if="!getToken()" class="state-panel state-panel--auth">
+      <div class="state-head">
+        <span class="state-code">AUTH</span>
+        <p class="state-title">登录后参与评论</p>
+      </div>
+      <p class="state-desc">登录后可发表评论、回复其他玩家</p>
       <el-button type="primary" class="prompt-btn" @click="$router.push('/login')">去登录</el-button>
     </div>
 
@@ -18,7 +27,7 @@
       <!-- Comment Input -->
       <div class="comment-input-wrap">
         <div v-if="replyTarget" class="reply-hint">
-          <span>回复 @{{ replyTarget.userNickname }}</span>
+          <span class="reply-hint-text">回复 <b>@{{ replyTarget.userNickname }}</b></span>
           <el-button link size="mini" @click="cancelReply">取消</el-button>
         </div>
         <el-input
@@ -30,9 +39,11 @@
           show-word-limit
         />
         <div class="comment-input-actions">
+          <span class="composer-meta">支持 @昵称 提及</span>
           <el-button
             type="primary"
             size="small"
+            class="comment-submit"
             :loading="commentPosting"
             :disabled="!commentInput.trim()"
             @click="postComment"
@@ -42,7 +53,9 @@
 
       <!-- Comment List -->
       <div v-if="comments.length === 0 && !commentsLoading" class="comment-empty">
-        <el-empty description="还没有评论，快来抢沙发" />
+        <span class="empty-mark">//</span>
+        <p class="empty-title">还没有评论</p>
+        <p class="empty-desc">快来抢沙发，聊聊这场比赛</p>
       </div>
 
       <div v-else class="comment-list">
@@ -55,11 +68,13 @@
           <div class="comment-body">
             <div class="comment-header">
               <span class="comment-nickname">{{ comment.userNickname || '匿名用户' }}</span>
+              <span v-if="currentUser && comment.userId === currentUser.id" class="comment-self">我</span>
               <span class="comment-time">{{ formatTime(comment.createTime) }}</span>
             </div>
             <div class="comment-content" v-html="renderContent(comment.content)"></div>
             <div class="comment-actions">
               <el-button link size="mini" @click="startReply(comment)">回复</el-button>
+              <span v-if="currentUser && comment.userId === currentUser.id" class="action-sep">/</span>
               <el-button
                 v-if="currentUser && comment.userId === currentUser.id"
                 link
@@ -86,6 +101,7 @@
                   <div class="comment-content" v-html="renderContent(reply.content)"></div>
                   <div class="comment-actions">
                     <el-button link size="mini" @click="startReply(reply, comment)">回复</el-button>
+                    <span v-if="currentUser && reply.userId === currentUser.id" class="action-sep">/</span>
                     <el-button
                       v-if="currentUser && reply.userId === currentUser.id"
                       link
@@ -303,99 +319,288 @@ export default {
 </script>
 
 <style scoped>
-/* Comments Panel */
+/* ===== Panel shell ===== */
 .comments-panel {
-  background: rgba(18,18,26,0.65);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 28px;
-  margin-top: 24px;
+  --panel-pad: 22px;
+  position: relative;
+  max-width: 880px;
+  margin: 24px auto 0;
+  padding: var(--panel-pad);
 }
 
-.panel-title {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 22px;
-  letter-spacing: 1px;
-  margin-bottom: 20px;
+.comments-head {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 12px;
 }
 
-.comments-panel .panel-title {
+.comments-head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 44px;
+  height: 2px;
+  background: var(--brand);
+}
+
+.comments-head-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.comments-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
 }
 
-.comments-panel .panel-title i {
-  color: var(--accent-primary);
-  font-size: 20px;
+.comments-icon {
+  font-size: 18px;
+  color: var(--text-tertiary);
 }
 
 .comment-count {
-  color: var(--text-tertiary);
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 20px;
+  padding: 0 7px;
   font-family: var(--font-mono);
-  font-weight: 400;
-  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
 }
 
+.comments-meta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ===== Auth state ===== */
+.state-panel {
+  margin-top: 18px;
+  padding: 18px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--brand);
+  border-radius: var(--radius-md);
+}
+
+.state-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.state-code {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--brand);
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sharp);
+  padding: 2px 6px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.state-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.state-desc {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.55;
+}
+
+.prompt-btn {
+  margin-top: 14px;
+  min-width: 108px;
+  height: 36px;
+  font-weight: 700;
+}
+
+/* ===== Composer ===== */
 .comment-input-wrap {
-  margin-bottom: 24px;
+  margin-top: 18px;
+  margin-bottom: 20px;
 }
 
 .reply-hint {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  gap: 10px;
+  padding: 8px 12px;
   margin-bottom: 8px;
-  background: var(--bg-surface-3);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
+  background: var(--bg-surface-2);
+  border-left: 2px solid var(--brand);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.reply-hint-text {
+  font-size: 12.5px;
   color: var(--text-secondary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.reply-hint-text b {
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.reply-hint .el-button {
+  flex-shrink: 0;
+  font-size: 11.5px;
+}
+
+.comment-input-wrap :deep(.el-textarea__inner) {
+  padding: 12px 14px 26px;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.65;
+  border-radius: var(--radius-sm);
+  resize: vertical;
+}
+
+.comment-input-wrap :deep(.el-input__count) {
+  right: 12px;
+  bottom: 8px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: transparent;
 }
 
 .comment-input-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 8px;
 }
 
-.comment-input-actions .el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
+.composer-meta {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 
+.comment-submit {
+  min-width: 84px;
+  height: 34px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* ===== Empty ===== */
 .comment-empty {
-  padding: 24px 0;
+  padding: 32px 20px;
+  text-align: center;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
 }
 
+.empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sm);
+}
+
+.empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-desc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+/* ===== List ===== */
 .comment-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 2px;
 }
 
 .comment-item {
   display: flex;
   gap: 12px;
+  padding: 10px 12px;
+  margin: 0 -12px;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) ease;
+}
+
+.comment-item:hover {
+  background: var(--bg-surface-2);
 }
 
 .comment-avatar {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  overflow: hidden;
+  border: 1px solid var(--border-subtle);
   background: var(--bg-surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
@@ -411,9 +616,11 @@ export default {
 }
 
 .avatar-placeholder {
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
 }
 
 .comment-body {
@@ -424,143 +631,234 @@ export default {
 .comment-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 7px;
+  min-height: 18px;
 }
 
 .comment-nickname {
-  color: var(--text-primary);
-  font-weight: 600;
   font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.comment-self {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--brand);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sharp);
+  flex-shrink: 0;
 }
 
 .reply-to {
+  font-size: 11px;
   color: var(--text-tertiary);
-  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .comment-time {
-  color: var(--text-tertiary);
-  font-size: 12px;
   margin-left: auto;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .comment-content {
-  color: var(--text-secondary);
+  margin-top: 3px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .comment-content :deep(.at-mention) {
-  color: var(--accent-primary);
-  font-weight: 500;
+  color: var(--brand);
+  font-weight: 600;
 }
 
+/* ===== Actions ===== */
 .comment-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  align-items: center;
+  gap: 2px;
+  margin-top: 5px;
 }
 
-.comment-actions .el-button--text {
-  color: var(--text-tertiary) !important;
-  font-size: 12px;
-  padding: 2px 0;
+.comment-actions .el-button {
+  height: auto;
+  padding: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
 }
 
-.comment-actions .el-button--text:hover {
-  color: var(--accent-primary) !important;
+.comment-actions .el-button:hover {
+  color: var(--text-primary);
 }
 
 .comment-actions .delete-btn:hover {
   color: var(--accent-danger) !important;
 }
 
+.action-sep {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* ===== Replies ===== */
 .reply-list {
-  margin-top: 12px;
-  padding: 12px;
-  background: var(--bg-surface-3);
-  border-radius: var(--radius-md);
+  margin-top: 10px;
+  padding-left: 14px;
+  border-left: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
 .reply-item {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast) ease;
+}
+
+.reply-item:hover {
+  background: var(--bg-surface-2);
+}
+
+.reply-item .comment-content {
+  font-size: 13.5px;
+}
+
+.reply-item .comment-nickname {
+  font-size: 12.5px;
 }
 
 .load-more-replies {
-  color: var(--accent-secondary) !important;
-  font-size: 12px !important;
-  padding: 4px 0 !important;
+  align-self: flex-start;
+  margin-left: 2px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
 }
 
 .load-more-replies:hover {
-  color: var(--accent-primary) !important;
+  color: var(--brand);
 }
 
+/* ===== Pagination ===== */
 .comment-pagination {
   margin-top: 20px;
   text-align: center;
 }
 
-/* Bet Login Prompt（评论未登录提示复用） */
-.bet-login-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 24px;
-  text-align: center;
-}
-
-.prompt-icon {
-  font-size: 36px;
-  margin-bottom: 12px;
-  opacity: 0.7;
-}
-
-.prompt-text {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
-}
-
-.prompt-btn {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-  padding: 10px 32px;
-}
-
-/* ===== 移动端适配 ===== */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
-  /* 评论面板：缩小内边距 */
   .comments-panel {
-    padding: 18px 14px;
+    --panel-pad: 16px;
     margin-top: 16px;
   }
-  .comment-input-actions {
-    justify-content: stretch;
-  }
-  .comment-input-actions .el-button {
-    flex: 1;
-    min-height: 40px;
+
+  .comments-title {
+    font-size: 21px;
   }
 
-  /* 未登录提示按钮：全宽 */
-  .bet-login-prompt {
-    padding: 24px 16px;
+  .comments-meta {
+    display: none;
   }
-  .prompt-btn {
-    width: 100%;
-    min-height: 44px;
+
+  .comment-item {
+    padding: 9px 8px;
+    margin: 0 -8px;
+    gap: 10px;
+  }
+
+  .reply-item {
+    padding: 7px 8px;
+    margin: 0 -8px;
+  }
+
+  .comment-input-actions .el-button {
+    min-height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .comments-panel {
+    --panel-pad: 12px;
+  }
+
+  .comments-title {
+    font-size: 19px;
+  }
+
+  .comment-count {
+    height: 18px;
+    min-width: 22px;
+    font-size: 9.5px;
+  }
+
+  .comment-input-wrap {
+    margin-top: 14px;
+    margin-bottom: 16px;
+  }
+
+  .comment-content {
+    font-size: 13.5px;
+  }
+
+  .comment-time {
+    font-size: 9px;
+  }
+
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .comment-avatar--sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  .avatar-placeholder {
+    font-size: 14px;
+  }
+
+  .reply-list {
+    padding-left: 10px;
+  }
+
+  .comment-empty {
+    padding: 26px 14px;
+  }
+
+  .comment-input-actions {
+    gap: 8px;
+  }
+
+  .comment-submit {
+    min-width: 72px;
+  }
+
+  .composer-meta {
+    font-size: 9px;
+    letter-spacing: 0.06em;
   }
 }
 </style>

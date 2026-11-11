@@ -41,6 +41,10 @@
       "browser": true,
       "es2022": true
     },
+    "ignorePatterns": [
+      "**/*.ts",
+      "**/*.d.ts"
+    ],
     "extends": [
       "plugin:vue/vue3-essential",
       "eslint:recommended"

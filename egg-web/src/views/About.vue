@@ -1,122 +1,201 @@
 <template>
   <div class="about-page">
-    <div class="page-header">
-      <h2 class="page-title">关于我们</h2>
-    </div>
+    <header class="ab-hero">
+      <div class="u-eyebrow">DOSSIER // 关于</div>
+      <h1 class="ab-title">关于我们</h1>
+      <p class="ab-statement">纯彩池 · <span class="ab-em">0% 抽水</span><br />判断力的竞技场。</p>
+      <p class="ab-hero-sub">Egg Esports 是一个独立的电竞赛事预测平台，专注瓦洛兰特。</p>
+      <div class="ab-strip">
+        <div class="ab-cell">
+          <div class="ab-cell-num">0%</div>
+          <div class="ab-cell-label">抽水</div>
+        </div>
+        <div class="ab-cell">
+          <div class="ab-cell-num">32</div>
+          <div class="ab-cell-label">场已交付</div>
+        </div>
+        <div class="ab-cell">
+          <div class="ab-cell-num">3<span class="ab-unit">天</span></div>
+          <div class="ab-cell-label">可交付同款</div>
+        </div>
+        <div class="ab-cell">
+          <div class="ab-cell-num">2</div>
+          <div class="ab-cell-label">种接单方案</div>
+        </div>
+      </div>
+    </header>
 
-    <div class="about-card">
-      <div class="about-section">
-        <h3 class="about-section-title">🎮 关于 Egg 赛事竞猜</h3>
-        <p class="about-text">
+    <!-- 01 项目定位 -->
+    <section class="ab-section">
+      <div class="ab-sec-head">
+        <span class="ab-sec-num">01</span>
+        <h2 class="ab-sec-title">项目定位</h2>
+        <span class="ab-sec-label">POSITION</span>
+      </div>
+      <div class="ab-prose">
+        <p>
           Egg Esports 是一个独立的电竞赛事预测平台，专注瓦洛兰特。平台采用纯彩池制（Parimutuel），<strong>0% 抽水</strong>——不设庄家、不抽一分钱，赔率完全由玩家投注决定。你押的每一分都在奖池里，猜中按比例分账。积分永远是积分，不可变现——这不是博彩，是判断力的竞技场。
         </p>
       </div>
+    </section>
 
-      <div class="about-section">
-        <h3 class="about-section-title">✨ 核心特色</h3>
-        <div class="feature-list">
-          <div class="feature-item">
-            <span class="feature-icon">🎯</span>
-            <div class="feature-body">
-              <strong>积分纯靠竞猜</strong>
-              <p>无签到、无任务、无额外获取方式，积分只来自你的预测眼光</p>
-            </div>
+    <!-- 02 玩法 -->
+    <section class="ab-section">
+      <div class="ab-sec-head">
+        <span class="ab-sec-num">02</span>
+        <h2 class="ab-sec-title">玩法</h2>
+        <span class="ab-sec-label">MECHANICS</span>
+      </div>
+      <div class="ab-features">
+        <div class="ab-feature">
+          <span class="ab-feature-num">01</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">积分纯靠竞猜</h3>
+            <p class="ab-feature-desc">无签到、无任务、无额外获取方式，积分只来自你的预测眼光</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">🛟</span>
-            <div class="feature-body">
-              <strong>兜底系统</strong>
-              <p>0 积分可领取贷款和低保，让你东山再起的机会</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">02</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">兜底系统</h3>
+            <p class="ab-feature-desc">0 积分可领取贷款和低保，让你东山再起的机会</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">🏆</span>
-            <div class="feature-body">
-              <strong>0% 抽水 · 纯彩池</strong>
-              <p>不抽一分钱，纯粹的对赌，猜中按比例分账</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">03</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">0% 抽水 · 纯彩池</h3>
+            <p class="ab-feature-desc">不抽一分钱，纯粹的对赌，猜中按比例分账</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">📈</span>
-            <div class="feature-body">
-              <strong>净收益榜</strong>
-              <p>只计算押注输赢，低保和贷款不计入排名。能上榜，全凭眼光</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">04</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">净收益榜</h3>
+            <p class="ab-feature-desc">只计算押注输赢，低保和贷款不计入排名。能上榜，全凭眼光</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">♾️</span>
-            <div class="feature-body">
-              <strong>单次押注不设限</strong>
-              <p>没有上限，想押多少押多少</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">05</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">单次押注不设限</h3>
+            <p class="ab-feature-desc">没有上限，想押多少押多少</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">⏱️</span>
-            <div class="feature-body">
-              <strong>押注截止前为准</strong>
-              <p>结算以最后截止前为准，绝不提前锁定</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">06</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">押注截止前为准</h3>
+            <p class="ab-feature-desc">结算以最后截止前为准，绝不提前锁定</p>
           </div>
-          <div class="feature-item">
-            <span class="feature-icon">🛡️</span>
-            <div class="feature-body">
-              <strong>非博彩 · 纯竞技</strong>
-              <p>积分不可充值、不可提现，竞赛纯粹靠判断力</p>
-            </div>
+        </div>
+        <div class="ab-feature">
+          <span class="ab-feature-num">07</span>
+          <div class="ab-feature-body">
+            <h3 class="ab-feature-title">非博彩 · 纯竞技</h3>
+            <p class="ab-feature-desc">积分不可充值、不可提现，竞赛纯粹靠判断力</p>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="about-section">
-        <h3 class="about-section-title">💼 接单说明 · 3天可交付同款</h3>
-        <p class="about-text" style="margin-bottom:12px">
-          本站为<strong>可复刻的瓦洛兰特预测社区演示站</strong>（已交付 32 场 · 0%抽水纯彩池），支持二次定制，<strong>3天可交付同款</strong>。价格与 <router-link to="/pricing" style="color:var(--accent-primary);text-decoration:none;font-weight:600">/pricing</router-link> 一致：
-        </p>
-        <div class="order-list">
-          <div class="order-item">
-            <span class="order-dot"></span>
-            <div class="order-body">
-              <strong>复刻演示站 · 8000 元起</strong>
-              <span>含部署 + 域名 + 首季赛程导入 + 机器人托底，不含菠菜/现金兑付定制</span>
-            </div>
-          </div>
-          <div class="order-item">
-            <span class="order-dot"></span>
-            <div class="order-body">
-              <strong>单场代办 · 800–2000 元 / 场</strong>
-              <span>含海报 + 赛程录入 + 榜单结算 + 战报图 9 张，不含线下执行/裁判差旅</span>
-            </div>
-          </div>
-          <div class="order-item">
-            <span class="order-dot"></span>
-            <div class="order-body">
-              <strong>付款 4:5:1 · 3天交付</strong>
-              <span>定金 40% / 交付 50% / 质保 10%，常规需求 3 个工作日内上线演示站</span>
-            </div>
+    <!-- 03 技术栈 -->
+    <section class="ab-section">
+      <div class="ab-sec-head">
+        <span class="ab-sec-num">03</span>
+        <h2 class="ab-sec-title">技术栈</h2>
+        <span class="ab-sec-label">STACK</span>
+      </div>
+      <div class="ab-chips">
+        <span class="ab-chip">Spring Boot 3</span>
+        <span class="ab-chip">Vue 3 + Element Plus</span>
+        <span class="ab-chip">MySQL + MyBatis-Plus</span>
+        <span class="ab-chip">Redis + Lua 限流</span>
+        <span class="ab-chip">Adapter 多数据源</span>
+        <span class="ab-chip">WebSocket 实时评论</span>
+      </div>
+    </section>
+
+    <!-- 04 数据源 -->
+    <section class="ab-section">
+      <div class="ab-sec-head">
+        <span class="ab-sec-num">04</span>
+        <h2 class="ab-sec-title">数据源</h2>
+        <span class="ab-sec-label">DATA</span>
+      </div>
+      <div class="ab-prose">
+        <p>数据源通过 <strong>Adapter</strong> 统一接入（Riot / GRID / OpenDota / Liquipedia 均保留），前台瓦聚焦仅为展示层过滤。</p>
+      </div>
+    </section>
+
+    <!-- 05 免责声明 -->
+    <section class="ab-section">
+      <div class="ab-sec-head">
+        <span class="ab-sec-num">05</span>
+        <h2 class="ab-sec-title">免责声明</h2>
+        <span class="ab-sec-label">NOTICE</span>
+      </div>
+      <div class="ab-prose">
+        <p>本站为校园赛预测演示产品：积分不可充值、不可提现、不可变现；不提供菠菜 / 现金博彩相关功能，所有玩法仅用于判断力竞技与赛事演示。</p>
+      </div>
+    </section>
+
+    <!-- 接单说明 -->
+    <section class="ab-commission">
+      <div class="ab-commission-head">
+        <span class="u-eyebrow">COMMISSION // 接单</span>
+        <h2 class="ab-commission-title">接单说明 · 3天可交付同款</h2>
+      </div>
+      <p class="ab-commission-text">
+        本站为<strong>可复刻的瓦洛兰特预测社区演示站</strong>（已交付 32 场 · 0%抽水纯彩池），支持二次定制，<strong>3天可交付同款</strong>。价格与 <router-link to="/pricing" class="ab-inline-link">/pricing</router-link> 一致：
+      </p>
+      <div class="ab-order-list">
+        <div class="ab-order-item">
+          <span class="ab-order-num">01</span>
+          <div class="ab-order-body">
+            <strong>复刻演示站 · 8000 元起</strong>
+            <span>含部署 + 域名 + 首季赛程导入 + 机器人托底，不含菠菜/现金兑付定制</span>
           </div>
         </div>
-        <p class="about-text" style="margin-top:10px;font-size:12px;color:var(--text-tertiary)">
-          演示账号 <code>demo_player/demo123</code> 可先体验全流程，再谈定制 → <a href="mailto:contact@example.com" style="color:var(--accent-primary);text-decoration:none">contact@example.com</a>
-        </p>
-      </div>
-
-      <div class="about-section">
-        <h3 class="about-section-title">📬 联系我们</h3>
-        <p class="about-text">
-          Egg Esports 由独立开发者维护。如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：
-        </p>
-        <div class="contact-list">
-          <div class="contact-item">
-            <!-- Element Plus：字体图标改为 SVG 组件 -->
-            <el-icon><Message /></el-icon>
-            <span>邮箱：contact@example.com</span>
+        <div class="ab-order-item">
+          <span class="ab-order-num">02</span>
+          <div class="ab-order-body">
+            <strong>单场代办 · 800–2000 元 / 场</strong>
+            <span>含海报 + 赛程录入 + 榜单结算 + 战报图 9 张，不含线下执行/裁判差旅</span>
+          </div>
+        </div>
+        <div class="ab-order-item">
+          <span class="ab-order-num">03</span>
+          <div class="ab-order-body">
+            <strong>付款 4:5:1 · 3天交付</strong>
+            <span>定金 40% / 交付 50% / 质保 10%，常规需求 3 个工作日内上线演示站</span>
           </div>
         </div>
       </div>
+      <p class="ab-demo">
+        演示账号 <code>demo_player/demo123</code> 可先体验全流程，再谈定制 → <a href="mailto:contact@example.com">contact@example.com</a>
+      </p>
+      <div class="ab-commission-actions">
+        <el-button type="primary" class="btn-hover-lift" @click="$router.push('/pricing')">查看定价方案</el-button>
+        <a href="mailto:contact@example.com" class="ab-mail">商务邮箱 → contact@example.com</a>
+      </div>
+    </section>
 
-      <div class="about-section">
-        <h3 class="about-section-title">☕ 请作者喝杯咖啡</h3>
-        <p class="about-text">如果你喜欢这个平台，欢迎支持独立开发（纯自愿，不影响任何功能）</p>
+    <!-- 联系与支持 -->
+    <section class="ab-contact">
+      <div class="ab-contact-col">
+        <div class="ab-contact-kicker">CONTACT // 联系</div>
+        <h2 class="ab-contact-title">联系我们</h2>
+        <p>Egg Esports 由独立开发者维护。如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：</p>
+        <div class="ab-contact-row">
+          <el-icon><Message /></el-icon>
+          <span>邮箱：contact@example.com</span>
+        </div>
+      </div>
+      <div class="ab-contact-col ab-donate">
+        <div class="ab-contact-kicker">SUPPORT // 支持</div>
+        <h2 class="ab-contact-title">请作者喝杯咖啡</h2>
+        <p>如果你喜欢这个平台，欢迎支持独立开发（纯自愿，不影响任何功能）</p>
         <div class="donate-qr">
           <el-image :src="'/uploads/donate-qr.png'" alt="打赏二维码" class="donate-qr-img" fit="contain">
             <template #error><span class="img-fallback">二维码</span></template>
@@ -124,7 +203,7 @@
           <span class="donate-qr-label">微信扫码打赏</span>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -140,209 +219,442 @@ export default {
 
 <style scoped>
 .about-page {
-  max-width: 720px;
+  max-width: 880px;
   margin: 0 auto;
-  padding: 0 16px;
 }
 
-.page-header {
-  margin-bottom: 24px;
-}
-
-.page-title {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 32px;
-  letter-spacing: 1px;
-}
-
-.about-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--shadow-md);
-}
-
-.about-section {
-  margin-bottom: 28px;
-  padding-bottom: 28px;
+/* ── Hero ── */
+.ab-hero {
+  position: relative;
+  padding: 6px 0 34px;
   border-bottom: 1px solid var(--border-subtle);
 }
-
-.about-section:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
+.ab-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 48px;
+  height: 2px;
+  background: var(--brand);
 }
-
-.about-section-title {
+.ab-title {
+  margin-top: 12px;
+  font-family: var(--font-body);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 12px;
 }
-
-.about-text {
-  color: var(--text-secondary);
+.ab-statement {
+  margin-top: 18px;
+  max-width: 760px;
+  font-family: var(--font-body);
+  font-size: clamp(28px, 4.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.025em;
+  color: var(--cream);
+}
+.ab-em {
+  color: var(--brand);
+}
+.ab-hero-sub {
+  margin-top: 16px;
+  max-width: 640px;
   font-size: 14px;
   line-height: 1.8;
+  color: var(--text-secondary);
+}
+.ab-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 28px;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ab-cell {
+  min-width: 0;
+  padding: 16px 18px;
+  border-left: 1px solid var(--border-subtle);
+}
+.ab-cell:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.ab-cell-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.ab-unit {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+.ab-cell-label {
+  margin-top: 7px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
 }
 
-.about-text strong {
+/* ── Sections ── */
+.ab-section {
+  margin-top: 44px;
+}
+.ab-sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ab-sec-num {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+.ab-sec-title {
+  font-family: var(--font-body);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.ab-sec-label {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.ab-prose {
+  max-width: 760px;
+  margin-top: 16px;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+.ab-prose p + p {
+  margin-top: 12px;
+}
+.ab-prose strong {
   color: var(--accent-primary);
   font-weight: 600;
 }
 
-.feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* ── Features ── */
+.ab-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px;
+  max-width: 760px;
+  margin-top: -1px;
 }
-
-.feature-item {
+.ab-feature {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 14px;
-  background: var(--bg-surface-2);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-subtle);
 }
-
-.feature-icon {
-  font-size: 24px;
+.ab-feature:last-child {
+  grid-column: 1 / -1;
+}
+.ab-feature-num {
+  padding-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--brand);
   flex-shrink: 0;
-  line-height: 1.3;
 }
-
-.feature-body strong {
-  color: var(--text-primary);
+.ab-feature-body {
+  min-width: 0;
+}
+.ab-feature-title {
+  font-family: var(--font-body);
   font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
-
-.feature-body p {
+.ab-feature-desc {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.7;
   color: var(--text-tertiary);
-  font-size: 13px;
-  margin-top: 4px;
 }
 
-/* ── 接单说明 ── */
-.order-list {
+/* ── Chips ── */
+.ab-chips {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
-.order-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 14px;
+.ab-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary);
   background: var(--bg-surface-2);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
-.order-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  margin-top: 7px;
+
+/* ── Commission ── */
+.ab-commission {
+  position: relative;
+  margin-top: 44px;
+  padding: 26px 28px;
+  background:
+    linear-gradient(120deg, var(--brand-soft), transparent 55%),
+    var(--bg-surface-1);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-lg);
+}
+.ab-commission-title {
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.ab-commission-text {
+  margin-top: 12px;
+  max-width: 760px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+.ab-commission-text strong {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+.ab-inline-link {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+.ab-inline-link:hover {
+  text-decoration: underline;
+}
+.ab-order-list {
+  margin-top: 16px;
+}
+.ab-order-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+  min-width: 0;
+}
+.ab-order-item:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ab-order-num {
+  padding-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--brand);
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(0, 229, 160, 0.5);
 }
-.order-body {
+.ab-order-body {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.order-body strong {
-  color: var(--text-primary);
-  font-size: 13px;
+.ab-order-body strong {
+  font-size: 13.5px;
   font-weight: 600;
+  color: var(--text-primary);
 }
-.order-body span {
-  color: var(--text-tertiary);
+.ab-order-body span {
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.65;
+  color: var(--text-tertiary);
 }
-
-.contact-list {
+.ab-demo {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-tertiary);
+  word-break: break-word;
+}
+.ab-demo code {
+  padding: 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent-primary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+.ab-demo a {
+  color: var(--accent-primary);
+  word-break: break-all;
+}
+.ab-demo a:hover {
+  text-decoration: underline;
+}
+.ab-commission-actions {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.ab-mail {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  word-break: break-all;
+  transition: color var(--duration-fast) ease;
+}
+.ab-mail:hover {
+  color: var(--brand);
 }
 
-.contact-item {
+/* ── Contact / donate ── */
+.ab-contact {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 36px;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid var(--border-subtle);
+}
+.ab-contact-col {
+  min-width: 0;
+}
+.ab-contact-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.ab-contact-title {
+  margin-top: 7px;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.ab-contact-col p {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+.ab-contact-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
-  font-size: 14px;
+  word-break: break-word;
 }
-
-.contact-item i {
-  color: var(--accent-primary);
-  font-size: 16px;
+.ab-contact-row .el-icon {
+  color: var(--brand);
+  flex-shrink: 0;
 }
-
-.contact-link {
-  color: var(--accent-primary);
-  text-decoration: none;
-  font-weight: 500;
+.ab-donate {
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 36px;
 }
-
-.contact-link:hover {
-  text-decoration: underline;
-}
-
-/* ── Donate ── */
 .donate-qr {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  margin-top: 16px;
-  padding: 20px;
-  background: var(--bg-surface-2);
-  border-radius: var(--radius-lg);
-  border: 1px dashed var(--border-default);
+  margin-top: 14px;
 }
-
 .donate-qr-img {
-  width: 200px;
-  height: 200px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border-subtle);
-  background: #fff;
+  width: 168px;
+  height: 168px;
   padding: 8px;
-  object-fit: contain;
+  background: var(--cream);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
 }
-
 .donate-qr-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
   color: var(--text-tertiary);
-  font-size: 12px;
 }
 
-/* Mobile */
-@media (max-width: 767px) {
-  .page-title {
-    font-size: 24px;
+@media (max-width: 760px) {
+  .ab-title {
+    font-size: 26px;
   }
-
-  .about-card {
+  .ab-statement {
+    font-size: 26px;
+  }
+  .ab-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ab-cell {
+    padding: 14px 12px;
+  }
+  .ab-cell:nth-child(odd) {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .ab-cell:nth-child(n + 3) {
+    border-top: 1px solid var(--border-subtle);
+  }
+  .ab-features {
+    grid-template-columns: 1fr;
+  }
+  .ab-commission {
     padding: 20px;
+    margin-top: 34px;
   }
-
-  .about-section-title {
-    font-size: 16px;
+  .ab-commission-title {
+    font-size: 19px;
   }
-
-  .feature-item {
-    padding: 12px;
-    gap: 10px;
+  .ab-contact {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .ab-donate {
+    border-left: 0;
+    padding-left: 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .ab-commission-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ab-commission-actions .el-button {
+    width: 100%;
+  }
+  .ab-mail {
+    text-align: center;
   }
 }
 </style>

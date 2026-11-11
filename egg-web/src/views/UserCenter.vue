@@ -1,40 +1,50 @@
 <template>
   <div class="user-center">
-    <div class="page-header">
-      <h2 class="page-title">个人中心</h2>
-    </div>
+    <header class="page-header">
+      <div class="page-eyebrow">// ACCOUNT · USER CENTER</div>
+      <h1 class="page-title">个人中心</h1>
+      <p class="page-sub">身份资料 · 战绩数据 · 投注流水</p>
+    </header>
 
     <!-- Loading Skeleton -->
     <template v-if="loading">
-      <div class="user-info-card skeleton">
-        <div class="user-avatar-section">
-          <div class="skeleton-line skeleton-line--avatar"></div>
-          <div class="user-meta">
-            <div class="skeleton-line skeleton-line--nickname"></div>
-            <div class="skeleton-line skeleton-line--date"></div>
+      <div class="user-skeleton">
+        <div class="sk-tabs">
+          <div class="sk-line shimmer-bg sk-tab"></div>
+          <div class="sk-line shimmer-bg sk-tab"></div>
+          <div class="sk-line shimmer-bg sk-tab"></div>
+        </div>
+
+        <div class="sk-identity u-panel">
+          <div class="sk-line shimmer-bg sk-avatar"></div>
+          <div class="sk-identity-meta">
+            <div class="sk-line shimmer-bg sk-name"></div>
+            <div class="sk-chips">
+              <div class="sk-line shimmer-bg sk-chip"></div>
+              <div class="sk-line shimmer-bg sk-chip"></div>
+            </div>
+            <div class="sk-line shimmer-bg sk-sub"></div>
           </div>
         </div>
-        <div class="user-points">
-          <div class="skeleton-line skeleton-line--points"></div>
-          <div class="skeleton-line skeleton-line--label"></div>
+
+        <div class="sk-stats">
+          <div v-for="i in 4" :key="'stat-skel-'+i" class="sk-stat u-panel">
+            <div class="sk-line shimmer-bg sk-kicker"></div>
+            <div class="sk-line shimmer-bg sk-value"></div>
+            <div class="sk-line shimmer-bg sk-label"></div>
+          </div>
         </div>
-      </div>
-      <div class="stats-grid">
-        <div v-for="i in 6" :key="'stat-skel-'+i" class="stat-card skeleton">
-          <div class="skeleton-line skeleton-line--stat-val"></div>
-          <div class="skeleton-line skeleton-line--stat-lbl"></div>
-        </div>
-      </div>
-      <div class="bet-history skeleton">
-        <div class="section-header">
-          <div class="skeleton-line skeleton-line--section-title"></div>
-        </div>
-        <div class="skeleton-table">
-          <div v-for="i in 4" :key="'bet-skel-'+i" class="skeleton-table-row">
-            <div class="skeleton-line skeleton-line--cell-lg"></div>
-            <div class="skeleton-line skeleton-line--cell-sm"></div>
-            <div class="skeleton-line skeleton-line--cell-sm"></div>
-            <div class="skeleton-line skeleton-line--cell-md"></div>
+
+        <div class="sk-panel u-panel">
+          <div class="sk-panel-head">
+            <div class="sk-line shimmer-bg sk-section-title"></div>
+            <div class="sk-line shimmer-bg sk-section-meta"></div>
+          </div>
+          <div v-for="i in 4" :key="'bet-skel-'+i" class="sk-row">
+            <div class="sk-line shimmer-bg sk-cell-lg"></div>
+            <div class="sk-line shimmer-bg sk-cell-sm"></div>
+            <div class="sk-line shimmer-bg sk-cell-sm"></div>
+            <div class="sk-line shimmer-bg sk-cell-md"></div>
           </div>
         </div>
       </div>
@@ -43,7 +53,10 @@
     <div v-else-if="user" class="user-content">
       <!-- Tab Navigation -->
       <el-tabs v-model="activeTab" class="user-tabs">
-        <el-tab-pane label="个人资料" name="profile">
+        <el-tab-pane name="profile">
+          <template #label>
+            <span class="tab-label"><span class="tab-idx" aria-hidden="true">01</span>个人资料</span>
+          </template>
           <!-- 个人资料：头像 / 昵称 / 排名徽章 / 统计卡片 / 银行入口 / 编辑弹窗 -->
           <profile-tab
             :user="user"
@@ -57,16 +70,21 @@
           />
         </el-tab-pane>
 
-        <el-tab-pane label="数据仪表盘" name="dashboard">
+        <el-tab-pane name="dashboard">
+          <template #label>
+            <span class="tab-label"><span class="tab-idx" aria-hidden="true">02</span>数据仪表盘</span>
+          </template>
           <!-- 数据仪表盘：趋势条 / 胜率 / 连胜 / 战绩图 / 收益曲线 -->
           <stats-dashboard :user="user" />
         </el-tab-pane>
 
         <el-tab-pane name="history">
-          <template #label><span>
-            投注记录
-            <span v-if="settlementCount > 0" class="settlement-badge">{{ settlementCount }}</span>
-          </span></template>
+          <template #label>
+            <span class="tab-label">
+              <span class="tab-idx" aria-hidden="true">03</span>投注记录
+              <span v-if="settlementCount > 0" class="settlement-badge">{{ settlementCount }}</span>
+            </span>
+          </template>
           <!-- 投注历史：状态筛选 / 表格 / 分页（子组件自洽加载） -->
           <bet-history-tab :settled-bet-keys="settledBetKeys" />
         </el-tab-pane>
@@ -215,44 +233,110 @@ export default {
 
 <style scoped>
 .user-center {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
+/* ---------- Page header ---------- */
 .page-header {
+  position: relative;
   margin-bottom: 24px;
-}
-
-.page-title {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 28px;
-  letter-spacing: 2px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-/* Tabs */
+.page-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 44px;
+  height: 2px;
+  background: var(--brand);
+  box-shadow: 0 0 12px var(--brand-line);
+}
+
+.page-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-family: var(--font-body);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.page-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Tabs ---------- */
 .user-tabs {
   margin-top: 4px;
 }
 
+.user-tabs :deep(.el-tabs__header) {
+  margin-bottom: 26px;
+}
+
+.user-tabs :deep(.el-tabs__nav-wrap::after) {
+  height: 1px !important;
+  background: var(--border-subtle) !important;
+}
+
 .user-tabs :deep(.el-tabs__item) {
-  color: var(--text-tertiary);
+  height: 46px !important;
+  padding: 0 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary) !important;
   transition: color var(--duration-fast) ease;
 }
 
 .user-tabs :deep(.el-tabs__item:hover) {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .user-tabs :deep(.el-tabs__item.is-active) {
-  color: var(--accent-primary);
+  color: var(--text-primary) !important;
 }
 
 .user-tabs :deep(.el-tabs__active-bar) {
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent-primary), #00ffb3);
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--brand), var(--brand-deep)) !important;
+  box-shadow: 0 0 12px var(--brand-line);
+}
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-idx {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  transition: color var(--duration-fast) ease;
+}
+
+.user-tabs :deep(.el-tabs__item.is-active) .tab-idx {
+  color: var(--brand);
 }
 
 /* Settlement Notification Badge */
@@ -261,159 +345,225 @@ export default {
   align-items: center;
   justify-content: center;
   min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent-primary);
-  background: rgba(0, 229, 160, 0.15);
-  border-radius: 10px;
-  margin-left: 6px;
+  height: 17px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
   line-height: 1;
-  vertical-align: middle;
-  animation: badge-pulse 2s ease-in-out infinite;
-}
-
-@keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
-
-/* Skeleton 布局容器样式（仅用于 Loading Skeleton 呈现，与对应子组件保持一致） */
-.user-info-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-md);
-}
-
-.user-avatar-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.user-points {
-  text-align: center;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 20px 16px;
-  text-align: center;
-  transition: transform var(--duration-normal) var(--ease-out),
-              border-color var(--duration-normal) var(--ease-out);
-}
-
-.bet-history {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-/* Skeleton Loading */
-@keyframes shimmer {
-  0% { background-position: -200% 0; transform: scaleY(1); }
-  50% { transform: scaleY(1.012); }
-  100% { background-position: 200% 0; transform: scaleY(1); }
-}
-@keyframes skeleton-avatar-pulse {
-  0%, 100% { transform: scale(0.98); opacity: 0.85; }
-  50% { transform: scale(1.02); opacity: 1; }
-}
-@keyframes skeleton-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.skeleton {
-  pointer-events: none;
-  animation: skeleton-fade-in 0.3s ease both;
-}
-
-.skeleton .skeleton-line,
-.skeleton > .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
+  color: var(--cream);
+  background: var(--brand);
   border-radius: var(--radius-sm);
+  box-shadow: 0 0 10px var(--brand-line);
 }
 
-.skeleton-line--avatar {
-  width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
-  animation: shimmer 2s ease-in-out infinite, skeleton-avatar-pulse 2.5s ease-in-out infinite;
-}
-.skeleton-line--nickname { width: 120px; height: 24px; margin-bottom: 6px; }
-.skeleton-line--date { width: 100px; height: 13px; }
-.skeleton-line--points { width: 80px; height: 32px; margin: 0 auto 8px; }
-.skeleton-line--label { width: 40px; height: 13px; margin: 0 auto; }
-.skeleton-line--stat-val { width: 60%; height: 28px; margin: 0 auto 8px; }
-.skeleton-line--stat-lbl { width: 40%; height: 12px; margin: 0 auto; }
-.skeleton-line--section-title { width: 100px; height: 22px; }
-
-.skeleton-table {
-  margin-top: 8px;
+/* ---------- Loading skeleton ---------- */
+.user-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.skeleton-table-row {
+.sk-tabs {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 0;
+  gap: 28px;
+  height: 46px;
+  margin-bottom: 10px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.skeleton-table-row:last-child {
+.sk-tab {
+  width: 74px;
+  height: 12px;
+}
+
+.sk-tab:nth-child(1) {
+  width: 86px;
+}
+
+.sk-tab:nth-child(2) {
+  width: 100px;
+}
+
+.sk-line {
+  border-radius: var(--radius-sm);
+}
+
+.sk-identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 24px;
+  min-height: 132px;
+}
+
+.sk-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-identity-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-name {
+  width: 180px;
+  max-width: 60%;
+  height: 24px;
+}
+
+.sk-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.sk-chip {
+  width: 64px;
+  height: 20px;
+}
+
+.sk-sub {
+  width: 140px;
+  max-width: 50%;
+  height: 12px;
+}
+
+.sk-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sk-stat {
+  padding: 16px 16px 14px;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-kicker {
+  width: 40%;
+  height: 9px;
+}
+
+.sk-value {
+  width: 62%;
+  height: 26px;
+}
+
+.sk-label {
+  width: 34%;
+  height: 11px;
+}
+
+.sk-panel {
+  padding: 20px 22px 8px;
+}
+
+.sk-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sk-section-title {
+  width: 120px;
+  height: 20px;
+}
+
+.sk-section-meta {
+  width: 70px;
+  height: 10px;
+}
+
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 52px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sk-row:last-child {
   border-bottom: none;
 }
 
-.skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
-  border-radius: var(--radius-sm);
-  height: 14px;
+.sk-cell-lg {
+  width: 34%;
+  height: 13px;
 }
 
-.skeleton-line--cell-lg { width: 180px; }
-.skeleton-line--cell-md { width: 120px; }
-.skeleton-line--cell-sm { width: 60px; }
+.sk-cell-md {
+  width: 18%;
+  height: 13px;
+}
 
-/* Responsive（仅 skeleton 用到的容器响应式） */
+.sk-cell-sm {
+  width: 10%;
+  height: 13px;
+  margin-left: auto;
+}
+
+.sk-cell-sm + .sk-cell-sm {
+  margin-left: 0;
+}
+
+/* ---------- Responsive ---------- */
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .page-title {
+    font-size: 28px;
   }
-  .user-info-card {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+
+  .sk-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .user-avatar-section {
-    flex-direction: column;
+
+  .sk-identity {
+    min-height: 116px;
+    padding: 18px;
+  }
+
+  .sk-avatar {
+    width: 76px;
+    height: 76px;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-tabs :deep(.el-tabs__header) {
+    margin-bottom: 20px;
+  }
+
+  .user-tabs :deep(.el-tabs__item) {
+    padding: 0 11px !important;
+    height: 42px !important;
+  }
+
+  .tab-idx {
+    display: none;
+  }
+
+  .tab-label {
+    gap: 5px;
+  }
+
+  .settlement-badge {
+    margin-left: 1px;
+  }
+
+  .sk-cell-md {
+    display: none;
   }
 }
 </style>

@@ -1,33 +1,37 @@
 <template>
   <div class="game-tab">
-    <div class="tab-header">
-      <span class="announcement-tab-title">游戏列表</span>
-      <el-button type="primary" size="small" :icon="PlusIcon" @click="openGameDialog()">添加游戏</el-button>
+    <div class="admin-toolbar">
+      <div class="toolbar-block">
+        <span class="toolbar-kicker">CATALOG / 游戏</span>
+        <span class="toolbar-title">游戏列表</span>
+        <span class="toolbar-count">TOTAL <b>{{ games.length }}</b></span>
+      </div>
+      <div class="toolbar-block toolbar-block--end">
+        <el-button type="primary" size="small" :icon="PlusIcon" @click="openGameDialog()">添加游戏</el-button>
+      </div>
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="gameLoading" class="skeleton-table">
+    <div v-if="gameLoading" class="skeleton-table u-panel">
       <div class="skeleton-table-header">
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-lg"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-lg shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
       </div>
       <div v-for="i in 6" :key="'game-skel-'+i" class="skeleton-table-row">
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-lg"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-lg shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="games.length === 0" class="empty-state">
-      <div class="empty-icon">🎮</div>
+    <div v-else-if="games.length === 0" class="empty-state u-panel">
+      <div class="empty-mark">//</div>
       <h3 class="empty-title">还没有游戏</h3>
       <p class="empty-desc">添加游戏，让赛事按游戏分类管理</p>
       <el-button type="primary" class="empty-action" @click="openGameDialog()">添加游戏</el-button>
@@ -35,38 +39,54 @@
 
     <!-- Game Table -->
     <template v-else>
-      <el-table :data="games" style="width: 100%">
-        <el-table-column label="ID" width="70" prop="id" />
-        <el-table-column label="游戏名称" min-width="150" prop="name" />
-        <el-table-column label="图标" width="120" align="center">
-          <template #default="scope">
-            <el-image
-              v-if="scope.row.icon"
-              :src="scope.row.icon"
-              style="width: 32px; height: 32px; border-radius: var(--radius-sm);"
-              fit="cover"
-            />
-            <span v-else class="game-icon-empty">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="排序" width="80" align="center" prop="sortOrder" />
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="scope">
-            <span v-if="scope.row.status === 1" class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>启用
-            </span>
-            <span v-else class="status-badge status-badge--finished">
-              <span class="status-dot"></span>停用
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="140" align="center">
-          <template #default="scope">
-            <el-button link size="small" @click="openGameDialog(scope.row)">编辑</el-button>
-            <el-button link size="small" class="delete-btn" @click="handleDeleteGame(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="table-shell">
+        <el-table :data="games" style="width: 100%">
+          <el-table-column label="ID" width="64">
+            <template #default="scope">
+              <span class="cell-id">#{{ scope.row.id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="游戏 / GAME" min-width="220">
+            <template #default="scope">
+              <div class="game-cell">
+                <span class="game-plate">
+                  <el-image
+                    v-if="scope.row.icon"
+                    :src="scope.row.icon"
+                    fit="cover"
+                    class="game-plate-img"
+                  />
+                  <span v-else class="game-plate-fallback">{{ (scope.row.name || '?').slice(0, 1) }}</span>
+                </span>
+                <span class="game-name" :title="scope.row.name">{{ scope.row.name }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="排序" width="90" align="center">
+            <template #default="scope">
+              <span class="cell-order">{{ scope.row.sortOrder != null ? scope.row.sortOrder : '—' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="110" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.status === 1" class="status-badge status-badge--won">
+                <span class="status-dot"></span>启用
+              </span>
+              <span v-else class="status-badge status-badge--finished">
+                <span class="status-dot"></span>停用
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="150" align="right">
+            <template #default="scope">
+              <div class="row-actions">
+                <el-button link size="small" class="row-btn" @click="openGameDialog(scope.row)">编辑</el-button>
+                <el-button link size="small" class="row-btn row-btn--danger" @click="handleDeleteGame(scope.row)">删除</el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </template>
 
     <!-- Game Dialog -->
@@ -75,25 +95,30 @@
       v-model="gameDialogVisible"
       width="480px"
     >
-      <el-form :model="gameForm" label-width="80px" class="announcement-form">
+      <div class="editor-head">
+        <span class="editor-kicker">GAME / EDITOR</span>
+      </div>
+      <el-form :model="gameForm" label-width="80px" label-position="top" class="game-form">
         <el-form-item label="名称">
           <el-input v-model="gameForm.name" placeholder="例如: VALORANT" maxlength="50" show-word-limit />
         </el-form-item>
         <el-form-item label="图标URL">
           <el-input v-model="gameForm.icon" placeholder="图标地址（可选）" />
         </el-form-item>
-        <el-form-item label="排序">
-          <el-input-number v-model="gameForm.sortOrder" :min="0" :max="999" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-switch
-            v-model="gameForm.status"
-            :active-value="1"
-            :inactive-value="0"
-            active-text="启用"
-            inactive-text="停用"
-          />
-        </el-form-item>
+        <div class="form-grid">
+          <el-form-item label="排序">
+            <el-input-number v-model="gameForm.sortOrder" :min="0" :max="999" />
+          </el-form-item>
+          <el-form-item label="状态">
+            <el-switch
+              v-model="gameForm.status"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="启用"
+              inactive-text="停用"
+            />
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="gameDialogVisible = false">取消</el-button>
@@ -201,7 +226,8 @@ export default {
       this.$confirm(tip + '确定删除游戏「' + row.name + '」？', '确认删除', {
         confirmButtonText: '删除',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        confirmButtonType: 'danger'
       }).then(() => {
         request.delete('/game/' + row.id).then(() => {
           this.$message.success('删除成功')
@@ -216,85 +242,247 @@ export default {
 </script>
 
 <style scoped>
-.tab-header {
+.game-tab {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Empty State */
+/* ---------- Toolbar ---------- */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0%, transparent 46%),
+    var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.toolbar-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toolbar-block--end {
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.toolbar-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.toolbar-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.toolbar-count b {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ---------- Table ---------- */
+.table-shell {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-1);
+}
+
+.table-shell :deep(.el-table) {
+  min-width: 720px;
+  background: transparent;
+}
+
+.table-shell :deep(.el-table th.el-table__cell:first-child .cell),
+.table-shell :deep(.el-table td.el-table__cell:first-child .cell) {
+  padding-left: 18px;
+}
+
+.cell-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.cell-order {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.game-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.game-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.game-plate-img {
+  width: 100%;
+  height: 100%;
+}
+
+.game-plate-img :deep(.el-image__inner) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-plate-fallback {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+}
+
+.game-name {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Row actions ---------- */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.row-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.row-actions :deep(.el-button.row-btn) {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) ease;
+}
+
+.row-actions :deep(.el-button.row-btn:hover) {
+  color: var(--text-primary) !important;
+  background: var(--bg-surface-2) !important;
+}
+
+.row-actions :deep(.el-button.row-btn--danger) {
+  color: var(--accent-danger);
+}
+
+.row-actions :deep(.el-button.row-btn--danger:hover) {
+  color: var(--accent-danger) !important;
+  background: var(--el-color-danger-light-9) !important;
+}
+
+/* ---------- Empty ---------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
+  padding: 56px 24px;
   text-align: center;
+  border-style: dashed;
+  background: transparent;
 }
 
-.empty-icon {
-  font-size: 48px;
+.empty-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
   margin-bottom: 16px;
-  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sm);
 }
 
 .empty-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
 }
 
 .empty-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-tertiary);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   max-width: 300px;
 }
 
-.empty-action {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-}
-
-/* Skeleton Loading */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.skeleton-table {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
+/* ---------- Skeleton ---------- */
 
 .skeleton-table-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--border-subtle);
-}
-
-.skeleton-table-header .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-3) 25%, var(--bg-surface-2) 50%, var(--bg-surface-3) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-sm);
-  height: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-default);
 }
 
 .skeleton-table-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -302,80 +490,106 @@ export default {
   border-bottom: none;
 }
 
-.skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+.skeleton-line {
+  height: 12px;
   border-radius: var(--radius-sm);
-  height: 14px;
 }
 
 .skeleton-line--cell-sm { width: 50px; flex-shrink: 0; }
 .skeleton-line--cell-md { width: 90px; flex-shrink: 0; }
 .skeleton-line--cell-lg { flex: 1; min-width: 100px; }
 
-/* Game Tab（沿用原 announcement-tab-title 命名以保持与原代码一致） */
-.announcement-tab-title {
-  font-size: 14px;
+/* ---------- Editor dialog ---------- */
+.editor-head {
+  margin: -4px 0 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.editor-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.game-form :deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+.game-form :deep(.el-form-item__label) {
+  padding-bottom: 5px !important;
+  font-size: 11px !important;
   font-weight: 600;
-  color: var(--text-primary);
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary) !important;
+  line-height: 1.4;
 }
 
-.game-icon-empty {
-  color: var(--text-tertiary);
-  font-size: 14px;
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
 }
 
-.delete-btn {
-  color: var(--accent-danger) !important;
-}
-
-/* Game Tab 表单样式（沿用原 announcement-form 命名以保持与原代码一致） */
-.announcement-form .el-form-item {
-  margin-bottom: 18px;
-}
-
-.announcement-form .el-input-number {
+.game-form :deep(.el-input-number) {
   width: 160px;
 }
 
-.announcement-form .el-switch__label {
-  color: var(--text-tertiary);
+.game-form :deep(.el-switch.is-checked .el-switch__core) {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
 }
 
-.announcement-form .el-switch__label.is-active {
+.game-form :deep(.el-switch__label) {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.game-form :deep(.el-switch__label.is-active) {
   color: var(--accent-primary);
 }
 
-/* ===== 移动端基础适配 ===== */
+/* ---------- Responsive ---------- */
 @media (max-width: 768px) {
-  /* tab 头部：筛选与操作按钮改为纵向堆叠，避免横向溢出 */
-  .tab-header {
-    flex-direction: column;
+  .admin-toolbar {
     align-items: stretch;
+    flex-direction: column;
     gap: 10px;
   }
-  .tab-header .el-button {
+
+  .toolbar-block {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-block--end :deep(.el-button) {
     width: 100%;
   }
 
-  /* 表格容器保证可横向滚动 */
-  :deep(.el-table) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* 操作列按钮 touch-friendly */
-  :deep(.el-table .el-button) {
-    min-height: 32px;
-    padding: 4px 8px;
+  .table-shell :deep(.el-table) {
+    min-width: 680px;
   }
 
-  /* 游戏表单 label 宽度收紧 */
-  .announcement-form :deep(.el-form-item__label) {
-    width: 64px !important;
+  .row-actions :deep(.el-button.row-btn) {
+    min-height: 30px;
   }
-  .announcement-form :deep(.el-input-number) {
-    width: 140px !important;
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .game-form :deep(.el-input-number) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-count {
+    display: none;
   }
 }
 </style>

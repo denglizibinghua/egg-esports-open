@@ -1,27 +1,57 @@
 <template>
   <div class="dashboard-grid">
+    <!-- Summary strip -->
+    <div class="summary-strip u-panel card-entrance">
+      <div class="summary-cell">
+        <span class="summary-kicker">WIN RATE</span>
+        <span class="summary-value summary-value--mint">{{ accuracy }}<em>%</em></span>
+      </div>
+      <div class="summary-cell">
+        <span class="summary-kicker">CORRECT</span>
+        <span class="summary-value">{{ user.correctBets || 0 }}<em>/ {{ user.totalBets || 0 }}</em></span>
+      </div>
+      <div class="summary-cell">
+        <span class="summary-kicker">STREAK</span>
+        <span class="summary-value">{{ user.winStreak || 0 }}</span>
+      </div>
+      <div class="summary-cell">
+        <span class="summary-kicker">BEST STREAK</span>
+        <span class="summary-value">{{ user.maxWinStreak || 0 }}</span>
+      </div>
+    </div>
+
     <!-- Points Trend -->
-    <div class="dashboard-card dashboard-card--wide">
+    <div class="dashboard-card dashboard-card--wide u-panel card-entrance">
       <div class="dashboard-card-header">
-        <h4 class="dashboard-card-title">最近投注</h4>
+        <div class="panel-title-wrap">
+          <span class="panel-index">01</span>
+          <h4 class="dashboard-card-title">最近投注</h4>
+        </div>
         <span class="dashboard-card-subtitle">最近 {{ recentBets.length }} 场</span>
       </div>
-      <div class="points-trend" v-if="recentBets.length > 0">
-        <div
-          v-for="(bet, idx) in recentBets"
-          :key="'trend-'+idx"
-          class="trend-bar"
-          :class="{
-            'trend-bar--win': bet.status === 1,
-            'trend-bar--loss': bet.status === 2,
-            'trend-bar--pending': bet.status === 0
-          }"
-          :style="{ height: trendBarHeight(bet) + 'px', animationDelay: (idx * 60) + 'ms' }"
-          :title="(bet.matchTitle || '赛事') + ' | ' + (bet.status === 1 ? '+' + bet.betAmount : bet.status === 2 ? '-' + bet.betAmount : '待结算')"
-        >
-          <span class="trend-label">
-            {{ bet.status === 1 ? '+' + bet.betAmount : bet.status === 2 ? '-' + bet.betAmount : '—' }}
-          </span>
+      <div class="panel-legend">
+        <span class="legend legend--win">WIN</span>
+        <span class="legend legend--loss">LOSS</span>
+        <span class="legend legend--pending">PEND</span>
+      </div>
+      <div class="trend-plot" v-if="recentBets.length > 0">
+        <div class="points-trend">
+          <div
+            v-for="(bet, idx) in recentBets"
+            :key="'trend-'+idx"
+            class="trend-bar"
+            :class="{
+              'trend-bar--win': bet.status === 1,
+              'trend-bar--loss': bet.status === 2,
+              'trend-bar--pending': bet.status === 0
+            }"
+            :style="{ height: trendBarHeight(bet) + 'px', animationDelay: (idx * 60) + 'ms' }"
+            :title="(bet.matchTitle || '赛事') + ' | ' + (bet.status === 1 ? '+' + bet.betAmount : bet.status === 2 ? '-' + bet.betAmount : '待结算')"
+          >
+            <span class="trend-label">
+              {{ bet.status === 1 ? '+' + bet.betAmount : bet.status === 2 ? '-' + bet.betAmount : '—' }}
+            </span>
+          </div>
         </div>
       </div>
       <div v-else class="dashboard-empty">
@@ -30,9 +60,12 @@
     </div>
 
     <!-- Win Rate Gauge -->
-    <div class="dashboard-card">
+    <div class="dashboard-card u-panel card-entrance">
       <div class="dashboard-card-header">
-        <h4 class="dashboard-card-title">胜率</h4>
+        <div class="panel-title-wrap">
+          <span class="panel-index">02</span>
+          <h4 class="dashboard-card-title">胜率</h4>
+        </div>
       </div>
       <div class="win-rate-gauge">
         <div class="gauge-ring">
@@ -63,9 +96,12 @@
     </div>
 
     <!-- Streak Meter -->
-    <div class="dashboard-card">
+    <div class="dashboard-card u-panel card-entrance">
       <div class="dashboard-card-header">
-        <h4 class="dashboard-card-title">连胜记录</h4>
+        <div class="panel-title-wrap">
+          <span class="panel-index">03</span>
+          <h4 class="dashboard-card-title">连胜记录</h4>
+        </div>
       </div>
       <div class="streak-meter">
         <div class="streak-current">
@@ -86,10 +122,20 @@
     </div>
 
     <!-- Recent Results Chart -->
-    <div class="dashboard-card dashboard-card--wide">
+    <div class="dashboard-card dashboard-card--wide u-panel card-entrance">
       <div class="dashboard-card-header">
-        <h4 class="dashboard-card-title">战绩图</h4>
-        <span class="dashboard-card-subtitle">最近 10 场</span>
+        <div class="panel-title-wrap">
+          <span class="panel-index">04</span>
+          <h4 class="dashboard-card-title">战绩图</h4>
+        </div>
+        <div class="panel-meta">
+          <span class="panel-legend panel-legend--inline">
+            <span class="legend legend--win">WIN</span>
+            <span class="legend legend--loss">LOSS</span>
+            <span class="legend legend--pending">PEND</span>
+          </span>
+          <span class="dashboard-card-subtitle">最近 10 场</span>
+        </div>
       </div>
       <div class="recent-results">
         <div
@@ -108,10 +154,13 @@
     </div>
 
     <!-- Profit Curve -->
-    <div class="dashboard-card dashboard-card--wide">
+    <div class="dashboard-card dashboard-card--wide u-panel card-entrance">
       <div class="dashboard-card-header">
-      <h4 class="dashboard-card-title">收益曲线</h4>
-      <span class="dashboard-card-subtitle">净盈亏累计</span>
+        <div class="panel-title-wrap">
+          <span class="panel-index">05</span>
+          <h4 class="dashboard-card-title">收益曲线</h4>
+        </div>
+        <span class="dashboard-card-subtitle">NET CUMULATIVE</span>
       </div>
       <div class="chart-container" v-if="displayProfitData && displayProfitData.length > 0" v-loading="profitLoading">
         <svg viewBox="0 0 800 220" class="profit-chart" preserveAspectRatio="xMidYMid meet">
@@ -199,6 +248,7 @@
         </svg>
       </div>
       <div class="empty-state chart-empty" v-else>
+        <span class="empty-mark">//</span>
         <p>暂无结算数据</p>
         <span>结算后积分变化将在这里展示</span>
       </div>
@@ -446,7 +496,7 @@ export default {
       var bet = this.recentBets[idx]
       if (bet.status === 1) return '✓'
       if (bet.status === 2) return '✗'
-      return '⏳'
+      return '—'
     },
     resultDotTitle(idx) {
       if (idx >= this.recentBets.length) return '暂无数据'
@@ -460,73 +510,206 @@ export default {
 </script>
 
 <style scoped>
-/* Dashboard Grid */
+/* ---------- Grid ---------- */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .dashboard-card {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 24px;
-  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 22px;
 }
 
 .dashboard-card--wide {
   grid-column: 1 / -1;
 }
 
+/* ---------- Summary strip ---------- */
+.summary-strip {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.summary-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 18px;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.summary-cell:last-child {
+  border-right: none;
+}
+
+.summary-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+}
+
+.summary-value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.summary-value em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  margin-left: 2px;
+}
+
+.summary-value--mint {
+  color: var(--accent-primary);
+}
+
+/* ---------- Card header ---------- */
 .dashboard-card-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+}
+
+.panel-title-wrap {
+  display: flex;
   align-items: baseline;
-  margin-bottom: 20px;
+  gap: 10px;
+  min-width: 0;
+}
+
+.panel-index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--brand);
 }
 
 .dashboard-card-title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 18px;
-  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 .dashboard-card-subtitle {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
-  font-size: 12px;
+  white-space: nowrap;
 }
 
-.dashboard-empty {
+.panel-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+/* ---------- Legends ---------- */
+.panel-legend {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 80px;
+  gap: 14px;
+  margin: -6px 0 14px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
-  font-size: 13px;
 }
 
-/* Points Trend */
+.panel-legend--inline {
+  margin: 0;
+  gap: 10px;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.legend--win {
+  color: var(--accent-primary);
+}
+
+.legend--loss {
+  color: var(--accent-danger);
+}
+
+.legend--pending {
+  color: var(--accent-warning);
+}
+
+/* ---------- Trend bars ---------- */
+.trend-plot {
+  position: relative;
+  padding: 6px 2px 0;
+  background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px);
+  background-size: 100% 36px;
+}
+
+.trend-plot::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--border-default);
+}
+
 .points-trend {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
-  height: 100px;
-  padding: 0 4px;
+  gap: 6px;
+  height: 120px;
 }
 
 .trend-bar {
-  flex: 1;
-  min-width: 20px;
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  flex: 1 1 0;
+  min-width: 6px;
+  border-radius: 2px 2px 0 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding-top: 4px;
-  transition: transform var(--duration-fast) ease;
+  overflow: hidden;
   cursor: default;
   animation: trend-grow 0.5s var(--ease-out) both;
+  transition: filter var(--duration-fast) ease;
 }
 
 @keyframes trend-grow {
@@ -541,41 +724,76 @@ export default {
 }
 
 .trend-bar:hover {
-  transform: scaleY(1.05);
-  transform-origin: bottom;
+  filter: brightness(1.25);
 }
 
 .trend-bar--win {
-  background: linear-gradient(to top, rgba(0, 229, 160, 0.3), rgba(0, 229, 160, 0.7));
+  background: linear-gradient(180deg, var(--accent-primary) 0%, var(--bg-surface-3) 160%);
 }
 
 .trend-bar--loss {
-  background: linear-gradient(to top, rgba(255, 77, 109, 0.3), rgba(255, 77, 109, 0.7));
+  background: linear-gradient(180deg, var(--accent-danger) 0%, var(--bg-surface-3) 160%);
 }
 
 .trend-bar--pending {
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12));
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent-warning) 0 2px,
+    var(--bg-surface-2) 2px 7px
+  );
+  border: 1px solid var(--border-default);
+  border-bottom: none;
 }
 
 .trend-label {
-  font-size: 10px;
   font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 9px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cream);
+  text-shadow: 0 1px 2px var(--bg-page);
   white-space: nowrap;
 }
 
-/* Win Rate Gauge */
-.win-rate-gauge {
+.trend-bar--win .trend-label {
+  color: var(--bg-page);
+  text-shadow: none;
+}
+
+/* ---------- Empty ---------- */
+.dashboard-empty {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+}
+
+.dashboard-empty::before {
+  content: '//';
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* ---------- Win rate gauge ---------- */
+.win-rate-gauge {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 24px;
 }
 
 .gauge-ring {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 124px;
+  height: 124px;
   flex-shrink: 0;
 }
 
@@ -588,13 +806,13 @@ export default {
 .gauge-bg {
   fill: none;
   stroke: var(--bg-surface-3);
-  stroke-width: 8;
+  stroke-width: 7;
 }
 
 .gauge-fill {
   fill: none;
   stroke: var(--accent-primary);
-  stroke-width: 8;
+  stroke-width: 7;
   stroke-linecap: round;
   stroke-dasharray: 326.73;
   transition: stroke-dashoffset 1s var(--ease-out);
@@ -611,7 +829,7 @@ export default {
 
 .gauge-value {
   font-family: var(--font-mono);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -619,7 +837,7 @@ export default {
 }
 
 .gauge-unit {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-tertiary);
   font-weight: 600;
   margin-top: 4px;
@@ -641,19 +859,24 @@ export default {
   font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 .gauge-stat-lbl {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
   color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
 }
 
-/* Streak Meter */
+/* ---------- Streak ---------- */
 .streak-meter {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 16px;
 }
 
@@ -665,28 +888,41 @@ export default {
 
 .streak-number {
   font-family: var(--font-mono);
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 800;
+  line-height: 1;
   color: var(--accent-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .streak-label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-tertiary);
 }
 
 .streak-bar-track {
-  height: 8px;
+  position: relative;
+  height: 10px;
   background: var(--bg-surface-3);
-  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
   overflow: hidden;
+}
+
+.streak-bar-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 9px,
+    var(--bg-surface-1) 9px 10px
+  );
+  pointer-events: none;
 }
 
 .streak-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--accent-primary), var(--brand));
   transition: width 0.8s var(--ease-out);
 }
 
@@ -694,6 +930,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .streak-max-label {
@@ -705,28 +943,32 @@ export default {
   font-family: var(--font-mono);
   font-size: 16px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
 }
 
-/* Recent Results */
+/* ---------- Recent results ---------- */
 .recent-results {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
 }
 
 .result-dot {
-  width: 48px;
+  width: 100%;
+  max-width: 56px;
   height: 56px;
-  border-radius: var(--radius-md);
+  justify-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-row);
   cursor: default;
-  transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  transition: transform var(--duration-fast) ease, border-color var(--duration-fast) ease;
   animation: dot-pop 0.3s var(--ease-out) both;
 }
 
@@ -753,33 +995,35 @@ export default {
 }
 
 .result-dot:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
 }
 
 .result-dot--win {
-  background: rgba(0, 229, 160, 0.12);
-  border: 1px solid rgba(0, 229, 160, 0.3);
+  background: var(--accent-primary-soft);
+  border-color: var(--accent-primary);
 }
 
 .result-dot--loss {
-  background: rgba(255, 77, 109, 0.12);
-  border: 1px solid rgba(255, 77, 109, 0.3);
+  background: var(--bg-surface-2);
+  border-color: var(--accent-danger);
 }
 
 .result-dot--pending {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-default);
+  background: var(--bg-surface-2);
+  border-color: var(--border-default);
 }
 
 .result-dot--empty {
-  background: var(--bg-surface-2);
+  background: var(--bg-inset);
   border: 1px dashed var(--border-subtle);
 }
 
 .result-icon {
-  font-size: 16px;
+  font-family: var(--font-mono);
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1;
 }
 
 .result-dot--win .result-icon {
@@ -791,27 +1035,28 @@ export default {
 }
 
 .result-dot--pending .result-icon {
-  color: var(--text-tertiary);
-  font-size: 12px;
+  color: var(--accent-warning);
 }
 
 .result-dot--empty .result-icon {
-  color: var(--text-tertiary);
-  opacity: 0.4;
+  color: var(--text-faint);
 }
 
 .result-team {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-tertiary);
   font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
 }
 
-/* Profit Curve Chart */
+/* ---------- Profit chart ---------- */
 .chart-container {
   position: relative;
   width: 100%;
-  min-height: 220px;
+  padding-top: 6px;
+  background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px);
+  background-size: 100% 44px;
 }
 
 .profit-chart {
@@ -826,18 +1071,11 @@ export default {
   stroke-width: 1;
 }
 
-.chart-grid-line {
-  stroke: var(--border-subtle);
-  stroke-width: 0.5;
-  stroke-dasharray: 4 4;
-  opacity: 0.5;
-}
-
 .chart-zero-line {
   stroke: var(--text-tertiary);
   stroke-width: 1;
-  stroke-dasharray: 6 3;
-  opacity: 0.6;
+  stroke-dasharray: 6 4;
+  opacity: 0.55;
 }
 
 .chart-fill {
@@ -846,7 +1084,7 @@ export default {
 
 .chart-line {
   stroke: var(--accent-primary);
-  stroke-width: 2.5;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   animation: chart-draw 1s var(--ease-out) both;
@@ -871,23 +1109,26 @@ export default {
 .chart-label {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  fill: var(--text-tertiary);
+  fill: var(--text-faint);
 }
 
 .chart-label--y {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .chart-label--x {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
 .chart-dot {
-  fill: var(--accent-primary);
-  opacity: 0.6;
-  transition: opacity 0.15s ease, r 0.15s ease;
+  fill: var(--bg-surface-1);
+  stroke: var(--accent-primary);
+  stroke-width: 2;
+  opacity: 0.9;
+  transition: opacity 0.15s ease;
 }
 
 .chart-hit-area {
@@ -896,27 +1137,25 @@ export default {
 
 .chart-hit-area:hover ~ .chart-dot {
   opacity: 1;
-  r: 5;
 }
 
 .chart-tooltip-line {
-  stroke: var(--accent-primary);
+  stroke: var(--brand);
   stroke-width: 1;
   stroke-dasharray: 3 3;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .chart-tooltip-dot {
-  fill: var(--accent-primary);
+  fill: var(--brand);
   stroke: var(--bg-surface-1);
   stroke-width: 2;
 }
 
 .chart-tooltip-bg {
   fill: var(--bg-surface-2);
-  stroke: var(--border-subtle);
+  stroke: var(--border-default);
   stroke-width: 1;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 
 .chart-tooltip-text {
@@ -940,47 +1179,133 @@ export default {
   min-height: 180px;
 }
 
+.chart-empty .empty-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-md);
+}
+
 .chart-empty p {
   color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: 500;
-  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.chart-empty span {
+.chart-empty span:last-child {
   color: var(--text-tertiary);
-  font-size: 13px;
+  font-size: 12px;
 }
 
-/* Empty State (chart-empty 复用) */
+/* ---------- Empty state (chart-empty 复用) ---------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
+  padding: 40px 24px;
   text-align: center;
   max-width: 400px;
   margin: 0 auto;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
 }
 
-/* Responsive */
+/* ---------- Responsive ---------- */
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+
   .dashboard-card--wide {
     grid-column: 1;
   }
+
+  .dashboard-card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-cell:nth-child(2) {
+    border-right: none;
+  }
+
+  .summary-cell:nth-child(1),
+  .summary-cell:nth-child(2) {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
   .win-rate-gauge {
     flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 16px;
   }
+
+  .gauge-stats {
+    flex-direction: row;
+    gap: 28px;
+  }
+
+  .panel-legend {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dashboard-card-header {
+    flex-wrap: wrap;
+  }
+
+  .chart-label--x,
+  .chart-label--y {
+    display: none;
+  }
+
+  .points-trend {
+    gap: 4px;
+    height: 104px;
+  }
+
+  .trend-label {
+    font-size: 8px;
+  }
+
+  .result-dot {
+    height: 50px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .trend-label {
+    display: none;
+  }
+
+  .result-dot {
+    height: 46px;
+  }
+
+  .result-icon {
+    font-size: 13px;
+  }
+
   .recent-results {
     gap: 6px;
-  }
-  .result-dot {
-    width: 40px;
-    height: 48px;
   }
 }
 </style>

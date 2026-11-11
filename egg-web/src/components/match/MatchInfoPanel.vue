@@ -1,6 +1,6 @@
 <template>
   <!-- 顶部返回栏 + 赛事状态徽章 -->
-  <div class="detail-header">
+  <div class="panel-toolbar">
     <el-button link :icon="ArrowLeft" class="back-btn" @click="$router.back()">返回</el-button>
     <span v-if="match.status === 0" class="status-badge status-badge--upcoming">
       <span class="status-dot"></span>未开始
@@ -11,10 +11,12 @@
     <span v-else-if="match.status === 2" class="status-badge status-badge--finished">已结束</span>
   </div>
 
-  <!-- 比赛信息卡片：联赛、时间、队伍、比分、结果 -->
-  <div class="match-info-card">
-    <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
-    <div class="match-time">{{ formatTime(match.matchTime) }}</div>
+  <!-- 广播比分板：联赛 + 时间、双方队伍、比分/VS、结果、地图比分 -->
+  <div class="match-info-card" :class="{ 'match-info-card--live': match.status === 1 }">
+    <div class="card-top">
+      <span class="tournament-chip">{{ match.tournament || '常规赛事' }}</span>
+      <span class="match-time">{{ formatTime(match.matchTime) }}</span>
+    </div>
 
     <div class="teams-display">
       <div class="team-display team-a-display">
@@ -26,8 +28,13 @@
         <div class="team-name-large" :class="{ 'team-name-tbd': match.teamA === 'TBD' }">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</div>
       </div>
 
-      <div class="vs-section">
-        <div class="vs-text">VS</div>
+      <div class="sb-center">
+        <div v-if="hasScore(match)" class="score-display-large" :class="{ 'score--live': match.status === 1, 'score--finished': match.status === 2 }">
+          <span class="score-large-a">{{ match.scoreA }}</span>
+          <span class="score-large-sep">-</span>
+          <span class="score-large-b">{{ match.scoreB }}</span>
+        </div>
+        <div v-else class="vs-text">VS</div>
       </div>
 
       <div class="team-display team-b-display">
@@ -40,14 +47,7 @@
       </div>
     </div>
 
-    <!-- 比分展示（进行中/已结束且有比分时显示） -->
-    <div v-if="hasScore(match)" class="score-display-large" :class="{ 'score--live': match.status === 1, 'score--finished': match.status === 2 }">
-      <span class="score-large-a">{{ match.scoreA }}</span>
-      <span class="score-large-sep">-</span>
-      <span class="score-large-b">{{ match.scoreB }}</span>
-    </div>
-
-    <!-- 比赛结果展示 -->
+    <!-- 比赛结果展示（胜者横幅：薄荷绿） -->
     <div v-if="match.status === 2 && match.result !== null && match.result !== undefined" class="match-result-display">
       <template v-if="match.result === 0">
         <span class="winner-name">{{ match.teamA === 'TBD' ? '待定' : match.teamA }}</span> 获胜!
@@ -126,45 +126,93 @@ export default {
 </script>
 
 <style scoped>
-.detail-header {
+/* ── 顶部工具栏：返回 + 状态 ── */
+.panel-toolbar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  margin-bottom: 14px;
 }
 
-.back-btn {
-  color: var(--text-tertiary) !important;
-  font-size: 14px;
+.panel-toolbar :deep(.el-button.back-btn) {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
   transition: color var(--duration-fast) ease;
 }
 
-.back-btn:hover {
-  color: var(--accent-primary) !important;
+.panel-toolbar :deep(.el-button.back-btn:hover) {
+  color: var(--brand);
 }
 
+/* ── 广播比分板 ── */
 .match-info-card {
-  background: var(--bg-surface-1);
+  position: relative;
+  padding: 22px 24px 20px;
+  background-color: var(--bg-surface-1);
+  background-image: linear-gradient(180deg, var(--bg-surface-2) 0%, transparent 55%);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 40px 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.match-info-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 64px;
+  height: 2px;
+  background: var(--brand);
+  pointer-events: none;
+}
+
+.match-info-card--live {
+  border-color: var(--brand-line);
+  background-image: linear-gradient(180deg, var(--brand-soft) 0%, transparent 48%);
+}
+
+.match-info-card--live::before {
+  width: calc(100% - 48px);
+  background: linear-gradient(90deg, var(--brand), var(--brand-soft) 42%, transparent 82%);
+}
+
+.card-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border-subtle);
   text-align: center;
-  box-shadow: var(--shadow-md);
+}
+
+.card-top .tournament-chip {
+  max-width: min(100%, 320px);
+  font-size: 10px;
+  letter-spacing: 0.08em;
 }
 
 .match-time {
-  color: var(--text-tertiary);
   font-family: var(--font-mono);
-  font-size: 13px;
-  margin-bottom: 32px;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
 }
 
 .teams-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 48px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
 }
 
 .team-display {
@@ -172,219 +220,278 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  flex: 1;
+  min-width: 0;
 }
 
+/* 80px 队伍 Logo 板 */
 .team-logo-large {
-  width: 72px;
-  height: 72px;
-  border-radius: var(--radius-full);
-  overflow: hidden;
-  background: var(--bg-surface-3);
+  position: relative;
+  width: 80px;
+  height: 80px;
+  padding: 10px;
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface-3);
+  background-image: linear-gradient(160deg, var(--bg-surface-4) 0%, var(--bg-surface-2) 100%);
+  border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--border-default);
-  transition: border-color var(--duration-normal) ease;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-.team-logo-large img {
+.team-logo-large::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 18px;
+  height: 2px;
+  transform: translateX(-50%);
+  background: var(--brand);
+  opacity: 0.85;
+}
+
+.team-b-display .team-logo-large::after {
+  background: var(--team-b);
+}
+
+.team-logo-large .el-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
 }
 
 .team-logo-placeholder-large {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--accent-primary);
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
 }
 
 .team-name-large {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.vs-section {
-  flex-shrink: 0;
+/* 中央：比分或 VS */
+.sb-center {
+  align-self: start;
+  display: grid;
+  place-items: center;
+  height: 80px;
+  min-width: 64px;
+  padding: 0 2px;
 }
 
-.vs-text {
-  font-family: var(--font-display);
-  font-size: 28px;
-  color: var(--accent-primary);
-  letter-spacing: 3px;
-}
-
-/* Large Score Display */
 .score-display-large {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
+  align-items: baseline;
+  gap: 4px;
   font-family: var(--font-mono);
-  font-size: 40px;
-  font-weight: 800;
-  margin-top: 8px;
-  margin-bottom: 16px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
-  animation: score-reveal 0.5s var(--ease-out) both;
-}
-
-@keyframes score-reveal {
-  from {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 
 .score--live {
-  color: var(--accent-primary);
-  text-shadow: 0 0 20px rgba(0, 229, 160, 0.35);
+  color: var(--brand);
+  text-shadow: 0 0 18px var(--brand-line);
 }
 
 .score--finished {
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .score-large-a,
 .score-large-b {
-  font-variant-numeric: tabular-nums;
-  min-width: 40px;
+  min-width: 28px;
   text-align: center;
 }
 
 .score-large-sep {
-  opacity: 0.4;
+  font-size: 26px;
   font-weight: 400;
-  font-size: 32px;
+  color: var(--text-faint);
+  transform: translateY(-2px);
 }
 
+.vs-text {
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+  padding: 7px 10px 5px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-2);
+}
+
+/* 薄荷绿胜者横幅 */
 .match-result-display {
-  font-size: 20px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 460px;
+  margin: 22px auto 0;
+  padding: 9px 16px;
+  background: var(--accent-primary-soft);
+  border: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
   color: var(--accent-primary);
-  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.match-result-display::before {
+  content: 'RESULT';
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text-tertiary);
 }
 
 .winner-name {
   color: var(--accent-primary);
 }
 
-/* Map chips — THESPIKE */
+/* 地图比分条 */
 .map-chips {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  margin-top: 18px;
+  margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border-subtle);
 }
 
-.map-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
-.map-chip--win {
-  border: 1px solid var(--accent-primary);
-  box-shadow: 0 0 12px rgba(0,229,160,.35);
-  color: var(--accent-primary);
-  background: rgba(0,229,160,0.08);
-}
-
 /* TBD Team Name */
 .team-name-tbd {
-  color: var(--text-tertiary) !important;
+  color: var(--text-tertiary);
   font-style: italic;
 }
 
 /* ===== 移动端适配 ===== */
 @media (max-width: 768px) {
-  /* 返回栏 */
-  .detail-header {
-    gap: 12px;
-    margin-bottom: 16px;
+  .panel-toolbar {
+    gap: 10px;
+    margin-bottom: 12px;
   }
 
-  /* 比赛信息卡片：缩小内边距 */
   .match-info-card {
-    padding: 24px 16px;
+    padding: 18px 14px 16px;
   }
-  .match-time {
-    font-size: 12px;
-    margin-bottom: 20px;
+
+  .match-info-card::before {
+    left: 14px;
   }
-  /* 队伍展示：缩小间距与 logo */
+
+  .match-info-card--live::before {
+    width: calc(100% - 28px);
+  }
+
+  .card-top {
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+
   .teams-display {
-    gap: 20px;
-    margin-bottom: 16px;
+    gap: 12px;
   }
+
   .team-logo-large {
-    width: 56px;
-    height: 56px;
+    width: 68px;
+    height: 68px;
+    padding: 8px;
   }
-  .team-logo-placeholder-large {
-    font-size: 22px;
+
+  .sb-center {
+    height: 68px;
+    min-width: 56px;
   }
+
   .team-name-large {
-    font-size: 16px;
+    font-size: 15px;
   }
-  .vs-text {
-    font-size: 22px;
-    letter-spacing: 2px;
-  }
-  /* 比分缩小 */
+
   .score-display-large {
-    font-size: 30px;
-    gap: 10px;
-    letter-spacing: 1px;
+    font-size: 34px;
   }
-  .score-large-sep {
-    font-size: 24px;
+
+  .vs-text {
+    font-size: 21px;
   }
+
   .match-result-display {
-    font-size: 16px;
-    margin-top: 12px;
+    margin-top: 18px;
   }
 }
 
-/* 小屏手机进一步收紧 */
 @media (max-width: 480px) {
   .match-info-card {
-    padding: 20px 12px;
+    padding: 16px 12px 14px;
   }
+
   .teams-display {
-    gap: 12px;
+    gap: 8px;
   }
-  .team-name-large {
-    font-size: 14px;
-  }
+
   .team-logo-large {
-    width: 48px;
-    height: 48px;
+    width: 62px;
+    height: 62px;
+    padding: 7px;
+    border-radius: var(--radius-md);
   }
+
+  .sb-center {
+    height: 62px;
+    min-width: 48px;
+  }
+
+  .team-name-large {
+    font-size: 13.5px;
+  }
+
+  .score-display-large {
+    font-size: 30px;
+    letter-spacing: -0.05em;
+  }
+
+  .score-large-sep {
+    font-size: 20px;
+  }
+
+  .score-large-a,
+  .score-large-b {
+    min-width: 20px;
+  }
+
   .vs-text {
     font-size: 18px;
+    padding: 6px 8px 4px;
   }
-  .score-display-large {
-    font-size: 24px;
+
+  .map-chips {
+    gap: 6px;
   }
 }
 </style>

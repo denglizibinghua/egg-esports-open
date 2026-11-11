@@ -1,13 +1,19 @@
 <template>
   <div class="notifications-page">
-    <div class="page-header">
-      <h1 class="page-title">通知</h1>
-      <el-button v-if="unreadCount > 0" link class="mark-all-btn" @click="markAllRead">
-        全部标为已读 ({{ unreadCount }})
-      </el-button>
-    </div>
+    <header class="page-header">
+      <div class="header-main">
+        <span class="page-eyebrow">// INBOX · 消息中心</span>
+        <h1 class="page-title">通知</h1>
+        <p class="page-sub">比赛开始与结算提醒 · 共 {{ total }} 条</p>
+      </div>
+      <div class="header-actions">
+        <el-button v-if="unreadCount > 0" link class="mark-all-btn" @click="markAllRead">
+          全部标为已读 ({{ unreadCount }})
+        </el-button>
+      </div>
+    </header>
 
-    <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+    <el-tabs v-model="activeTab" class="inbox-tabs" @tab-click="handleTabClick">
       <el-tab-pane label="全部" name="all"></el-tab-pane>
       <el-tab-pane label="未读" name="unread"></el-tab-pane>
     </el-tabs>
@@ -28,16 +34,7 @@
 
     <!-- Empty state -->
     <div v-else-if="notifications.length === 0" class="empty-state">
-      <svg class="empty-svg" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M40 12 C28 12, 20 22, 20 34 L20 46 L16 52 L64 52 L60 46 L60 34 C60 22, 52 12, 40 12 Z" stroke="#5b8cff" stroke-width="2" fill="rgba(91,140,255,0.06)"/>
-        <path d="M34 52 C34 56, 36 60, 40 60 C44 60, 46 56, 46 52" stroke="#5b8cff" stroke-width="1.5" fill="none"/>
-        <circle cx="40" cy="10" r="3" fill="#5b8cff" opacity="0.4"/>
-        <line x1="40" y1="7" x2="40" y2="4" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
-        <line x1="36" y1="8" x2="34" y2="6" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
-        <line x1="44" y1="8" x2="46" y2="6" stroke="#5b8cff" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
-        <path d="M28 36 Q34 32, 40 36 Q46 40, 52 36" stroke="#6b6b7c" stroke-width="1" fill="none" opacity="0.2"/>
-        <path d="M28 42 Q34 38, 40 42 Q46 46, 52 42" stroke="#6b6b7c" stroke-width="1" fill="none" opacity="0.15"/>
-      </svg>
+      <div class="empty-mark">//</div>
       <h3 class="empty-title">暂无通知</h3>
       <p class="empty-desc">比赛结算或开始前会收到通知</p>
     </div>
@@ -63,8 +60,15 @@
           <div class="notification-card-footer">
             <span class="notification-card-type">{{ getTypeLabel(item.type) }}</span>
             <span class="notification-card-time">{{ formatTime(item.createTime) }}</span>
+            <button
+              v-if="item.isRead === 0"
+              type="button"
+              class="mark-one-btn"
+              @click.stop="markOneRead(item)"
+            >标为已读</button>
           </div>
         </div>
+        <span class="notification-card-arrow" aria-hidden="true">›</span>
       </div>
     </div>
 
@@ -175,6 +179,13 @@ export default {
         this.$router.push('/')
       }
     },
+    markOneRead(item) {
+      if (item.isRead !== 0) return
+      request.put('/notification/read/' + item.id).then(function () {
+        item.isRead = 1
+        this.unreadCount = Math.max(0, this.unreadCount - 1)
+      }.bind(this)).catch(function () {})
+    },
     markAllRead() {
       request.put('/notification/read-all').then(function () {
         this.unreadCount = 0
@@ -239,31 +250,97 @@ export default {
 </script>
 
 <style scoped>
+.notifications-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
 .page-header {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 44px;
+  height: 2px;
+  background: var(--brand);
+}
+
+.header-main {
+  min-width: 0;
+}
+
+.page-eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: 8px;
 }
 
 .page-title {
-  color: var(--text-primary);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 32px;
-  letter-spacing: 1px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.page-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.header-actions {
+  flex-shrink: 0;
+  padding-bottom: 2px;
 }
 
 .mark-all-btn {
-  color: var(--accent-secondary) !important;
-  font-size: 13px !important;
-  font-weight: 500;
+  color: var(--text-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
 }
 
 .mark-all-btn:hover {
-  color: var(--accent-primary) !important;
+  color: var(--brand) !important;
 }
 
-/* Notification List */
+/* ---------- Tabs ---------- */
+.inbox-tabs :deep(.el-tabs__header) {
+  margin-bottom: 16px;
+}
+
+.inbox-tabs :deep(.el-tabs__item) {
+  font-family: var(--font-mono);
+  font-size: 12px !important;
+  letter-spacing: 0.1em;
+  font-weight: 700 !important;
+  height: 42px !important;
+}
+
+/* ---------- List ---------- */
 .notification-list {
   display: flex;
   flex-direction: column;
@@ -271,17 +348,21 @@ export default {
 }
 
 .notification-card {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  padding: 16px 18px 15px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  border-left: 2px solid transparent;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: transform var(--duration-normal) var(--ease-out),
-              border-color var(--duration-normal) var(--ease-out),
-              box-shadow var(--duration-normal) var(--ease-out);
+  transition:
+    transform var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out),
+    background var(--duration-fast) ease,
+    box-shadow var(--duration-normal) var(--ease-out);
   animation: card-enter 0.4s var(--ease-out) both;
 }
 
@@ -309,25 +390,44 @@ export default {
 
 .notification-card:hover {
   transform: translateY(-2px);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-lg);
+  border-color: var(--border-default);
+  border-left-color: var(--brand-line);
+  box-shadow: var(--shadow-md);
 }
 
 .notification-card--unread {
-  border-left: 2px solid var(--accent-primary);
-  background: linear-gradient(90deg, rgba(0, 229, 160, 0.03) 0%, var(--bg-surface-1) 30%);
+  border-left-color: var(--brand);
+  background: var(--bg-surface-1);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--brand) 6%, transparent) 0%, transparent 44%),
+    var(--bg-surface-1);
+}
+
+.notification-card--unread:hover {
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--border-subtle));
+  border-left-color: var(--brand);
 }
 
 .notification-card-icon {
-  font-size: 20px;
-  color: var(--accent-secondary);
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 17px;
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+}
+
+.notification-card--unread .notification-card-icon {
+  color: var(--brand);
+  border-color: var(--brand-line);
+  background: var(--brand-soft);
 }
 
 .notification-card-body {
@@ -340,119 +440,160 @@ export default {
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+  min-width: 0;
 }
 
 .notification-card-title {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.notification-card--unread .notification-card-title {
+  font-weight: 700;
 }
 
 .unread-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 6px var(--accent-primary);
+  background: var(--brand);
+  box-shadow: 0 0 8px var(--brand);
   flex-shrink: 0;
-  animation: dot-pulse 2s ease-in-out infinite;
-}
-
-@keyframes dot-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
 }
 
 .notification-card-content {
   font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
   margin-bottom: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
 .notification-card-footer {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .notification-card-type {
-  font-size: 11px;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-tertiary);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-surface-2);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 1px 8px;
-  letter-spacing: 0.03em;
+  padding: 1px 7px;
+  white-space: nowrap;
 }
 
 .notification-card-time {
-  font-size: 12px;
-  color: var(--text-tertiary);
   font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-/* Pagination */
+.mark-one-btn {
+  margin-left: auto;
+  padding: 1px 0;
+  background: transparent;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--duration-fast) ease;
+}
+
+.mark-one-btn:hover {
+  color: var(--brand);
+}
+
+.notification-card-arrow {
+  flex-shrink: 0;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-faint);
+  transition: color var(--duration-fast) ease, transform var(--duration-fast) ease;
+}
+
+.notification-card:hover .notification-card-arrow {
+  color: var(--brand);
+  transform: translateX(2px);
+}
+
+/* ---------- Pagination ---------- */
 .pagination {
   margin-top: 24px;
 }
 
-/* Empty State */
+/* ---------- Empty state ---------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
   text-align: center;
-  max-width: 400px;
-  margin: 0 auto;
+  padding: 56px 24px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-1);
 }
 
-.empty-svg {
-  width: 72px;
-  height: 72px;
-  margin-bottom: 20px;
-  opacity: 0.7;
-  animation: empty-float 3s ease-in-out infinite;
-}
-
-@keyframes empty-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.6;
+.empty-mark {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-md);
 }
 
 .empty-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
 }
 
 .empty-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-tertiary);
   max-width: 300px;
+  line-height: 1.7;
 }
 
-/* Skeleton Loading */
+/* ---------- Skeleton ---------- */
 @keyframes shimmer {
-  0% { background-position: -200% 0; transform: scaleY(1); }
-  50% { transform: scaleY(1.012); }
-  100% { background-position: 200% 0; transform: scaleY(1); }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
+
 @keyframes skeleton-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -471,8 +612,9 @@ export default {
   gap: 14px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  min-height: 96px;
   pointer-events: none;
 }
 
@@ -484,41 +626,86 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
+  min-width: 0;
 }
 
 .skeleton-card .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface-3) 35%, rgba(0,229,160,0.03) 50%, var(--bg-surface-3) 65%, var(--bg-surface-2) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-2) 0%,
+    var(--bg-surface-3) 40%,
+    var(--bg-surface-2) 80%
+  );
   background-size: 200% 100%;
-  animation: shimmer 2s ease-in-out infinite;
+  animation: shimmer 1.6s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
-.skeleton-line--icon { width: 28px; height: 28px; border-radius: var(--radius-md); }
-.skeleton-line--title { width: 180px; height: 16px; }
-.skeleton-line--desc { width: 100%; height: 14px; }
-.skeleton-line--time { width: 100px; height: 12px; }
+.skeleton-line--icon { width: 40px; height: 40px; border-radius: var(--radius-sm); }
+.skeleton-line--title { width: 42%; min-width: 120px; height: 14px; }
+.skeleton-line--desc { width: 100%; height: 12px; }
+.skeleton-line--time { width: 96px; height: 10px; margin-top: 2px; }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 767px) {
+  .page-title {
+    font-size: 26px;
+  }
+
+  .notification-card {
+    padding: 14px 14px 13px;
+    gap: 11px;
+  }
+
+  .notification-card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .notification-card-arrow {
+    display: none;
+  }
+
+  .skeleton-card {
+    padding: 14px;
+    gap: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header-actions {
+    padding-bottom: 0;
+  }
+
   .page-title {
     font-size: 24px;
   }
+
   .notification-card {
-    padding: 12px 14px;
+    padding: 12px;
     gap: 10px;
   }
-  .page-header {
+
+  .notification-card-content {
+    -webkit-line-clamp: 3;
+  }
+
+  .notification-card-footer {
     gap: 8px;
   }
 }
 
-@media (max-width: 479px) {
-  .page-title {
-    font-size: 20px;
-  }
+@media (prefers-reduced-motion: reduce) {
   .notification-card {
-    padding: 10px 12px;
-    gap: 8px;
+    animation: none;
   }
 }
 </style>

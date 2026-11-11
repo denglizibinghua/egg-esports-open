@@ -1,43 +1,54 @@
 <template>
   <!-- 赛事列表模式：状态筛选 + 赛事表格 + 结算弹窗 -->
   <div v-if="mode === 'list'" class="match-manage-tab">
-    <div class="tab-header">
-      <el-radio-group v-model="matchStatus" size="small" @change="fetchMatches">
-        <el-radio-button value="all">全部</el-radio-button>
-        <el-radio-button value="0">未开始</el-radio-button>
-        <el-radio-button value="1">进行中</el-radio-button>
-        <el-radio-button value="2">已结束</el-radio-button>
-      </el-radio-group>
-      <el-button type="primary" size="small" :icon="PlusIcon" @click="$router.push('/admin/match/create')">添加赛事</el-button>
+    <div class="admin-toolbar">
+      <div class="toolbar-block">
+        <span class="toolbar-kicker">FILTER / 状态</span>
+        <el-radio-group v-model="matchStatus" size="small" class="status-filter" @change="fetchMatches">
+          <el-radio-button value="all">全部</el-radio-button>
+          <el-radio-button value="0">未开始</el-radio-button>
+          <el-radio-button value="1">进行中</el-radio-button>
+          <el-radio-button value="2">已结束</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="toolbar-block toolbar-block--end">
+        <el-input
+          v-model="searchText"
+          size="small"
+          clearable
+          placeholder="搜索 标题 / 战队 / 联赛"
+          class="toolbar-search"
+        />
+        <span class="toolbar-count">TOTAL <b>{{ total }}</b></span>
+        <el-button type="primary" size="small" :icon="PlusIcon" @click="$router.push('/admin/match/create')">添加赛事</el-button>
+      </div>
     </div>
 
     <!-- Loading Skeleton -->
-    <div v-if="loading" class="skeleton-table">
+    <div v-if="loading" class="skeleton-table u-panel">
       <div class="skeleton-table-header">
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-lg"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-lg shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
       </div>
       <div v-for="i in 5" :key="'admin-skel-'+i" class="skeleton-table-row">
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-lg"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-md"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
-        <div class="skeleton-line skeleton-line--cell-sm"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-lg shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-md shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
+        <div class="skeleton-line skeleton-line--cell-sm shimmer-bg"></div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="matches.length === 0" class="empty-state">
-      <div class="empty-icon">📝</div>
+    <div v-else-if="matches.length === 0" class="empty-state u-panel">
+      <div class="empty-mark">//</div>
       <h3 class="empty-title">还没有赛事</h3>
       <p class="empty-desc">创建第一场比赛，开始你的竞猜平台</p>
       <el-button type="primary" class="empty-action" @click="$router.push('/admin/match/create')">创建赛事</el-button>
@@ -45,76 +56,99 @@
 
     <!-- Match Table -->
     <template v-else>
-      <el-table :data="matches" style="width: 100%">
-        <el-table-column label="ID" width="70" prop="id" />
-        <el-table-column label="标题" min-width="150" prop="title" />
-        <el-table-column label="A队" width="120" prop="teamA" />
-        <el-table-column label="B队" width="120" prop="teamB" />
-        <el-table-column label="联赛" width="120" prop="tournament" />
-        <el-table-column label="时间" width="160">
-          <template #default="scope">
-            {{ formatDate(scope.row.matchTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="scope">
-            <span v-if="scope.row.status === 0" class="status-badge status-badge--upcoming">
-              <span class="status-dot"></span>未开始
-            </span>
-            <span v-else-if="scope.row.status === 1" class="status-badge status-badge--live">
-              <span class="status-dot status-dot--pulse"></span>进行中
-            </span>
-            <span v-else-if="scope.row.status === 2" class="status-badge status-badge--finished">已结束</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="结果" width="100" align="center">
-          <template #default="scope">
-            <template v-if="scope.row.status === 2">
-              <template v-if="scope.row.result === 0">A胜</template>
-              <template v-else-if="scope.row.result === 1">B胜</template>
-              <template v-else-if="scope.row.result === 2">平局</template>
-              <template v-else>未结算</template>
+      <div class="table-shell">
+        <el-table :data="filteredMatches" style="width: 100%" empty-text="没有匹配的赛事">
+          <el-table-column label="ID" width="70">
+            <template #default="scope">
+              <span class="cell-id">#{{ scope.row.id }}</span>
             </template>
-            <template v-else>-</template>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
-          <template #default="scope">
-            <el-button link size="small" @click="$router.push('/admin/match/' + scope.row.id)">编辑</el-button>
-            <el-button
-              v-if="scope.row.status === 2 && (scope.row.result === null || scope.row.result === undefined)"
-              link
-              size="small"
-              class="settle-btn"
-              @click="openSettleDialog(scope.row)"
-            >
-              结算
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+          </el-table-column>
+          <el-table-column label="对阵 / FIXTURE" min-width="240">
+            <template #default="scope">
+              <div class="fixture-cell">
+                <div class="fixture-line">
+                  <span class="fixture-team fixture-team--a" :title="scope.row.teamA">{{ scope.row.teamA || '待定' }}</span>
+                  <span class="fixture-vs">VS</span>
+                  <span class="fixture-team fixture-team--b" :title="scope.row.teamB">{{ scope.row.teamB || '待定' }}</span>
+                </div>
+                <div class="fixture-title" :title="scope.row.title">{{ scope.row.title || '—' }}</div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="联赛" width="140">
+            <template #default="scope">
+              <span class="tournament-chip" :title="scope.row.tournament">{{ scope.row.tournament || '—' }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="时间 / TIME" width="150">
+            <template #default="scope">
+              <span class="cell-time">{{ formatDate(scope.row.matchTime) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="104" align="center">
+            <template #default="scope">
+              <span v-if="scope.row.status === 0" class="status-badge status-badge--upcoming">
+                <span class="status-dot"></span>未开始
+              </span>
+              <span v-else-if="scope.row.status === 1" class="status-badge status-badge--live">
+                <span class="status-dot status-dot--pulse"></span>进行中
+              </span>
+              <span v-else-if="scope.row.status === 2" class="status-badge status-badge--finished">已结束</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="结果" width="104" align="center">
+            <template #default="scope">
+              <template v-if="scope.row.status === 2">
+                <span v-if="scope.row.result === 0" class="result-tag result-tag--a">A 胜</span>
+                <span v-else-if="scope.row.result === 1" class="result-tag result-tag--b">B 胜</span>
+                <span v-else-if="scope.row.result === 2" class="result-tag result-tag--draw">平局</span>
+                <span v-else class="result-tag result-tag--pending">未结算</span>
+              </template>
+              <span v-else class="cell-dash">—</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="180" align="right">
+            <template #default="scope">
+              <div class="row-actions">
+                <el-button link size="small" class="row-btn" @click="$router.push('/admin/match/' + scope.row.id)">编辑</el-button>
+                <el-button
+                  v-if="scope.row.status === 2 && (scope.row.result === null || scope.row.result === undefined)"
+                  link
+                  size="small"
+                  class="row-btn row-btn--settle"
+                  @click="openSettleDialog(scope.row)"
+                >
+                  结算
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <el-pagination
+        v-if="total > 0"
+        background
+        layout="prev, pager, next"
+        :total="total"
+        :page-size="pageSize"
+        v-model:current-page="currentPage"
+        @current-change="fetchMatches"
+      />
     </template>
 
-    <el-pagination
-      v-if="total > 0"
-      background
-      layout="prev, pager, next"
-      :total="total"
-      :page-size="pageSize"
-      v-model:current-page="currentPage"
-      @current-change="fetchMatches"
-    />
-
     <!-- Settle Dialog -->
-    <el-dialog title="赛事结算" v-model="settleDialogVisible" width="400px" custom-class="settle-dialog">
+    <el-dialog title="赛事结算" v-model="settleDialogVisible" width="420px" custom-class="settle-dialog">
       <div class="settle-content">
+        <div class="settle-kicker">SETTLE / 结果裁定</div>
         <p class="settle-match-name">{{ settleMatch ? settleMatch.teamA + ' VS ' + settleMatch.teamB : '' }}</p>
-        <p class="settle-label">选择比赛结果：</p>
-        <el-radio-group v-model="settleResult">
-          <el-radio :value="0">{{ settleMatch ? settleMatch.teamA : 'A队' }} 获胜</el-radio>
-          <el-radio :value="1">{{ settleMatch ? settleMatch.teamB : 'B队' }} 获胜</el-radio>
-          <el-radio :value="2">平局</el-radio>
+        <p class="settle-label">选择比赛结果</p>
+        <el-radio-group v-model="settleResult" class="settle-options">
+          <el-radio :value="0" class="settle-option">{{ settleMatch ? settleMatch.teamA : 'A队' }} 获胜</el-radio>
+          <el-radio :value="1" class="settle-option">{{ settleMatch ? settleMatch.teamB : 'B队' }} 获胜</el-radio>
+          <el-radio :value="2" class="settle-option">平局</el-radio>
         </el-radio-group>
+        <p class="settle-warn">结算后将按结果派奖，且不可撤销。</p>
       </div>
       <template #footer>
         <el-button @click="settleDialogVisible = false">取消</el-button>
@@ -126,6 +160,7 @@
   <!-- 批量导入模式：JSON 解析 + 预览 + 提交 -->
   <div v-else-if="mode === 'import'" class="import-panel">
     <div class="import-instructions">
+      <div class="import-kicker">IMPORT / JSON SCHEMA</div>
       <h4 class="import-section-title">JSON 数据格式</h4>
       <p class="import-hint">粘贴 JSON 数组，每个对象需包含：title, teamA, teamB, matchTime。可选字段：gameId, teamALogo, teamBLogo, tournament, status</p>
     </div>
@@ -150,29 +185,32 @@
     <template v-if="importParsedList.length > 0">
       <div class="import-preview-header">
         <span class="import-preview-count">已解析 {{ importParsedList.length }} 条赛事</span>
+        <span class="import-preview-hint">校验通过 · 待提交</span>
       </div>
 
-      <el-table :data="importParsedList" style="width: 100%" max-height="360" size="small">
-        <el-table-column label="序号" width="60" align="center">
-          <template #default="scope">{{ scope.$index + 1 }}</template>
-        </el-table-column>
-        <el-table-column label="标题" min-width="150" prop="title" />
-        <el-table-column label="A队" width="120" prop="teamA" />
-        <el-table-column label="B队" width="120" prop="teamB" />
-        <el-table-column label="联赛" width="120" prop="tournament">
-          <template #default="scope">{{ scope.row.tournament || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="比赛时间" width="160">
-          <template #default="scope">{{ formatDate(scope.row.matchTime) }}</template>
-        </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="scope">
-            <span :class="['status-badge', statusBadgeClass(scope.row.status)]">
-              <span class="status-dot"></span>{{ statusLabel(scope.row.status) }}
-            </span>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="table-shell">
+        <el-table :data="importParsedList" style="width: 100%" max-height="360" size="small">
+          <el-table-column label="序号" width="60" align="center">
+            <template #default="scope">{{ scope.$index + 1 }}</template>
+          </el-table-column>
+          <el-table-column label="标题" min-width="150" prop="title" />
+          <el-table-column label="A队" width="120" prop="teamA" />
+          <el-table-column label="B队" width="120" prop="teamB" />
+          <el-table-column label="联赛" width="120" prop="tournament">
+            <template #default="scope">{{ scope.row.tournament || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="比赛时间" width="160">
+            <template #default="scope"><span class="cell-time">{{ formatDate(scope.row.matchTime) }}</span></template>
+          </el-table-column>
+          <el-table-column label="状态" width="100" align="center">
+            <template #default="scope">
+              <span :class="['status-badge', statusBadgeClass(scope.row.status)]">
+                <span class="status-dot"></span>{{ statusLabel(scope.row.status) }}
+              </span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
 
       <div class="import-submit-row">
         <el-button type="primary" :loading="importSubmitting" @click="submitBatchImport">确认导入 {{ importParsedList.length }} 条</el-button>
@@ -228,6 +266,8 @@ export default {
       matches: [],
       loading: false,
       matchStatus: 'all',
+      // 前端搜索关键字：仅过滤当前页已加载数据，不改变请求参数
+      searchText: '',
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -242,6 +282,18 @@ export default {
       importSubmitting: false,
       importResult: null,
       importErrorsExpanded: false
+    }
+  },
+  computed: {
+    // 本地过滤：标题 / A队 / B队 / 联赛
+    filteredMatches() {
+      var q = (this.searchText || '').trim().toLowerCase()
+      if (!q) return this.matches
+      return this.matches.filter(function (m) {
+        return [m.title, m.teamA, m.teamB, m.tournament].some(function (v) {
+          return v && String(v).toLowerCase().indexOf(q) !== -1
+        })
+      })
     }
   },
   created() {
@@ -397,112 +449,430 @@ export default {
 </script>
 
 <style scoped>
-.tab-header {
+.match-manage-tab,
+.import-panel {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- Toolbar ---------- */
+.admin-toolbar {
+  display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018) 0%, transparent 46%),
+    var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
-.settle-btn {
-  color: var(--accent-primary) !important;
+.toolbar-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toolbar-block--end {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.toolbar-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.status-filter {
+  flex-wrap: wrap;
+}
+
+.status-filter :deep(.el-radio-button__inner) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 12px;
+  background: var(--bg-inset);
+  border-color: var(--border-default);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: none;
+  transition: all var(--duration-fast) ease;
+}
+
+.status-filter :deep(.el-radio-button__inner:hover) {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.status-filter :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--brand-line);
+}
+
+.toolbar-search {
+  width: 220px;
+}
+
+.toolbar-search :deep(.el-input__wrapper) {
+  min-height: 30px;
+  height: 30px;
+}
+
+.toolbar-search :deep(.el-input__inner) {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+}
+
+.toolbar-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.toolbar-count b {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.match-manage-tab :deep(.el-pagination) {
+  margin-top: 0;
+}
+
+/* ---------- Table shell ---------- */
+.table-shell {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-1);
+}
+
+.table-shell :deep(.el-table) {
+  min-width: 900px;
+  background: transparent;
+}
+
+.table-shell :deep(.el-table th.el-table__cell:first-child .cell) {
+  padding-left: 18px;
+}
+
+.table-shell :deep(.el-table td.el-table__cell:first-child .cell) {
+  padding-left: 18px;
+}
+
+.cell-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.cell-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.cell-dash {
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+}
+
+/* Matchup cell */
+.fixture-cell {
+  min-width: 0;
+}
+
+.fixture-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fixture-team {
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.fixture-team--a {
+  color: var(--text-primary);
+}
+
+.fixture-team--b {
+  color: var(--text-primary);
+}
+
+.fixture-vs {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+}
+
+.fixture-title {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Result tags */
+.result-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.result-tag--a {
+  color: var(--brand);
+  border-color: var(--brand-line);
+  background: var(--brand-soft);
+}
+
+.result-tag--b {
+  color: var(--accent-secondary);
+  background: var(--bg-surface-2);
+}
+
+.result-tag--draw {
+  color: var(--accent-warning);
+  background: var(--bg-surface-2);
+}
+
+.result-tag--pending {
+  color: var(--accent-warning);
+  border-color: var(--border-default);
+  background: var(--bg-surface-2);
+}
+
+/* Row actions */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.row-actions :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
+.row-actions :deep(.el-button.row-btn) {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
   font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) ease;
 }
 
+.row-actions :deep(.el-button.row-btn:hover) {
+  color: var(--text-primary) !important;
+  background: var(--bg-surface-2) !important;
+}
+
+.row-actions :deep(.el-button.row-btn--settle) {
+  color: var(--accent-primary);
+  border: 1px solid var(--border-default) !important;
+}
+
+.row-actions :deep(.el-button.row-btn--settle:hover) {
+  color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-primary-soft) !important;
+}
+
+/* ---------- Settle dialog ---------- */
 .settle-content {
-  text-align: center;
+  text-align: left;
+}
+
+.settle-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: 8px;
 }
 
 .settle-match-name {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 16px;
+  line-height: 1.35;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .settle-label {
-  color: var(--text-secondary);
-  margin-bottom: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
 }
 
-.settle-content .el-radio {
-  display: block;
-  margin-bottom: 12px;
+.settle-options {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.settle-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 9px 12px;
+  white-space: normal;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.settle-option:hover {
+  border-color: var(--border-strong);
+}
+
+.settle-option.is-checked {
+  border-color: var(--brand-line);
+  background: var(--brand-soft);
+}
+
+.settle-option :deep(.el-radio__label) {
   color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding-left: 8px;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* Empty State */
+.settle-option :deep(.el-radio__inner) {
+  border-color: var(--border-strong);
+  background: transparent;
+}
+
+.settle-option :deep(.el-radio__input.is-checked .el-radio__inner) {
+  border-color: var(--brand);
+  background: var(--brand);
+}
+
+.settle-warn {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+/* ---------- Empty state ---------- */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 64px 24px;
+  padding: 56px 24px;
   text-align: center;
+  border-style: dashed;
+  background: transparent;
 }
 
-.empty-icon {
-  font-size: 48px;
+.empty-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
   margin-bottom: 16px;
-  opacity: 0.6;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sm);
 }
 
 .empty-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
 }
 
 .empty-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-tertiary);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   max-width: 300px;
 }
 
-.empty-action {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-}
-
-/* Skeleton Loading */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.skeleton-table {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
+/* ---------- Skeleton ---------- */
 
 .skeleton-table-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--border-subtle);
-}
-
-.skeleton-table-header .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-3) 25%, var(--bg-surface-2) 50%, var(--bg-surface-3) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-sm);
-  height: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-default);
 }
 
 .skeleton-table-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -510,127 +880,114 @@ export default {
   border-bottom: none;
 }
 
-.skeleton-table-row .skeleton-line {
-  background: linear-gradient(90deg, var(--bg-surface-2) 25%, var(--bg-surface-3) 50%, var(--bg-surface-2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+.skeleton-line {
+  height: 12px;
   border-radius: var(--radius-sm);
-  height: 14px;
 }
 
 .skeleton-line--cell-sm { width: 50px; flex-shrink: 0; }
 .skeleton-line--cell-md { width: 90px; flex-shrink: 0; }
 .skeleton-line--cell-lg { flex: 1; min-width: 100px; }
 
-/* Import Panel */
-.import-panel {
-  padding: 4px 0;
-}
-
+/* ---------- Import panel ---------- */
 .import-instructions {
-  margin-bottom: 16px;
-  padding: 16px;
+  padding: 16px 18px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
+  border-left: 2px solid var(--brand);
   border-radius: var(--radius-md);
+}
+
+.import-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: 8px;
 }
 
 .import-section-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
 }
 
 .import-hint {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-tertiary);
   margin: 0;
-  line-height: 1.6;
-}
-
-.import-textarea {
-  margin-bottom: 12px;
+  line-height: 1.65;
 }
 
 .import-textarea :deep(.el-textarea__inner) {
-  background: var(--bg-surface-1);
-  border-color: var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
   color: var(--text-primary);
-  font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 13px;
-  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--border-default) inset;
   resize: vertical;
 }
 
 .import-textarea :deep(.el-textarea__inner:focus) {
-  border-color: var(--accent-primary);
-}
-
-.import-textarea :deep(.el-textarea__inner::placeholder) {
-  color: var(--text-tertiary);
-  opacity: 0.6;
+  box-shadow: 0 0 0 1px var(--brand) inset, 0 0 0 3px var(--brand-soft);
 }
 
 .import-actions {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
-}
-
-.import-actions .el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-sm) !important;
-}
-
-.import-parse-error {
-  margin-bottom: 16px;
+  margin-top: -4px;
 }
 
 .import-preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 10px 16px;
-  background: var(--bg-surface-1);
+  gap: 12px;
+  margin-top: 4px;
+  padding: 10px 14px;
+  background: var(--bg-surface-2);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .import-preview-count {
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--accent-primary);
 }
 
-.import-submit-row {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
+.import-preview-hint {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
 }
 
-.import-submit-row .el-button--primary {
-  background: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  color: #0a0a0f !important;
-  font-weight: 600;
-  border-radius: var(--radius-md) !important;
-  padding: 10px 24px;
+.import-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
 }
 
 .import-result {
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .import-errors {
-  margin-top: 12px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -638,11 +995,11 @@ export default {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 13px;
-  transition: color 0.2s;
+  font-size: 12.5px;
+  transition: color var(--duration-fast) ease;
   user-select: none;
 }
 
@@ -658,8 +1015,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: 12.5px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -668,59 +1025,101 @@ export default {
 }
 
 .import-error-index {
-  color: var(--text-tertiary);
-  font-weight: 600;
   min-width: 32px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
 }
 
 .import-error-title {
-  color: var(--text-primary);
   min-width: 100px;
+  color: var(--text-primary);
 }
 
 .import-error-msg {
-  color: #e06c75;
   flex: 1;
+  color: var(--accent-danger);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  word-break: break-word;
 }
 
-/* ===== 移动端基础适配 ===== */
-@media (max-width: 768px) {
-  /* tab 头部：筛选与操作按钮改为纵向堆叠，避免横向溢出 */
-  .tab-header {
-    flex-direction: column;
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .admin-toolbar {
     align-items: stretch;
+    flex-direction: column;
     gap: 10px;
   }
-  .tab-header .el-button {
+
+  .toolbar-block {
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-block--end {
+    justify-content: flex-start;
+  }
+
+  .toolbar-search {
+    flex: 1;
+    min-width: 160px;
+    width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar-block {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toolbar-block--end {
+    align-items: stretch;
+  }
+
+  .toolbar-search {
     width: 100%;
   }
 
-  /* 表格容器保证可横向滚动 */
-  :deep(.el-table) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* 操作列按钮 touch-friendly */
-  :deep(.el-table .el-button) {
-    min-height: 32px;
-    padding: 4px 8px;
+  .toolbar-block--end :deep(.el-button) {
+    width: 100%;
   }
 
-  /* 导入错误项：窄屏堆叠 */
-  .import-error-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .table-shell :deep(.el-table) {
+    min-width: 860px;
   }
+
+  .row-actions :deep(.el-button.row-btn) {
+    min-height: 30px;
+  }
+
+  .import-error-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
   .import-error-title {
     min-width: 0;
   }
-  .import-submit-row {
-    justify-content: stretch;
-  }
-  .import-submit-row .el-button--primary {
+
+  .import-submit-row :deep(.el-button) {
     width: 100%;
-    min-height: 44px;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-count {
+    display: none;
+  }
+
+  .import-preview-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }
 </style>

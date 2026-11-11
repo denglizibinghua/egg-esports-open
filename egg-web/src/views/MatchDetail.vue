@@ -4,13 +4,21 @@
     <div v-if="loading" class="detail-skeleton">
       <!-- Match Info Skeleton -->
       <div class="skeleton-section">
-        <div class="skeleton-line skeleton-line--lg"></div>
-        <div class="skeleton-hero">
-          <div class="skeleton-line skeleton-line--avatar-lg"></div>
-          <div class="skeleton-line skeleton-line--score"></div>
-          <div class="skeleton-line skeleton-line--avatar-lg"></div>
+        <div class="skeleton-center">
+          <div class="skeleton-line skeleton-line--chip"></div>
+          <div class="skeleton-line skeleton-line--time"></div>
         </div>
-        <div class="skeleton-line skeleton-line--md"></div>
+        <div class="skeleton-hero">
+          <div class="skeleton-team-col">
+            <div class="skeleton-line skeleton-line--avatar-lg"></div>
+            <div class="skeleton-line skeleton-line--name"></div>
+          </div>
+          <div class="skeleton-line skeleton-line--score"></div>
+          <div class="skeleton-team-col">
+            <div class="skeleton-line skeleton-line--avatar-lg"></div>
+            <div class="skeleton-line skeleton-line--name"></div>
+          </div>
+        </div>
       </div>
       <!-- Bet Panel Skeleton -->
       <div class="skeleton-section">
@@ -37,18 +45,36 @@
     </div>
 
     <div v-if="match" class="detail-content">
-      <!-- 锚点导航 -->
-      <nav class="detail-nav">
-        <a class="detail-nav-link" href="#match-info" @click.prevent="scrollToSection('match-info')">比赛信息</a>
-        <a class="detail-nav-link" v-if="match.status === 0 || match.status === 1" href="#bet-panel" @click.prevent="scrollToSection('bet-panel')">押注</a>
-        <a class="detail-nav-link" href="#comments" @click.prevent="scrollToSection('comments')">评论</a>
+      <!-- 锚点导航：粘性分段控件 -->
+      <nav class="detail-nav-wrap" aria-label="页面锚点">
+        <div class="detail-nav">
+          <a
+            class="detail-nav-link"
+            :class="{ 'is-active': activeSection === 'match-info' }"
+            href="#match-info"
+            @click.prevent="scrollToSection('match-info')"
+          >比赛信息</a>
+          <a
+            v-if="match.status === 0 || match.status === 1"
+            class="detail-nav-link"
+            :class="{ 'is-active': activeSection === 'bet-panel' }"
+            href="#bet-panel"
+            @click.prevent="scrollToSection('bet-panel')"
+          >押注</a>
+          <a
+            class="detail-nav-link"
+            :class="{ 'is-active': activeSection === 'comments' }"
+            href="#comments"
+            @click.prevent="scrollToSection('comments')"
+          >评论</a>
+        </div>
       </nav>
 
       <!-- 比赛基本信息面板：队伍、logo、比分、时间、状态、联赛、结果 -->
-      <div id="match-info"><MatchInfoPanel :match="match" /></div>
+      <div id="match-info" class="detail-block"><MatchInfoPanel :match="match" /></div>
 
       <!-- 押注面板：押注表单、确认弹窗、修改弹窗、押注统计（仅未开始/进行中显示） -->
-      <div id="bet-panel">
+      <div id="bet-panel" class="detail-block">
         <BetPanel
           v-if="match.status === 0 || match.status === 1"
           :match="match"
@@ -69,10 +95,10 @@
       />
 
       <!-- 评论区：评论列表、发表评论、回复、WebSocket 实时推送 -->
-      <div id="comments"><CommentSection :match-id="$route.params.id" :current-user="user" /></div>
+      <div id="comments" class="detail-block"><CommentSection :match-id="$route.params.id" :current-user="user" /></div>
     </div>
 
-    <el-empty v-if="!loading && !match" description="赛事不存在" />
+    <el-empty v-if="!loading && !match" class="detail-empty" description="赛事不存在" />
   </div>
 </template>
 
@@ -108,7 +134,9 @@ export default {
       // 轮询定时器
       pollTimer: null,
       // 积分耗尽弹窗显隐
-      showBrokeModal: false
+      showBrokeModal: false,
+      // 锚点导航高亮（纯展示，不影响滚动逻辑）
+      activeSection: 'match-info'
     }
   },
   computed: {
@@ -126,15 +154,31 @@ export default {
     }
     this.startPolling()
   },
+  mounted() {
+    window.addEventListener('scroll', this.onScroll, { passive: true })
+  },
   beforeUnmount() {
     this.stopPolling()
+    window.removeEventListener('scroll', this.onScroll)
     // WebSocket 取消订阅由 CommentSection 自行处理
   },
   methods: {
     // 锚点导航：平滑滚动到指定区域
     scrollToSection(id) {
+      this.activeSection = id
       var el = document.getElementById(id)
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
+    },
+    // 滚动反向高亮锚点（纯展示）
+    onScroll() {
+      var ids = ['match-info', 'bet-panel', 'comments']
+      var probe = 142
+      var current = 'match-info'
+      for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i])
+        if (el && el.getBoundingClientRect().top <= probe) current = ids[i]
+      }
+      if (this.activeSection !== current) this.activeSection = current
     },
     // 启动定时轮询比赛状态（每 30s 静默刷新）
     startPolling() {
@@ -221,18 +265,112 @@ export default {
 </script>
 
 <style scoped>
-/* ── Skeleton Loading ── */
-.detail-skeleton {
-  max-width: 800px;
+/* ── 页面骨架：窄栏 + 广播节奏 ── */
+.match-detail {
+  width: 100%;
+  max-width: 880px;
   margin: 0 auto;
 }
 
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.detail-block {
+  min-width: 0;
+}
+
+#match-info,
+#bet-panel,
+#comments {
+  scroll-margin-top: calc(var(--header-h) + 70px);
+}
+
+#bet-panel:empty {
+  display: none;
+}
+
+/* ── 粘性分段锚点导航 ── */
+.detail-nav-wrap {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 80;
+  padding: 10px 0;
+  margin-bottom: -8px;
+  background: var(--bg-page);
+  background: color-mix(in srgb, var(--bg-page) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-nav {
+  display: inline-flex;
+  gap: 3px;
+  max-width: 100%;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.detail-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.detail-nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-2);
+}
+
+.detail-nav-link.is-active {
+  color: var(--cream);
+  background: var(--brand);
+  font-weight: 700;
+  box-shadow: 0 3px 12px var(--brand-soft);
+}
+
+/* ── Skeleton Loading ── */
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
 .skeleton-section {
+  position: relative;
+  padding: 22px 22px;
   background: var(--bg-surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 20px;
+}
+
+.skeleton-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 22px;
+  width: 44px;
+  height: 2px;
+  background: var(--brand);
 }
 
 @keyframes shimmer {
@@ -247,6 +385,58 @@ export default {
   border-radius: var(--radius-sm);
 }
 
+.skeleton-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skeleton-line--chip {
+  width: 108px;
+  height: 18px;
+}
+
+.skeleton-line--time {
+  width: 132px;
+  height: 11px;
+}
+
+.skeleton-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.skeleton-team-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.skeleton-line--avatar-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-line--name {
+  width: 92px;
+  height: 14px;
+}
+
+.skeleton-line--score {
+  width: 72px;
+  height: 40px;
+}
+
 .skeleton-line--lg {
   height: 32px;
   width: 80%;
@@ -254,73 +444,52 @@ export default {
 }
 
 .skeleton-line--md {
-  height: 20px;
+  height: 14px;
   width: 60%;
-  margin-bottom: 12px;
 }
 
 .skeleton-line--sm {
-  height: 14px;
+  height: 12px;
   width: 40%;
 }
 
 .skeleton-line--title {
-  height: 24px;
+  height: 20px;
   width: 120px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .skeleton-line--btn {
-  height: 44px;
+  height: 46px;
   width: 100%;
-  border-radius: var(--radius-md);
-  margin-top: 12px;
+  border-radius: var(--radius-sm);
+  margin-top: 14px;
 }
 
 .skeleton-line--slider {
-  height: 36px;
+  height: 34px;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   margin: 16px 0;
 }
 
 .skeleton-line--card {
-  height: 120px;
+  height: 108px;
   flex: 1;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
 }
 
 .skeleton-line--vs {
-  width: 32px;
+  width: 26px;
   height: 20px;
   flex-shrink: 0;
 }
 
-.skeleton-line--avatar-lg {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-}
-
 .skeleton-line--avatar-sm {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   flex-shrink: 0;
-}
-
-.skeleton-line--score {
-  width: 80px;
-  height: 40px;
-  border-radius: var(--radius-sm);
-}
-
-.skeleton-hero {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
 }
 
 .skeleton-bet-cards {
@@ -334,10 +503,15 @@ export default {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   padding: 12px;
   background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+}
+
+.skeleton-comment:last-child {
+  margin-bottom: 0;
 }
 
 .skeleton-comment-body {
@@ -347,42 +521,76 @@ export default {
   gap: 8px;
 }
 
-/* Anchor Navigation */
-.detail-nav {
-  position: sticky;
-  top: 56px;
-  z-index: 50;
-  display: flex;
-  gap: 4px;
-  padding: 8px 0;
-  margin-bottom: 16px;
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--border-subtle);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.detail-nav::-webkit-scrollbar {
-  display: none;
-}
-
-.detail-nav-link {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.detail-nav-link:hover {
-  color: var(--text-primary);
+/* ── 未找到 ── */
+.detail-empty {
+  padding: 48px 16px;
   background: var(--bg-surface-1);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
 }
 
-.detail-nav-link:active {
-  color: var(--accent-primary);
+.detail-empty :deep(.el-empty__description p) {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .detail-content,
+  .detail-skeleton {
+    gap: 20px;
+  }
+
+  .detail-nav-wrap {
+    padding: 8px 0;
+  }
+
+  .skeleton-section {
+    padding: 18px 16px;
+  }
+
+  .skeleton-section::before {
+    left: 16px;
+  }
+
+  #match-info,
+  #bet-panel,
+  #comments {
+    scroll-margin-top: calc(var(--header-h) + 62px);
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-nav {
+    display: flex;
+    width: 100%;
+  }
+
+  .detail-nav-link {
+    flex: 1;
+    justify-content: center;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .skeleton-hero {
+    gap: 14px;
+  }
+
+  .skeleton-line--avatar-lg {
+    width: 62px;
+    height: 62px;
+  }
+
+  .skeleton-line--score {
+    width: 56px;
+    height: 32px;
+  }
+
+  .skeleton-line--card {
+    height: 96px;
+  }
 }
 </style>
-

@@ -1,62 +1,82 @@
 <template>
   <transition name="broke-fade">
     <div v-if="visible" class="broke-overlay">
-      <div class="broke-modal">
-        <!-- 头部：警示图标 -->
-        <div class="broke-header">
-          <div class="broke-icon-wrapper">
-            <svg class="broke-icon" viewBox="0 0 64 64" fill="none">
-              <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2.5" fill="none" />
-              <path d="M32 16v20M32 44v4" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-            </svg>
+      <div class="broke-modal u-panel" role="dialog" aria-modal="true" aria-label="积分耗尽">
+        <!-- 头部：余额告警 -->
+        <header class="broke-head">
+          <div class="broke-head-top">
+            <span class="u-eyebrow">BALANCE ALERT</span>
+            <span class="broke-head-code">BALANCE 0</span>
           </div>
-          <h2 class="broke-title">积分耗尽</h2>
-          <p class="broke-subtitle">余额归零，无法继续下注</p>
-        </div>
+          <div class="broke-title-row">
+            <div class="broke-icon-plate">
+              <svg class="broke-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3 2.5 20h19L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                <path d="M12 9v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <circle cx="12" cy="17" r="1" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="broke-title-copy">
+              <h2 class="broke-title">积分耗尽</h2>
+              <p class="broke-subtitle">余额归零，无法继续下注</p>
+            </div>
+          </div>
+        </header>
 
-        <!-- 主体 -->
+        <!-- 主体：余额 / 债务数字 -->
         <div class="broke-body">
-          <div class="broke-info-card">
-            <div class="info-row">
-              <span class="info-label">当前积分</span>
-              <span class="info-value text-danger">0</span>
+          <div class="broke-metrics">
+            <div class="metric metric--hero">
+              <span class="metric-label">当前积分</span>
+              <span class="metric-value metric-value--lg">0</span>
             </div>
-            <div class="info-row" v-if="loanStatus">
-              <span class="info-label">贷款余额</span>
-              <span class="info-value">{{ Math.abs(loanStatus.loanAmount || 0) }}</span>
-            </div>
-            <div class="info-row" v-if="loanStatus">
-              <span class="info-label">贷款上限</span>
-              <span class="info-value">{{ loanStatus.loanLimit || 2000 }}</span>
+            <div class="metric-row" v-if="loanStatus">
+              <div class="metric">
+                <span class="metric-label">贷款余额</span>
+                <span class="metric-value">{{ Math.abs(loanStatus.loanAmount || 0) }}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">贷款上限</span>
+                <span class="metric-value">{{ loanStatus.loanLimit || 2000 }}</span>
+              </div>
             </div>
           </div>
 
           <div class="broke-tip">
-            <el-icon><InfoFilled /></el-icon>
-            申请 <strong>500</strong> 救济贷款可立即恢复下注。贷款记为债务，赢注后自动还款。
+            <el-icon class="tip-icon"><InfoFilled /></el-icon>
+            <span>申请 <strong>500</strong> 救济贷款可立即恢复下注。贷款记为债务，赢注后自动还款。</span>
           </div>
         </div>
 
         <!-- 底部按钮 -->
         <div class="broke-footer">
-          <el-button
-            v-if="canGetLoan"
-            type="primary"
-            size="large"
-            :loading="claiming"
-            class="broke-btn"
-            @click="claimReliefLoan"
-          >
-            {{ claiming ? '处理中...' : '领取 500 救济贷款' }}
-          </el-button>
+          <template v-if="canGetLoan">
+            <el-button
+              type="primary"
+              size="large"
+              :loading="claiming"
+              class="broke-btn"
+              @click="claimReliefLoan"
+            >
+              <span class="broke-btn-inner">
+                <span class="broke-btn-main">{{ claiming ? '处理中...' : '领取救济贷款' }}</span>
+                <span class="broke-btn-micro">RELIEF LOAN · +500 PTS</span>
+              </span>
+            </el-button>
+            <el-button class="broke-btn--secondary" @click="$emit('close')">
+              稍后再说
+            </el-button>
+          </template>
           <div v-else class="broke-maxed">
-            <el-tag type="danger" size="medium">贷款已达上限</el-tag>
+            <div class="broke-maxed-head">
+              <el-tag type="danger" size="medium" class="broke-limit-tag">贷款已达上限</el-tag>
+            </div>
             <p class="broke-maxed-tip">
               请等待每日补贴（每天自动发放），或前往
               <router-link to="/bank" class="broke-link" @click="$emit('close')">银行中心</router-link>
               查看详情
             </p>
-            <el-button size="small" class="broke-btn--secondary" @click="$emit('close')">
+            <el-button class="broke-btn--secondary" @click="$emit('close')">
               我知道了
             </el-button>
           </div>
@@ -130,136 +150,304 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
+  padding: 20px;
+  background: var(--el-mask-color);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 .broke-modal {
-  width: 420px;
-  max-width: 90vw;
-  background: linear-gradient(145deg, #1a1d2e, #141725);
-  border: 1px solid rgba(255, 70, 70, 0.3);
-  border-radius: 16px;
-  padding: 36px 32px 28px;
-  box-shadow:
-    0 0 60px rgba(255, 70, 70, 0.15),
-    0 8px 40px rgba(0, 0, 0, 0.5);
-  animation: brokeSlideIn 0.3s ease-out;
+  width: 400px;
+  max-width: 100%;
+  padding: 20px;
+  border-top: 2px solid var(--brand);
+  animation: broke-in 0.24s var(--ease-out);
 }
 
-@keyframes brokeSlideIn {
-  from { transform: translateY(-20px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+@keyframes broke-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* 头部 */
-.broke-header {
-  text-align: center;
-  margin-bottom: 24px;
+/* ===== 头部 ===== */
+.broke-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
 }
-.broke-icon-wrapper {
-  display: inline-flex;
+
+.broke-head-top {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: rgba(255, 70, 70, 0.1);
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
 }
-.broke-icon {
-  width: 36px;
-  height: 36px;
-  color: #ff4646;
-  animation: brokePulse 2s ease-in-out infinite;
-}
-@keyframes brokePulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.5; }
-}
-.broke-title {
-  font-size: 20px;
+
+.broke-head-code {
+  font-family: var(--font-mono);
+  font-size: 9px;
   font-weight: 700;
-  color: #ff4646;
-  margin: 0 0 4px;
-}
-.broke-subtitle {
-  font-size: 13px;
-  color: #8892a4;
-  margin: 0;
+  letter-spacing: 0.16em;
+  color: var(--text-faint);
+  text-transform: uppercase;
 }
 
-/* 信息卡片 */
-.broke-info-card {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-}
-.info-row {
+.broke-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
+  gap: 12px;
+  min-width: 0;
 }
-.info-row + .info-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+.broke-icon-plate {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sm);
 }
-.info-label {
-  font-size: 13px;
-  color: #8892a4;
+
+.broke-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-danger);
 }
-.info-value {
-  font-size: 14px;
+
+.broke-title-copy {
+  min-width: 0;
+}
+
+.broke-title {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.broke-subtitle {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+
+/* ===== 数字区 ===== */
+.broke-body {
+  padding-top: 14px;
+}
+
+.broke-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+
+.metric--hero {
+  border-left: 2px solid var(--accent-danger);
+  padding: 10px 12px;
+}
+
+.metric-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
   font-weight: 600;
-  color: #e0e0e0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  line-height: 1.4;
 }
-.text-danger { color: #ff4646 !important; }
+
+.metric-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.metric-value--lg {
+  font-size: 30px;
+  color: var(--accent-danger);
+  letter-spacing: -0.03em;
+}
 
 .broke-tip {
-  font-size: 12px;
-  color: #6b7394;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 9px 12px;
+  font-size: 11.5px;
   line-height: 1.6;
-  padding: 10px 14px;
-  background: rgba(0, 191, 165, 0.06);
-  border-left: 3px solid var(--accent-primary, #00bfa5);
-  border-radius: 0 8px 8px 0;
+  color: var(--text-secondary);
+  background: var(--accent-primary-soft);
+  border-left: 2px solid var(--accent-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
-.broke-tip i { margin-right: 4px; }
-.broke-tip strong { color: var(--accent-primary, #00bfa5); }
 
-/* 按钮 */
-.broke-footer { text-align: center; margin-top: 8px; }
+.tip-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--accent-primary);
+}
+
+.broke-tip strong {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+/* ===== 按钮 ===== */
+.broke-footer {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .broke-btn {
   width: 100%;
-  height: 44px;
-  font-size: 15px;
-  font-weight: 600;
+  height: 48px;
+  font-weight: 700;
 }
 
-/* 贷款上限已满 */
+.broke-btn-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.1;
+}
+
+.broke-btn-main {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.broke-btn-micro {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--cream);
+  opacity: 0.72;
+}
+
+.broke-btn--secondary {
+  --el-button-bg-color: transparent;
+  --el-button-border-color: transparent;
+  --el-button-text-color: var(--text-tertiary);
+  --el-button-hover-bg-color: var(--bg-surface-2);
+  --el-button-hover-border-color: var(--border-subtle);
+  --el-button-hover-text-color: var(--text-secondary);
+  --el-button-active-bg-color: var(--bg-surface-2);
+  --el-button-active-border-color: var(--border-subtle);
+  --el-button-active-text-color: var(--text-secondary);
+  width: 100%;
+  height: 34px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* ===== 贷款上限 ===== */
 .broke-maxed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   text-align: center;
 }
-.broke-maxed-tip {
-  font-size: 13px;
-  color: #8892a4;
-  margin: 12px 0 16px;
-  line-height: 1.6;
-}
-.broke-link {
-  color: var(--accent-primary, #00bfa5);
-  text-decoration: underline;
-}
-.broke-btn--secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #aaa;
+
+.broke-maxed-head {
+  display: flex;
+  justify-content: center;
 }
 
-/* 过渡 */
-.broke-fade-enter-active { transition: opacity 0.25s ease; }
-.broke-fade-leave-active { transition: opacity 0.2s ease; }
+.broke-limit-tag {
+  color: var(--accent-danger) !important;
+  border-color: var(--brand-line) !important;
+  background: var(--brand-soft) !important;
+}
+
+.broke-maxed-tip {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.65;
+}
+
+.broke-link {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.broke-link:hover {
+  color: var(--brand);
+}
+
+/* ===== 过渡 ===== */
+.broke-fade-enter-active {
+  transition: opacity var(--duration-normal) ease;
+}
+
+.broke-fade-leave-active {
+  transition: opacity var(--duration-fast) ease;
+}
+
 .broke-fade-enter,
-.broke-fade-leave-to { opacity: 0; }
+.broke-fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 480px) {
+  .broke-overlay {
+    padding: 12px;
+  }
+
+  .broke-modal {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .broke-title {
+    font-size: 18px;
+  }
+
+  .metric-value--lg {
+    font-size: 26px;
+  }
+
+  .broke-btn {
+    height: 46px;
+  }
+}
 </style>

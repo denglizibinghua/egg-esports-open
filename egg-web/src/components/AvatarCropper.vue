@@ -4,19 +4,24 @@
     v-model="dialogVisible"
     width="520px"
     :close-on-click-modal="false"
-    custom-class="cropper-dialog"
+    class="cropper-dialog"
     @closed="onClosed"
   >
     <!-- Step 1: 选择图片 -->
     <div v-if="!imgSrc" class="cropper-select">
-      <div class="cropper-select-icon">
-        <svg viewBox="0 0 80 80" width="80" height="80">
-          <rect x="10" y="15" width="60" height="50" rx="6" fill="none" stroke="var(--border-default)" stroke-width="2"/>
-          <circle cx="40" cy="35" r="12" fill="none" stroke="var(--accent-primary)" stroke-width="2" opacity="0.4"/>
-          <path d="M10 55 L30 40 L42 48 L56 32 L70 38 L70 65 L10 65 Z" fill="var(--bg-surface-3)"/>
+      <div class="select-frame">
+        <span class="frame-corner frame-corner--tl"></span>
+        <span class="frame-corner frame-corner--tr"></span>
+        <span class="frame-corner frame-corner--bl"></span>
+        <span class="frame-corner frame-corner--br"></span>
+        <svg class="select-illustration" viewBox="0 0 80 80" width="80" height="80" aria-hidden="true">
+          <rect class="il-frame" x="10" y="15" width="60" height="50" rx="4" />
+          <circle class="il-lens" cx="40" cy="35" r="11" />
+          <path class="il-mountain" d="M10 55 L30 40 L42 48 L56 32 L70 38 L70 61 L10 61 Z" />
         </svg>
       </div>
-      <p class="cropper-select-hint">支持 JPG / PNG / WebP，建议 200×200 以上</p>
+      <p class="cropper-select-title">选择一张图片</p>
+      <p class="cropper-select-hint">支持 JPG / PNG / WebP · 建议 200×200 以上 · 最大 5MB</p>
       <el-button type="primary" @click="pickFile">选择图片</el-button>
       <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileChange" />
     </div>
@@ -43,23 +48,36 @@
         />
         <!-- 圆形遮罩 -->
         <div class="circle-mask"></div>
+        <!-- 裁剪框红色直角 -->
+        <div class="crop-frame" aria-hidden="true">
+          <span class="crop-corner crop-corner--tl"></span>
+          <span class="crop-corner crop-corner--tr"></span>
+          <span class="crop-corner crop-corner--bl"></span>
+          <span class="crop-corner crop-corner--br"></span>
+          <span class="crop-ratio">1 : 1</span>
+        </div>
       </div>
 
       <!-- 控制栏 -->
       <div class="cropper-controls">
-        <div class="cropper-controls-left">
+        <div class="control-group">
+          <span class="control-label">ZOOM</span>
           <el-button-group size="small">
-            <el-button :icon="ZoomOut" @click="zoom(-0.15)"></el-button>
-            <el-button :icon="ZoomIn" @click="zoom(0.15)"></el-button>
-          </el-button-group>
-          <el-button-group size="small" style="margin-left:6px">
-            <el-button :icon="RefreshLeft" @click="rotateL"></el-button>
-            <el-button :icon="RefreshRight" @click="rotateR"></el-button>
-          </el-button-group>
-          <el-button-group size="small" style="margin-left:6px">
-            <el-button @click="reset">重置</el-button>
+            <el-button :icon="ZoomOut" title="缩小" @click="zoom(-0.15)"></el-button>
+            <el-button :icon="ZoomIn" title="放大" @click="zoom(0.15)"></el-button>
           </el-button-group>
         </div>
+        <div class="control-group">
+          <span class="control-label">ROTATE</span>
+          <el-button-group size="small">
+            <el-button :icon="RefreshLeft" title="逆时针旋转" @click="rotateL"></el-button>
+            <el-button :icon="RefreshRight" title="顺时针旋转" @click="rotateR"></el-button>
+          </el-button-group>
+        </div>
+        <div class="control-group">
+          <el-button size="small" class="reset-btn" @click="reset">重置</el-button>
+        </div>
+        <span class="crop-size">OUTPUT 240 × 240 · PNG</span>
       </div>
     </div>
 
@@ -176,38 +194,124 @@ export default {
 </script>
 
 <style scoped>
-/* ── 选择区域 ── */
+/* ---------- Step 1: select ---------- */
 .cropper-select {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 0 16px;
-  gap: 16px;
-}
-.cropper-select-icon {
-  opacity: 0.5;
-}
-.cropper-select-hint {
-  font-size: 13px;
-  color: var(--text-tertiary);
+  gap: 12px;
+  padding: 12px 0 6px;
 }
 
-/* ── 裁剪区域 ── */
+.select-frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 124px;
+  height: 124px;
+  background:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px) 0 0 / 100% 20px,
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px) 0 0 / 20px 100%,
+    var(--bg-inset);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.frame-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-style: solid;
+  border-color: var(--brand);
+  pointer-events: none;
+}
+
+.frame-corner--tl {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.frame-corner--tr {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+}
+
+.frame-corner--bl {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+}
+
+.frame-corner--br {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.select-illustration {
+  opacity: 0.9;
+}
+
+.il-frame {
+  fill: none;
+  stroke: var(--border-default);
+  stroke-width: 2;
+}
+
+.il-lens {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2;
+  opacity: 0.55;
+}
+
+.il-mountain {
+  fill: var(--bg-surface-3);
+  stroke: var(--border-default);
+  stroke-width: 1;
+}
+
+.cropper-select-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cropper-select-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+  text-align: center;
+  max-width: 340px;
+  line-height: 1.6;
+}
+
+/* ---------- Step 2: crop ---------- */
 .cropper-body {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 .cropper-box {
   position: relative;
   width: 100%;
-  height: 360px;
-  background: var(--bg-page);
+  height: 340px;
+  background:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px) 0 0 / 100% 28px,
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px) 0 0 / 28px 100%,
+    var(--bg-inset);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   overflow: hidden;
   touch-action: none;
 }
-/* 圆形黑色遮罩：在 1:1 裁剪框外显示暗色覆盖 */
+
+/* 圆形暗色遮罩：在 1:1 裁剪框外压暗 */
 .circle-mask {
   position: absolute;
   left: 50%;
@@ -216,55 +320,189 @@ export default {
   height: 240px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--bg-page) 58%, transparent);
   pointer-events: none;
 }
 
-/* ── 控制栏 ── */
+/* 裁剪框红色直角 */
+.crop-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 240px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.crop-corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-style: solid;
+  border-color: var(--brand);
+}
+
+.crop-corner--tl {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.crop-corner--tr {
+  top: -1px;
+  right: -1px;
+  border-width: 2px 2px 0 0;
+}
+
+.crop-corner--bl {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 2px 2px;
+}
+
+.crop-corner--br {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.crop-ratio {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- Controls ---------- */
 .cropper-controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px 18px;
   width: 100%;
   margin-top: 14px;
-  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
 }
-.cropper-controls-left {
+
+.control-group {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  gap: 8px;
 }
 
-/* ── vue-cropper 内部暗色覆盖 ── */
-.cropper-box :deep(.vue-cropper .cropper-modal) {
-  background: rgba(0, 0, 0, 0.65) !important;
+.control-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-faint);
 }
+
+.cropper-controls :deep(.el-button) {
+  width: 32px;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  background: var(--bg-surface-2);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.cropper-controls :deep(.el-button:hover) {
+  border-color: var(--brand-line);
+  color: var(--brand);
+  background: var(--bg-surface-3);
+}
+
+.cropper-controls :deep(.reset-btn) {
+  width: auto;
+  padding: 0 14px !important;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.crop-size {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ---------- vue-cropper internals ---------- */
+.cropper-box :deep(.vue-cropper .cropper-modal) {
+  background: var(--bg-page);
+  opacity: 0.4;
+}
+
 .cropper-box :deep(.vue-cropper .cropper-view-box) {
-  outline: 1px solid rgba(255, 255, 255, 0.25);
+  outline: 1px solid var(--brand-line);
   outline-offset: -1px;
 }
+
 .cropper-box :deep(.vue-cropper .cropper-face) {
-  background: transparent !important;
-}
-.cropper-box :deep(.vue-cropper .cropper-line) {
-  background: transparent !important;
-}
-.cropper-box :deep(.vue-cropper .cropper-point) {
-  background: var(--accent-primary);
-  border: 2px solid var(--bg-surface-1);
-  width: 10px;
-  height: 10px;
+  background: transparent;
 }
 
-/* ── Button dark theme ── */
-/* (global overrides in App.vue handle this) */
+.cropper-box :deep(.vue-cropper .cropper-line) {
+  background: transparent;
+}
+
+.cropper-box :deep(.vue-cropper .cropper-point) {
+  display: none;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+  .cropper-box {
+    height: 300px;
+  }
+
+  .cropper-controls {
+    gap: 10px 12px;
+  }
+
+  .crop-size {
+    display: none;
+  }
+
+  .cropper-select {
+    padding-top: 6px;
+  }
+
+  .select-frame {
+    width: 108px;
+    height: 108px;
+  }
+
+  .cropper-select-hint {
+    font-size: 9px;
+  }
+}
 </style>
 
 <!-- 全局样式：让 el-dialog 内部适应暗色 -->
 <style>
 .cropper-dialog {
-  background: var(--bg-surface-2) !important;
-  border: 1px solid var(--border-default) !important;
-  border-radius: var(--radius-xl) !important;
+  max-height: 92vh;
+}
+
+.cropper-dialog .el-dialog__body {
+  max-height: calc(92vh - 150px);
+  overflow-y: auto;
 }
 </style>

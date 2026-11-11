@@ -1,66 +1,66 @@
 <template>
   <div>
-  <div class="announcement-bar" :class="{ 'announcement-bar--compact': compact }" v-if="visible && announcements.length > 0 && !dismissed">
-    <div class="announcement-accent"></div>
-    <el-icon class="announcement-icon"><Bell /></el-icon>
-    <div class="announcement-body" @click="showDetail(announcements.length === 1 ? announcements[0] : announcements[currentIndex])" style="cursor: pointer">
-      <template v-if="announcements.length === 1">
-        <span class="announcement-title">{{ announcements[0].title }}</span>
-        <span class="announcement-separator">&middot;</span>
-        <span class="announcement-content">{{ announcements[0].content }}</span>
-      </template>
-      <template v-else>
-        <transition name="announcement-fade" mode="out-in">
-          <div class="announcement-slide" :key="currentIndex">
-            <span class="announcement-title">{{ announcements[currentIndex].title }}</span>
-            <span class="announcement-separator">&middot;</span>
-            <span class="announcement-content">{{ announcements[currentIndex].content }}</span>
+    <div class="announcement-bar" :class="{ 'announcement-bar--compact': compact }" v-if="visible && announcements.length > 0 && !dismissed">
+      <span class="announcement-accent" aria-hidden="true"></span>
+      <span class="announcement-label">ALERT</span>
+      <div class="announcement-body" @click="showDetail(announcements.length === 1 ? announcements[0] : announcements[currentIndex])">
+        <template v-if="announcements.length === 1">
+          <span class="announcement-title">{{ announcements[0].title }}</span>
+          <span class="announcement-separator">/</span>
+          <span class="announcement-content">{{ announcements[0].content }}</span>
+        </template>
+        <template v-else>
+          <transition name="announcement-fade" mode="out-in">
+            <div class="announcement-slide" :key="currentIndex">
+              <span class="announcement-title">{{ announcements[currentIndex].title }}</span>
+              <span class="announcement-separator">/</span>
+              <span class="announcement-content">{{ announcements[currentIndex].content }}</span>
+            </div>
+          </transition>
+          <div class="announcement-dots" v-if="announcements.length > 1">
+            <span
+              v-for="(a, idx) in announcements"
+              :key="'dot-' + idx"
+              class="announcement-dot"
+              :class="{ 'announcement-dot--active': idx === currentIndex }"
+              @click="currentIndex = idx"
+            ></span>
           </div>
-        </transition>
-        <div class="announcement-dots" v-if="announcements.length > 1">
-          <span
-            v-for="(a, idx) in announcements"
-            :key="'dot-' + idx"
-            class="announcement-dot"
-            :class="{ 'announcement-dot--active': idx === currentIndex }"
-            @click="currentIndex = idx"
-          ></span>
-        </div>
-      </template>
-    </div>
-    <button class="announcement-dismiss" @click="dismissed = true">
-      <el-icon><Close /></el-icon>
-    </button>
-  </div>
-
-  <!-- Announcement Detail Dialog -->
-  <el-dialog
-    :title="detailAnnouncement ? detailAnnouncement.title : '公告详情'"
-    v-model="detailVisible"
-    width="480px"
-    custom-class="announcement-detail-dialog"
-    :append-to-body="true"
-  >
-    <div v-if="detailAnnouncement" class="detail-body">
-      <div class="detail-meta">
-        <span v-if="detailAnnouncement.gameId" class="detail-game-tag">
-          <el-icon><Trophy /></el-icon> 游戏专属
-        </span>
-        <span v-else class="detail-game-tag detail-game-tag--global">
-          <el-icon><Bell /></el-icon> 全站公告
-        </span>
-        <span class="detail-time" v-if="detailAnnouncement.createTime">
-          {{ detailAnnouncement.createTime }}
-        </span>
+        </template>
       </div>
-      <div class="detail-content">{{ detailAnnouncement.content }}</div>
+      <button class="announcement-dismiss" @click="dismissed = true" aria-label="关闭公告">
+        <el-icon><Close /></el-icon>
+      </button>
     </div>
-    <template #footer>
-      <span>
-        <el-button @click="detailVisible = false">关闭</el-button>
-      </span>
-    </template>
-  </el-dialog>
+
+    <!-- Announcement Detail Dialog -->
+    <el-dialog
+      :title="detailAnnouncement ? detailAnnouncement.title : '公告详情'"
+      v-model="detailVisible"
+      width="480px"
+      custom-class="announcement-detail-dialog"
+      :append-to-body="true"
+    >
+      <div v-if="detailAnnouncement" class="detail-body">
+        <div class="detail-meta">
+          <span v-if="detailAnnouncement.gameId" class="detail-game-tag">
+            <el-icon><Trophy /></el-icon> 游戏专属
+          </span>
+          <span v-else class="detail-game-tag detail-game-tag--global">
+            <el-icon><Bell /></el-icon> 全站公告
+          </span>
+          <span class="detail-time" v-if="detailAnnouncement.createTime">
+            {{ detailAnnouncement.createTime }}
+          </span>
+        </div>
+        <div class="detail-content">{{ detailAnnouncement.content }}</div>
+      </div>
+      <template #footer>
+        <span>
+          <el-button @click="detailVisible = false">关闭</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -150,52 +150,60 @@ export default {
 
 <style scoped>
 .announcement-bar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 14px;
-  min-height: 32px;
-  box-sizing: border-box;
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-  position: relative;
+  min-height: 34px;
+  padding: 0 8px 0 14px;
+  margin-bottom: 14px;
   overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 70, 85, 0.05), transparent 42%),
+    var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   animation: announcement-enter 0.4s var(--ease-out) both;
 }
+
 .announcement-bar--compact {
-  padding: 4px 12px;
-  min-height: 28px;
-  margin-bottom: 10px;
+  min-height: 32px;
+  padding: 0 6px 0 12px;
+  margin-bottom: 12px;
 }
 
 @keyframes announcement-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .announcement-accent {
   position: absolute;
-  left: 0;
   top: 0;
   bottom: 0;
+  left: 0;
   width: 3px;
-  background: var(--accent-primary);
-  border-radius: 3px 0 0 3px;
+  background: var(--brand);
 }
 
-.announcement-icon {
-  color: var(--accent-primary);
-  font-size: 16px;
+.announcement-label {
   flex-shrink: 0;
-  margin-left: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.announcement-label::after {
+  content: '';
+  width: 1px;
+  height: 11px;
+  background: var(--border-default);
 }
 
 .announcement-body {
@@ -203,13 +211,14 @@ export default {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   overflow: hidden;
+  cursor: pointer;
   transition: opacity var(--duration-fast) ease;
 }
 
 .announcement-body:hover {
-  opacity: 0.85;
+  opacity: 0.86;
 }
 
 .announcement-slide {
@@ -217,50 +226,55 @@ export default {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .announcement-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .announcement-separator {
-  color: var(--text-tertiary);
   flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--brand);
+  opacity: 0.7;
 }
 
 .announcement-content {
-  font-size: 13px;
-  color: var(--text-secondary);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .announcement-dots {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: 4px;
 }
 
 .announcement-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: var(--radius-full);
-  background: var(--border-default);
+  width: 12px;
+  height: 2px;
+  background: var(--border-strong);
   cursor: pointer;
-  transition: background var(--duration-fast) ease,
-              transform var(--duration-fast) ease;
+  transition: background var(--duration-fast) ease, width var(--duration-fast) ease;
 }
 
 .announcement-dot--active {
-  background: var(--accent-primary);
-  transform: scale(1.3);
+  width: 18px;
+  background: var(--brand);
 }
 
 .announcement-dot:hover {
@@ -268,25 +282,26 @@ export default {
 }
 
 .announcement-dismiss {
-  background: none;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px;
-  font-size: 14px;
-  flex-shrink: 0;
-  border-radius: var(--radius-sm);
-  transition: color var(--duration-fast) ease,
-              background var(--duration-fast) ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
   line-height: 1;
+  transition: color var(--duration-fast) ease, background var(--duration-fast) ease;
 }
 
 .announcement-dismiss:hover {
-  color: var(--text-primary);
-  background: var(--bg-surface-3);
+  color: var(--brand);
+  background: var(--brand-soft);
 }
 
 /* Transition */
@@ -305,104 +320,39 @@ export default {
   transform: translateY(-6px);
 }
 
-@media (max-width: 767px) {
-  .announcement-bar {
-    padding: 5px 10px;
-    gap: 8px;
-    font-size: 12px;
-    min-height: 28px;
-  }
-}
-
-/* ===== Detail Dialog ===== */
-:deep(.announcement-detail-dialog) {
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg), 0 0 40px rgba(0, 0, 0, 0.6);
-}
-
-:deep(.announcement-detail-dialog .el-dialog__header) {
-  padding: 20px 24px 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-:deep(.announcement-detail-dialog .el-dialog__title) {
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 700;
-  font-family: var(--font-display);
-}
-
-:deep(.announcement-detail-dialog .el-dialog__headerbtn) {
-  top: 20px;
-  right: 24px;
-}
-
-:deep(.announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close) {
-  color: var(--text-tertiary);
-  font-size: 18px;
-}
-
-:deep(.announcement-detail-dialog .el-dialog__headerbtn .el-dialog__close:hover) {
-  color: var(--accent-primary);
-}
-
-:deep(.announcement-detail-dialog .el-dialog__body) {
-  padding: 20px 24px;
-  color: var(--text-secondary);
-}
-
-:deep(.announcement-detail-dialog .el-dialog__footer) {
-  padding: 12px 24px 20px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-:deep(.announcement-detail-dialog .el-button) {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  border-radius: var(--radius-md);
-  padding: 8px 24px;
-  font-weight: 500;
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-:deep(.announcement-detail-dialog .el-button:hover) {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  background: rgba(0, 229, 160, 0.06);
-}
-
+/* ===== Detail Dialog Content ===== */
 .detail-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .detail-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .detail-game-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  padding: 2px 10px;
-  border-radius: var(--radius-full);
-  background: rgba(0, 229, 160, 0.1);
-  color: var(--accent-primary);
-  border: 1px solid rgba(0, 229, 160, 0.2);
+  gap: 5px;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-sm);
 }
 
 .detail-game-tag--global {
-  background: rgba(91, 140, 255, 0.1);
-  color: #5b8cff;
-  border-color: rgba(91, 140, 255, 0.2);
+  color: var(--accent-secondary);
+  background: rgba(91, 140, 255, 0.09);
+  border-color: rgba(91, 140, 255, 0.24);
 }
 
 .detail-game-tag i {
@@ -410,40 +360,35 @@ export default {
 }
 
 .detail-time {
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
 }
 
 .detail-content {
-  font-size: 14px;
-  line-height: 1.8;
+  padding: 14px;
+  font-size: 13.5px;
+  line-height: 1.75;
   color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
-  padding: 16px;
-  background: var(--bg-surface-2);
-  border-radius: var(--radius-md);
+  background: var(--bg-inset);
   border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
 }
 
-/* Mobile dialog */
-@media (max-width: 540px) {
-  :deep(.announcement-detail-dialog) {
-    width: 92% !important;
-    margin: 0 auto;
+@media (max-width: 600px) {
+  .announcement-bar {
+    gap: 8px;
+    padding-left: 10px;
   }
-
-  :deep(.announcement-detail-dialog .el-dialog__header) {
-    padding: 16px 16px 12px;
+  .announcement-label {
+    display: none;
   }
-
-  :deep(.announcement-detail-dialog .el-dialog__body) {
-    padding: 16px;
-  }
-
-  :deep(.announcement-detail-dialog .el-dialog__footer) {
-    padding: 12px 16px 16px;
+  .announcement-title {
+    max-width: 38%;
   }
 }
 </style>
