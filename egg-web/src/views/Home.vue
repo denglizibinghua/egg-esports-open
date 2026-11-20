@@ -17,7 +17,7 @@
             <span class="hero-title-line">瓦洛兰特</span>
             <span class="hero-title-line hero-title-line--brand">预测社区</span>
           </h1>
-          <p class="hero-sub">已服务 32 场校园赛 · 0%抽水纯彩池 · 3天可交付同款</p>
+          <p class="hero-sub">0% 抽水纯彩池 · 赔率实时同步 · 猜中按比例分池</p>
 
           <div class="hero-actions">
             <el-button

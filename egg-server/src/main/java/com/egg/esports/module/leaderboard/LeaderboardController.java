@@ -129,6 +129,74 @@ public class LeaderboardController {
         return Result.success(result);
     }
 
+    // ==================== 胜率榜 ====================
+
+    @GetMapping("/accuracy")
+    public Result<Page<LeaderboardVO>> accuracy(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long gameId) {
+        int offset = (page - 1) * size;
+        List<LeaderboardVO> records;
+        int total;
+        if (gameId != null) {
+            records = leaderboardMapper.selectAccuracyLeaderboardLimit(gameId, offset, size);
+            total = leaderboardMapper.countAccuracyLeaderboard(gameId);
+        } else {
+            records = leaderboardMapper.selectAccuracyLeaderboardLimitAll(offset, size);
+            total = leaderboardMapper.countAccuracyLeaderboardAll();
+        }
+        Page<LeaderboardVO> voPage = new Page<>(page, size, total);
+        voPage.setRecords(records);
+        return Result.success(voPage);
+    }
+
+    @GetMapping("/accuracy/top/{n}")
+    public Result<List<LeaderboardVO>> accuracyTop(@PathVariable int n,
+                                                    @RequestParam(required = false) Long gameId) {
+        if (n < 1) n = 10;
+        if (n > 100) n = 100;
+        List<LeaderboardVO> records = gameId != null
+                ? leaderboardMapper.selectAccuracyLeaderboardTop(gameId, n)
+                : leaderboardMapper.selectAccuracyLeaderboardTopAll(n);
+        return Result.success(records);
+    }
+
+    // ==================== 亏损榜 ====================
+
+    @GetMapping("/worst-profit")
+    public Result<Page<LeaderboardVO>> worstProfit(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long gameId) {
+        int offset = (page - 1) * size;
+        List<LeaderboardVO> records;
+        int total;
+        if (gameId != null) {
+            records = leaderboardMapper.selectWorstProfitLeaderboardLimit(gameId, offset, size);
+            total = leaderboardMapper.countWorstProfitLeaderboard(gameId);
+        } else {
+            records = leaderboardMapper.selectWorstProfitLeaderboardLimitAll(offset, size);
+            total = leaderboardMapper.countWorstProfitLeaderboardAll();
+        }
+        Page<LeaderboardVO> voPage = new Page<>(page, size, total);
+        voPage.setRecords(records);
+        return Result.success(voPage);
+    }
+
+    @GetMapping("/worst-profit/top/{n}")
+    public Result<List<LeaderboardVO>> worstProfitTop(@PathVariable int n,
+                                                       @RequestParam(required = false) Long gameId) {
+        if (n < 1) n = 10;
+        if (n > 100) n = 100;
+        List<LeaderboardVO> records = gameId != null
+                ? leaderboardMapper.selectWorstProfitLeaderboardTop(gameId, n)
+                : leaderboardMapper.selectWorstProfitLeaderboardTopAll(n);
+        return Result.success(records);
+    }
+
+    // ==================== 内部方法 ====================
+
     private LeaderboardVO toVO(EggUser user) {
         LeaderboardVO vo = new LeaderboardVO();
         vo.setUserId(user.getId());

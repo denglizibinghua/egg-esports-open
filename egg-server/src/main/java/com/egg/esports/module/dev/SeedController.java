@@ -229,7 +229,8 @@ public class SeedController {
     }
 
     private void ensureDemoAccounts() {
-        createDemoUserIfNotExists("demo_admin", "等离子蛋花", 1, 10000);
+        // 不再预置管理员账号：灌数据前请先自行注册用户，
+        // 再用 SQL 将其 role 改为 1（UPDATE egg_user SET role = 1 WHERE username = '你的用户名'）。
         createDemoUserIfNotExists("demo_player", "预言家001", 0, 5000);
         createDemoUserIfNotExists("demo_new", "新用户", 0, 100);
     }
@@ -237,8 +238,7 @@ public class SeedController {
     private void createDemoUserIfNotExists(String username, String nickname, int role, int points) {
         EggUser exist = userMapper.selectOne(new LambdaQueryWrapper<EggUser>().eq(EggUser::getUsername, username));
         if (exist != null) {
-            // 更新密码为 demo123，保证可登录
-            exist.setPassword(passwordEncoder.encode("demo123"));
+            // 已存在用户：只补昵称/角色/积分下限，绝不碰密码（生产灌数据曾把用户密码洗回 demo123 导致循环锁定）
             exist.setNickname(nickname);
             exist.setRole(role);
             if (exist.getPoints() == null || exist.getPoints() < points) {

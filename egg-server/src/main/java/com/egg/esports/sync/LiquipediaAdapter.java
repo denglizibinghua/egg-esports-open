@@ -451,8 +451,8 @@ public class LiquipediaAdapter implements GameSourceAdapter {
      */
     private JsonNode requestJson(String url) {
         HttpHeaders headers = new HttpHeaders();
-        // Liquipedia 要求标识爬虫身份，附带联系方式
-        headers.set("User-Agent", "egg-esports/1.0 (contact@example.com)");
+        // Liquipedia 要求标识爬虫身份，附带项目地址
+        headers.set("User-Agent", "egg-esports/1.0 (https://github.com/denglizibinghua/egg-esports-open)");
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 

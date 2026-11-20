@@ -169,14 +169,12 @@
             <div class="footer-col-title">Company</div>
             <nav class="footer-links" aria-label="公司信息">
               <router-link to="/about" class="footer-link">关于我们</router-link>
-              <router-link to="/pricing" class="footer-link">定价</router-link>
               <router-link to="/privacy" class="footer-link">隐私政策</router-link>
               <router-link to="/terms" class="footer-link">服务条款</router-link>
             </nav>
           </div>
         </div>
         <div class="footer-icp">
-          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">京ICP备2026XXXXXX号</a>
           <span class="footer-copy">EGG ESPORTS · PARIMUTUEL · NO HOUSE EDGE</span>
         </div>
       </el-footer>
@@ -264,9 +262,8 @@ export default {
         { path: '/leaderboard', label: '排行', code: '03' },
         { path: '/bank', label: '银行', code: '04', auth: true },
         { path: '/showcase', label: '案例', code: '05' },
-        { path: '/pricing', label: '定价', code: '06' },
-        { path: '/about', label: '关于', code: '07' },
-        { path: '/admin', label: '管理', code: '08', admin: true }
+        { path: '/about', label: '关于', code: '06' },
+        { path: '/admin', label: '管理', code: '07', admin: true }
       ],
       // 暴露给模板的图标组件引用（用于 :icon 属性，用 markRaw 避免响应化触发 Vue 警告）
       Bell: markRaw(Bell),

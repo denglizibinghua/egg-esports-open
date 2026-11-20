@@ -16,8 +16,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/egg_esports?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
-    username: admin
-    password: ${DB_PASSWORD:admin123}
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD:local-dev-only}
     hikari:
       maximum-pool-size: 30       # 连接池最大连接数（默认10，2核2G下30没问题）
       minimum-idle: 5             # 最小空闲连接
@@ -28,7 +28,7 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
-      password: ${REDIS_PASSWORD:123456}
+      password: ${REDIS_PASSWORD:local-dev-only}
       database: 0
       timeout: 3000ms
       lettuce:
@@ -53,13 +53,13 @@ mybatis-plus:
 
 # JWT
 jwt:
-  secret: ${JWT_SECRET:egg-esports-jwt-secret-key-2026-valorant-gogogo}
+  secret: ${JWT_SECRET:local-dev-only-change-me-use-64-chars-or-more}   # 本地开发占位，生产必须通过环境变量覆盖
   expiration: 604800000  # 7 days in ms
 
 # 押注配置
 egg:
   upload:
-    path: D:/egg-esports/uploads   # 头像等文件上传目录（绝对路径，避免工作目录漂移）
+    path: ${EGG_UPLOAD_PATH:./uploads}   # 头像等文件上传目录（生产通过 EGG_UPLOAD_PATH 指定绝对路径）
   odds:
     commission-rate: 0.00
     min-odds: 1.01
@@ -125,10 +125,9 @@ egg:
         base-url: https://liquipedia.net
         tournaments: IVL/2026/Summer,IJL/2026/Summer
   http:
-    # 开发环境：国内走 Clash 代理访问外网 API（Riot/OpenDota）
-    # 生产环境：部署海外服务器时注释掉这两行即可直连
-    proxy-host: 127.0.0.1
-    proxy-port: 7897
+    # 如需通过本地代理访问外部 API（Riot / OpenDota），取消注释并填入代理地址
+    # proxy-host: 127.0.0.1
+    # proxy-port: 7897
   cors:
     allowed-origins: "*"   # 生产环境改为具体域名，如 https://your-domain.com
   grid:

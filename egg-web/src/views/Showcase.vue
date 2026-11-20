@@ -3,28 +3,28 @@
     <!-- HERO -->
     <header class="sc-hero">
       <div class="sc-hero-main">
-        <div class="u-eyebrow">DELIVERED WORK // 案例</div>
-        <h1 class="sc-title">案例墙 · 已交付</h1>
-        <p class="sc-sub">已交付 32 场瓦洛兰特演示赛 · 0%抽水纯彩池 · 3天可交付同款</p>
+        <div class="u-eyebrow">PROJECT SHOWCASE // 演示</div>
+        <h1 class="sc-title">案例墙 · 演示场景</h1>
+        <p class="sc-sub">6 个典型赛事场景 · 0% 抽水纯彩池 · 全链路演示</p>
         <p class="sc-lede">
-          已为校社团与小赛事主办累计交付 <strong>{{ deliveredCount }} 场</strong> 瓦洛兰特演示赛，
-          <strong>0%抽水纯彩池</strong>，含报名-预测-榜单-结算全链路，<strong>3天可交付同款</strong>。
+          以下为项目内置的<strong>演示数据</strong>，覆盖小组赛到决赛的典型场景，
+          展示从<strong>赛程同步</strong>、<strong>押注</strong>、<strong>排行榜</strong>到<strong>结算</strong>的完整链路。
         </p>
         <div class="sc-actions">
           <el-button type="primary" class="btn-hover-lift" @click="$router.push('/login')">查看演示账号</el-button>
-          <el-button @click="$router.push('/pricing')">查看定价</el-button>
+          <el-button @click="openRepo">GitHub 仓库</el-button>
         </div>
       </div>
 
       <aside class="sc-stat u-panel">
         <span class="sc-stat-glow" aria-hidden="true"></span>
-        <div class="sc-stat-kicker">TOTAL DELIVERED</div>
+        <div class="sc-stat-kicker">MATCHES SYNCED</div>
         <div class="sc-stat-num">{{ deliveredCount }}</div>
-        <div class="sc-stat-label">已交付场次</div>
+        <div class="sc-stat-label">已同步场次</div>
         <div class="sc-stat-sub">VALORANT · 0%抽水纯彩池</div>
         <div class="sc-stat-foot">
           <span class="sc-stat-rule" aria-hidden="true"></span>
-          CAMPUS &amp; COMMUNITY EVENTS
+          LIVE ESPORTS DATA
         </div>
       </aside>
     </header>
@@ -34,8 +34,8 @@
       <div class="sc-section-head">
         <div class="sc-section-main">
           <span class="sc-section-index">01</span>
-          <h2 class="sc-section-title">合作案例</h2>
-          <span class="sc-section-meta">{{ cases.length }} 场 · 全链路交付</span>
+          <h2 class="sc-section-title">演示案例</h2>
+          <span class="sc-section-meta">{{ cases.length }} 场 · 全链路演示</span>
         </div>
         <span class="sc-section-count">SELECTED WORK</span>
       </div>
@@ -95,17 +95,16 @@
       <span class="sc-cta-hatch u-hatch" aria-hidden="true"></span>
       <div class="sc-cta-inner">
         <div class="sc-cta-copy">
-          <div class="u-eyebrow">COMMISSION // 接单</div>
-          <h2 class="sc-cta-title">想办一场同款赛事？</h2>
+          <div class="u-eyebrow">OPEN SOURCE // 开源</div>
+          <h2 class="sc-cta-title">想自己跑一份？</h2>
           <p class="sc-cta-text">
-            3天交付演示站，含赛程、押注、排行榜、评论区。先用演示账号体验全流程 — 账号
-            <strong>demo_player</strong> / 密码 <strong>demo123</strong>
+            完整源码、部署脚本与设计文档均已开源（MIT License）。克隆仓库，按 README 三步即可本地起全栈，
+            再用演示账号体验押注全流程 — <strong>demo_player</strong> / 密码 <strong>demo123</strong>
           </p>
         </div>
         <div class="sc-cta-actions">
           <el-button type="primary" size="large" class="btn-hover-lift" @click="$router.push('/login')">demo_player / demo123 去体验</el-button>
-          <el-button @click="$router.push('/pricing')">查看定价</el-button>
-          <a href="mailto:contact@example.com" class="sc-mail">定制咨询 → contact@example.com</a>
+          <el-button @click="openRepo">GitHub 仓库</el-button>
         </div>
       </div>
     </section>
@@ -124,12 +123,12 @@ export default {
       imgFailed: {},
       // 占位渐变：不依赖 /uploads/case-*.png，首屏零404；cover 置空，img 通过 v-if 容错
       cases: [
-        { id: 1, title: 'EDG vs FPX · 决赛', tournament: 'VCT CN 演示赛', score: '2-1 · Haven 13-4', time: '2026-08-20', desc: '校内总决赛，120人押注，彩池破万｜交付物：海报1张+战报图9张+榜单结算', cover: '', gradient: 'linear-gradient(135deg, #FF4655 0%, #7A1F2E 100%)', emblem: 'EDG · FPX' },
-        { id: 2, title: 'TE vs JDG · 半决赛', tournament: 'EGG杯', score: '2-0 · Bind 13-7', time: '2026-08-18', desc: '战术拉满，烟位封点教科书｜交付物：赛程录入+比分直播+榜单', cover: '', gradient: 'linear-gradient(135deg, #00E5A0 0%, #0A4A3A 100%)', emblem: 'TE · JDG' },
-        { id: 3, title: 'BLG vs WOL · 小组赛', tournament: 'EGG杯·校园冠军赛', score: '2-1 · Ascent 13-10', time: '2026-08-15', desc: '让一追二，残局 1v2 翻盘｜交付物：海报+榜单结算+战报图9张', cover: '', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #1E1B4B 100%)', emblem: 'BLG · WOL' },
-        { id: 4, title: 'DRG vs NOVA · 揭幕战', tournament: 'VCT CN 演示赛·季后赛', score: '2-0 · Lotus 13-6', time: '2026-08-12', desc: '新人枪猛，敢打敢拼｜交付物：赛程录入+榜单+战报图', cover: '', gradient: 'linear-gradient(135deg, #F59E0B 0%, #7C2D12 100%)', emblem: 'DRG · NOVA' },
-        { id: 5, title: 'TYLOO vs AG · 季军赛', tournament: 'EGG杯', score: '2-1 · Split 13-9', time: '2026-08-10', desc: '老牌劲旅经验制胜｜交付物：海报+赛程+榜单结算', cover: '', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0C4A6E 100%)', emblem: 'TYLOO · AG' },
-        { id: 6, title: 'EDG vs TE · 表演赛', tournament: 'EGG杯·瓦洛兰特邀请赛', score: '2-0 · Sunset 13-8', time: '2026-08-08', desc: '全场高能，弹幕刷屏｜交付物：战报图9张+弹幕托底演示', cover: '', gradient: 'linear-gradient(135deg, #EC4899 0%, #4A044E 100%)', emblem: 'EDG · TE' }
+        { id: 1, title: 'EDG vs FPX · 决赛', tournament: 'VCT CN 演示赛', score: '2-1 · Haven 13-4', time: '2026-08-20', desc: '校内总决赛，120 人参与竞猜，彩池破万', cover: '', gradient: 'linear-gradient(135deg, #FF4655 0%, #7A1F2E 100%)', emblem: 'EDG · FPX' },
+        { id: 2, title: 'TE vs JDG · 半决赛', tournament: 'EGG杯', score: '2-0 · Bind 13-7', time: '2026-08-18', desc: '战术拉满，烟位封点教科书', cover: '', gradient: 'linear-gradient(135deg, #00E5A0 0%, #0A4A3A 100%)', emblem: 'TE · JDG' },
+        { id: 3, title: 'BLG vs WOL · 小组赛', tournament: 'EGG杯·校园冠军赛', score: '2-1 · Ascent 13-10', time: '2026-08-15', desc: '让一追二，残局 1v2 翻盘', cover: '', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #1E1B4B 100%)', emblem: 'BLG · WOL' },
+        { id: 4, title: 'DRG vs NOVA · 揭幕战', tournament: 'VCT CN 演示赛·季后赛', score: '2-0 · Lotus 13-6', time: '2026-08-12', desc: '新人枪猛，敢打敢拼', cover: '', gradient: 'linear-gradient(135deg, #F59E0B 0%, #7C2D12 100%)', emblem: 'DRG · NOVA' },
+        { id: 5, title: 'TYLOO vs AG · 季军赛', tournament: 'EGG杯', score: '2-1 · Split 13-9', time: '2026-08-10', desc: '老牌劲旅经验制胜', cover: '', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0C4A6E 100%)', emblem: 'TYLOO · AG' },
+        { id: 6, title: 'EDG vs TE · 表演赛', tournament: 'EGG杯·瓦洛兰特邀请赛', score: '2-0 · Sunset 13-8', time: '2026-08-08', desc: '全场高能，弹幕刷屏', cover: '', gradient: 'linear-gradient(135deg, #EC4899 0%, #4A044E 100%)', emblem: 'EDG · TE' }
       ],
       stacks: ['Spring Boot 3', 'Vue 3 + Element Plus', 'MySQL + MyBatis-Plus', 'Redis + Lua 限流', 'Adapter 多数据源', 'WebSocket 实时评论']
     }
@@ -138,6 +137,9 @@ export default {
     this.fetchCount()
   },
   methods: {
+    openRepo() {
+      window.open('https://github.com/denglizibinghua/egg-esports-open', '_blank', 'noopener')
+    },
     handleCaseClick() {
       // 案例为硬编码演示数据，不对应真实 matchId，避免 /match/:id 404/500
       this.$message ? this.$message.info('案例为演示数据，前往赛程查看真实赛事') : null

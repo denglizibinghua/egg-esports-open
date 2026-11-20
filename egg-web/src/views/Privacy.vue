@@ -40,7 +40,7 @@
           <h2 class="legal-section-title">联系我们</h2>
         </div>
         <p class="legal-text">
-          如对本隐私政策有任何疑问，请联系：contact@example.com
+          如对本隐私政策有任何疑问，请通过 GitHub Issues 反馈：https://github.com/denglizibinghua/egg-esports-open/issues
         </p>
       </section>
 

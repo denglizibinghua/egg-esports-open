@@ -80,11 +80,6 @@ const routes = [
     component: () => import('@/views/Showcase.vue')
   },
   {
-    path: '/pricing',
-    name: 'Pricing',
-    component: () => import('@/views/Pricing.vue')
-  },
-  {
     // 隐私政策占位页面（法律合规要求）
     path: '/privacy',
     name: 'Privacy',

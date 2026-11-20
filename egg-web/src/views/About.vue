@@ -11,16 +11,16 @@
           <div class="ab-cell-label">抽水</div>
         </div>
         <div class="ab-cell">
-          <div class="ab-cell-num">32</div>
-          <div class="ab-cell-label">场已交付</div>
+          <div class="ab-cell-num">4</div>
+          <div class="ab-cell-label">游戏适配</div>
         </div>
         <div class="ab-cell">
-          <div class="ab-cell-num">3<span class="ab-unit">天</span></div>
-          <div class="ab-cell-label">可交付同款</div>
+          <div class="ab-cell-num">12</div>
+          <div class="ab-cell-label">业务模块</div>
         </div>
         <div class="ab-cell">
-          <div class="ab-cell-num">2</div>
-          <div class="ab-cell-label">种接单方案</div>
+          <div class="ab-cell-num">7<span class="ab-unit">天</span></div>
+          <div class="ab-cell-label">Token 有效期</div>
         </div>
       </div>
     </header>
@@ -140,67 +140,15 @@
       </div>
     </section>
 
-    <!-- 接单说明 -->
-    <section class="ab-commission">
-      <div class="ab-commission-head">
-        <span class="u-eyebrow">COMMISSION // 接单</span>
-        <h2 class="ab-commission-title">接单说明 · 3天可交付同款</h2>
-      </div>
-      <p class="ab-commission-text">
-        本站为<strong>可复刻的瓦洛兰特预测社区演示站</strong>（已交付 32 场 · 0%抽水纯彩池），支持二次定制，<strong>3天可交付同款</strong>。价格与 <router-link to="/pricing" class="ab-inline-link">/pricing</router-link> 一致：
-      </p>
-      <div class="ab-order-list">
-        <div class="ab-order-item">
-          <span class="ab-order-num">01</span>
-          <div class="ab-order-body">
-            <strong>复刻演示站 · 8000 元起</strong>
-            <span>含部署 + 域名 + 首季赛程导入 + 机器人托底，不含菠菜/现金兑付定制</span>
-          </div>
-        </div>
-        <div class="ab-order-item">
-          <span class="ab-order-num">02</span>
-          <div class="ab-order-body">
-            <strong>单场代办 · 800–2000 元 / 场</strong>
-            <span>含海报 + 赛程录入 + 榜单结算 + 战报图 9 张，不含线下执行/裁判差旅</span>
-          </div>
-        </div>
-        <div class="ab-order-item">
-          <span class="ab-order-num">03</span>
-          <div class="ab-order-body">
-            <strong>付款 4:5:1 · 3天交付</strong>
-            <span>定金 40% / 交付 50% / 质保 10%，常规需求 3 个工作日内上线演示站</span>
-          </div>
-        </div>
-      </div>
-      <p class="ab-demo">
-        演示账号 <code>demo_player/demo123</code> 可先体验全流程，再谈定制 → <a href="mailto:contact@example.com">contact@example.com</a>
-      </p>
-      <div class="ab-commission-actions">
-        <el-button type="primary" class="btn-hover-lift" @click="$router.push('/pricing')">查看定价方案</el-button>
-        <a href="mailto:contact@example.com" class="ab-mail">商务邮箱 → contact@example.com</a>
-      </div>
-    </section>
-
-    <!-- 联系与支持 -->
+    <!-- 联系 -->
     <section class="ab-contact">
       <div class="ab-contact-col">
         <div class="ab-contact-kicker">CONTACT // 联系</div>
         <h2 class="ab-contact-title">联系我们</h2>
-        <p>Egg Esports 由独立开发者维护。如果你有任何建议、反馈或合作意向，欢迎通过以下方式联系：</p>
+        <p>Egg Esports 是一个开源的电竞赛事预测演示项目。如果你有任何建议或发现问题，欢迎通过 GitHub Issues 反馈。</p>
         <div class="ab-contact-row">
           <el-icon><Message /></el-icon>
-          <span>邮箱：contact@example.com</span>
-        </div>
-      </div>
-      <div class="ab-contact-col ab-donate">
-        <div class="ab-contact-kicker">SUPPORT // 支持</div>
-        <h2 class="ab-contact-title">请作者喝杯咖啡</h2>
-        <p>如果你喜欢这个平台，欢迎支持独立开发（纯自愿，不影响任何功能）</p>
-        <div class="donate-qr">
-          <el-image :src="'/uploads/donate-qr.png'" alt="打赏二维码" class="donate-qr-img" fit="contain">
-            <template #error><span class="img-fallback">二维码</span></template>
-          </el-image>
-          <span class="donate-qr-label">微信扫码打赏</span>
+          <a href="https://github.com/denglizibinghua/egg-esports-open/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
         </div>
       </div>
     </section>
